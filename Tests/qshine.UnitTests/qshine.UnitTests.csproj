@@ -30,12 +30,6 @@
       <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System.Configuration" />
-    <Reference Include="qshine">
-      <HintPath>..\..\qshine\bin\Debug\qshine.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="EnvironmentManagerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -48,6 +42,15 @@
     <Folder Include="mySystemFolder\config\bin\" />
     <Folder Include="mySystemFolder\config\bin\1\" />
     <Folder Include="mySystemFolder\config\bin\1.2\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\qshine\qshine.csproj">
+      <Project>{05162FC4-73A3-4190-A336-568E2289302C}</Project>
+      <Name>qshine</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ConfigurationTests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
