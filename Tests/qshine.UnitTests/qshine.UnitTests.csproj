@@ -5,8 +5,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{35C33326-EFDF-44D2-A247-6CB1B7B37125}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>QShine.Framework.UnitTests</RootNamespace>
-    <AssemblyName>QShine.Framework.UnitTests</AssemblyName>
+    <RootNamespace>qshine.UnitTests</RootNamespace>
+    <AssemblyName>qshine.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -30,6 +30,9 @@
       <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System.Configuration" />
+    <Reference Include="qshine">
+      <HintPath>..\..\qshine\bin\Debug\qshine.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EnvironmentManagerTests.cs" />
@@ -40,12 +43,6 @@
     <None Include="mySystemFolder\config\ioc.config" />
     <None Include="mySystemFolder\config\main.config" />
     <None Include="mySystemFolder\config\bin\1\log4net.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\QShine.Framework\QShine.Framework.csproj">
-      <Project>{05162FC4-73A3-4190-A336-568E2289302C}</Project>
-      <Name>qshine</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="mySystemFolder\config\bin\" />

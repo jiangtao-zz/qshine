@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Security;
 using System.Linq;
-using System.Diagnostics.Contracts;
+using qshine.Configuration;
 
 namespace qshine.Configuration
 {
@@ -249,17 +248,17 @@ namespace qshine.Configuration
 				if (string.IsNullOrEmpty(configFile))
 				{
 					// Get the current configuration file.
-					config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+					config = System.Configuration.ConfigurationManager.OpenExeConfiguration(System.Configuration.ConfigurationUserLevel.None);
 				}
 				else
 				{
-					var fileMap = new ExeConfigurationFileMap { ExeConfigFilename = configFile };
-					config = ConfigurationManager.OpenMappedExeConfiguration(fileMap, ConfigurationUserLevel.None);
+					var fileMap = new System.Configuration.ExeConfigurationFileMap { ExeConfigFilename = configFile };
+					config = System.Configuration.ConfigurationManager.OpenMappedExeConfiguration(fileMap, System.Configuration.ConfigurationUserLevel.None);
 				}
 			}
 			catch (Exception ex)
 			{
-				//Logger.Error("Load config {0} throw an exception {1}", configFile ?? "default", ex.Message);
+				_logger.Error("Load config {0} throw an exception {1}", configFile ?? "default", ex.Message);
 				return _environmentConfigure;
 			}
 
@@ -301,8 +300,8 @@ namespace qshine.Configuration
 							_environmentConfigure.AddEnvironment(environment);
 							//Only load environment related setting
 							if (string.IsNullOrEmpty(environment.Host) ||
-							   environment.Host.ToUpper() == EnvironmentEx.Machine.Name ||
-							   environment.Host == EnvironmentEx.Machine.Ip)
+							    environment.Host == Environment.MachineName ||
+							   environment.Host == EnvironmentEx.MachineIp)
 							{
 								var path = UnifiedPath(environment.Path);
 								if (Directory.Exists(path) && !_environmentConfigure.ConfigureFolders.Contains(path))

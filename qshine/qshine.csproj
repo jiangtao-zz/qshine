@@ -5,8 +5,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{05162FC4-73A3-4190-A336-568E2289302C}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>QShine.Framework</RootNamespace>
-    <AssemblyName>QShine.Framework</AssemblyName>
+    <RootNamespace>qshine</RootNamespace>
+    <AssemblyName>qshine</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -38,6 +38,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -79,6 +80,7 @@
     <Compile Include="Logger\ILogger.cs" />
     <Compile Include="Logger\TraceLogger.cs" />
     <Compile Include="Logger\LoggerBase.cs" />
+    <Compile Include="Utility\EnvironmentEx.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="IoC\" />

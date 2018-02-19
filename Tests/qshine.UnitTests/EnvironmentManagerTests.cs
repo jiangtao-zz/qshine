@@ -1,7 +1,5 @@
 ﻿using NUnit.Framework;
-using System;
 using qshine.Configuration;
-using System.Configuration;
 
 namespace qshine.UnitTests
 {
