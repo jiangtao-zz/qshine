@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{05162FC4-73A3-4190-A336-568E2289302C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>QShine.Framework</RootNamespace>
+    <AssemblyName>QShine.Framework</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <CustomCommands>
+      <CustomCommands>
+        <Command>
+          <type>AfterBuild</type>
+          <command></command>
+        </Command>
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IoC\IIoCContainer.cs" />
+    <Compile Include="IoC\IIoCModule.cs" />
+    <Compile Include="IoC\IoC.cs">
+      <IncludeInPackage>false</IncludeInPackage>
+    </Compile>
+    <Compile Include="IoC\IoCException.cs" />
+    <Compile Include="IoC\IoCImplBase.cs" />
+    <Compile Include="IoC\IoCLifetimeScope.cs" />
+    <Compile Include="Resources\Resource.Designer.cs" />
+    <Compile Include="IoC\TinyIoC\IocTinyIoC.cs" />
+    <Compile Include="IoC\TinyIoC\TinyIoC.cs" />
+    <Compile Include="IoC\IIocProvider.cs" />
+    <Compile Include="Configuration\EnvironmentConfigure.cs" />
+    <Compile Include="Configuration\Setting\ComponentElement.cs" />
+    <Compile Include="Configuration\Setting\ComponentElementCollection.cs" />
+    <Compile Include="Configuration\Setting\ConfigurationElementCollection.cs" />
+    <Compile Include="Configuration\Setting\EnvironmentElement.cs" />
+    <Compile Include="Configuration\Setting\EnvironmentElementCollection.cs" />
+    <Compile Include="Configuration\Setting\EnvironmentSection.cs" />
+    <Compile Include="Configuration\Setting\KeyValueElement.cs" />
+    <Compile Include="Configuration\Setting\KeyValueElementCollection.cs" />
+    <Compile Include="Configuration\Setting\ModuleElementCollection.cs" />
+    <Compile Include="Configuration\Setting\NamedConfigurationElement.cs" />
+    <Compile Include="Configuration\Setting\NamedElementCollection.cs" />
+    <Compile Include="Configuration\Setting\NamedTypeElement.cs" />
+    <Compile Include="Configuration\Setting\NamedValue.cs" />
+    <Compile Include="Configuration\Setting\NamedValueElement.cs" />
+    <Compile Include="Configuration\Setting\ParameterElementCollection.cs" />
+    <Compile Include="Configuration\Setting\SectionHandler.cs" />
+    <Compile Include="Configuration\EnvironmentManager.cs" />
+    <Compile Include="IoC\IProvider.cs" />
+    <Compile Include="Configuration\PlugableComponent.cs" />
+    <Compile Include="Configuration\Setting\PlugableAssembly.cs" />
+    <Compile Include="Logger\ILoggerProvider.cs" />
+    <Compile Include="Logger\Logging.cs" />
+    <Compile Include="Logger\ILogger.cs" />
+    <Compile Include="Logger\TraceLogger.cs" />
+    <Compile Include="Logger\LoggerBase.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="IoC\" />
+    <Folder Include="sampleEnvironment\" />
+    <Folder Include="sampleEnvironment\mySystemFolder\" />
+    <Folder Include="sampleEnvironment\myApplicationFolder\" />
+    <Folder Include="sampleEnvironment\mySystemFolder\config\" />
+    <Folder Include="sampleEnvironment\myApplicationFolder\config\" />
+    <Folder Include="Configuration\Setting\" />
+    <Folder Include="Logger\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Resource.resx" />
+    <None Include="sampleEnvironment\myApplicationFolder\app.config" />
+    <None Include="sampleEnvironment\mySystemFolder\config\ioc.config" />
+    <None Include="sampleEnvironment\mySystemFolder\config\main.config" />
+    <None Include="sampleEnvironment\myApplicationFolder\config\ioc.config" />
+    <None Include="Configuration\Setting\readme.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>
