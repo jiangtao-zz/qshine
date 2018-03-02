@@ -62,7 +62,7 @@ namespace qshine.IoC
         /// <param name="lifetimeOption">Option to manage the life time of IoC instance creation.</param>
         /// <param name="constructorParameters">Optional constructor parameters for class instanciate</param>
         /// <returns>Current container instance</returns>
-		IIoCContainer RegisterType(Type requestedType, Type actualType, string name, IoCLifetimeScope lifetimeOption, params NamedValue[] constructorParameters);
+		IIoCContainer RegisterType(Type requestedType, Type actualType, string name, IoCInstanceScope lifetimeOption, params NamedValue[] constructorParameters);
 
 		/// <summary>
 		/// Register a named requested type (interface) and implementation class type association.
@@ -85,7 +85,7 @@ namespace qshine.IoC
 		/// <param name="actualType">Actual type of implementation class to be instanciated later by Resolve()</param>
 		/// <param name="lifetimeOption">Option to manage the life time of IoC instance creation.</param>
 		/// <param name="constructorParameters">Optional constructor parameters for class instanciate</param>
-        IIoCContainer RegisterType(Type requestedType, Type actualType, IoCLifetimeScope lifetimeOption, params NamedValue[] constructorParameters);
+        IIoCContainer RegisterType(Type requestedType, Type actualType, IoCInstanceScope lifetimeOption, params NamedValue[] constructorParameters);
 
 		/// <summary>
 		/// Register default requested type (interface) and implementation type class association. 
@@ -105,7 +105,7 @@ namespace qshine.IoC
 		/// <param name="lifetimeOption">Option to manage the life time of IoC instance creation.</param>
 		/// <param name="constructorParameters">Optional constructor parameters for class instanciate</param>
 		/// <returns>Current container instance</returns>
-        IIoCContainer RegisterType<IT, T>(string name, IoCLifetimeScope lifetimeOption, params NamedValue[] constructorParameters)
+        IIoCContainer RegisterType<IT, T>(string name, IoCInstanceScope lifetimeOption, params NamedValue[] constructorParameters)
             where IT : class
             where T : class, IT;
 
@@ -129,7 +129,7 @@ namespace qshine.IoC
 		/// <typeparam name="T">Actual type of implementation class to be instanciated later by Resolve()</typeparam>
 		/// <param name="lifetimeOption">Option to manage the life time of IoC instance creation.</param>
 		/// <param name="constructorParameters">Optional constructor parameters for class instanciate</param>
-        IIoCContainer RegisterType<IT, T>(IoCLifetimeScope lifetimeOption, params NamedValue[] constructorParameters)
+        IIoCContainer RegisterType<IT, T>(IoCInstanceScope lifetimeOption, params NamedValue[] constructorParameters)
             where IT : class
             where T : class, IT;
 
@@ -153,7 +153,7 @@ namespace qshine.IoC
 		/// <param name="lifetimeOption">Option to manage the life time of IoC instance creation.</param>
 		/// <param name="constructorParameters">Optional constructor parameters for class instanciate</param>
 		/// <returns>Current container instance</returns>
-        IIoCContainer RegisterType<IT>(Type actualType, string name, IoCLifetimeScope lifetimeOption, NamedValue[] constructorParameters)
+        IIoCContainer RegisterType<IT>(Type actualType, string name, IoCInstanceScope lifetimeOption, NamedValue[] constructorParameters)
             where IT : class;
 
 		/// <summary>
@@ -175,7 +175,7 @@ namespace qshine.IoC
 		/// <param name="actualType">Actual type of implementation class to be instanciated later by Resolve()</param>
 		/// <param name="lifetimeOption">Option to manage the life time of IoC instance creation.</param>
 		/// <param name="constructorParameters">Optional constructor parameters for class instanciate</param>
-        IIoCContainer RegisterType<IT>(Type actualType, IoCLifetimeScope lifetimeOption, NamedValue[] constructorParameters)
+        IIoCContainer RegisterType<IT>(Type actualType, IoCInstanceScope lifetimeOption, NamedValue[] constructorParameters)
             where IT : class;
 
 		/// <summary>
@@ -246,7 +246,19 @@ namespace qshine.IoC
         /// <summary>
         /// Get/Set default IoC life time scope for an instance get from container
         /// </summary>
-		IoCLifetimeScope DefaultLifetimeScope {get;set;}
+		IoCInstanceScope DefaultInstanceScope {get;set;}
+
+		/// <summary>
+		/// Bind the container life time scope to current context. 
+		/// The life time scope will hold disposable objects reference and release them when the context life time scope end.
+		/// </summary>
+		void Bind();
+
+		/// <summary>
+		/// Unbound the life time scope from current context.
+		/// It will release all bound disposable objects.
+		/// </summary>
+		void Unbind();
 
     }
 }

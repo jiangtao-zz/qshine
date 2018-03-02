@@ -10,6 +10,7 @@ namespace qshine.Configuration
 		IDictionary<string, NamedTypeElement> _moduleConfigure = new Dictionary<string, NamedTypeElement>();
 		IDictionary<string, string> _keyValues = new Dictionary<string, string>();
 
+
 		/// <summary>
 		/// The configure folders contains all configure files to be used by the application.
 		/// </summary>

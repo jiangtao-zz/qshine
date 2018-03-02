@@ -11,8 +11,9 @@ applicationWorkingFolder (console/form/web):
       |
       |--- app.config (or web.config)					//application level configure file. (0 level configure file, not necessary)
       |---config/ 										//1 level configuration folder (default configure folder)
-            |----config1.config							//1 level configuration file. it may contain level 2 config folder
-            |----config2.config							//1 level configuration file
+            |----config11.config						//1 level configuration file. it may contain level 2 config folder
+            |----config12.config						//1 level configuration file
+            |----singleConfig.config					//1 level configuration file only load once
             |----bin/									//1 level bin folder
                   |--commonDll1.dll						//1 level common dll file
                   |--commonDll2.dll						//1 level common dll file
@@ -23,8 +24,9 @@ applicationWorkingFolder (console/form/web):
                   |   |---version 5.71 dlls 
 
 level2ConfigFolder/										//2 level configuration folder
-            |----config1.config							//2 level configuration file. It may contain level 2 config folder
-            |----config2.config							//2 level configuration file
+            |----config21.config						//2 level configuration file. It may contain level 3 config folder
+            |----config22.config						//2 level configuration file
+            |----singleConfig.config					//2 level configuration file will not be loaded if same named configure file already loaded from previous level
             |----bin/									//2 level bin folder
                   |--commonDll1.dll						//2 level common dll file
                   |--commonDll2.dll						//2 level common dll file
@@ -35,8 +37,9 @@ level2ConfigFolder/										//2 level configuration folder
                   |   |---version 5.7.1 dlls 
 
 level3ConfigFolder/										//3 level configuration folder
-            |----config1.config							//3 level configuration file
-            |----config2.config							//3 level configuration file
+            |----config31.config						//3 level configuration file
+            |----config32.config						//3 level configuration file
+            |----singleConfig.config					//3 level configuration file will not be loaded if same named configure file already loaded from previous level
             |----bin/									//3 level bin folder
                   |--commonDll1.dll						//3 level common dll file
                   |--commonDll2.dll						//3 level common dll file

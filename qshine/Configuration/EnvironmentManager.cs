@@ -11,85 +11,128 @@ namespace qshine.Configuration
 {
 	public class EnvironmentManager
 	{
+		/// <summary>
+		/// Gets the provider.
+		/// </summary>
+		/// <returns>The provider.</returns>
+		/// <typeparam name="T">The 1st type parameter.</typeparam>
 		public static T GetProvider<T>()
 		where T:class,IProvider
 		{
+			return GetProvider(typeof(T)) as T;
+		}
+
+		/// <summary>
+		/// Gets the provider.
+		/// </summary>
+		/// <returns>The provider.</returns>
+		/// <param name="providerInterface">Provider interface.</param>
+		public static IProvider GetProvider(Type providerInterface)
+		{
+			PlugableComponent providerComponent=null;
+			foreach (var component in _environmentConfigure.Components)
+			{
+				if (component.Value.InterfaceType.Name == providerInterface.Name)
+				{
+					providerComponent = component.Value;
+					break;
+				}
+			}
+
+			if(providerComponent!=null)
+			{
+				var type = providerComponent.ClassType;
+				if (type == null) return null;
+
+				var parameters = providerComponent.Parameters.Values.ToArray();
+				var instance = Activator.CreateInstance(type,parameters);
+				return instance as IProvider;
+			}
 			return null;
 		}
 
-		public static IProvider GetProvider(Type providerInterface)
+		/// <summary>
+		/// Gets the first config file path searching through all config folders.
+		/// </summary>
+		/// <returns>The config file path if any or null.</returns>
+		/// <param name="configFileName">Config file name.</param>
+		public static string GetConfigFilePathIfAny(string configFileName)
 		{
-/*			if (_availableProvider.ContainsKey(providerInterface))
+			if (string.IsNullOrWhiteSpace(configFileName))
 			{
-				return _availableProvider[providerInterface];
+				return null;
 			}
-*/			return null;
+			var fileName = configFileName.ToLower();
+			if (_configFiles.ContainsKey(fileName))
+			{
+				return _configFiles[fileName];
+			}
+			return null;
 		}
 
-/*				static void LoadProviders()
-				{
-
-					foreach (var component in _environmentConfigure.Components)
-					{
-						//var provider = component.Value. as IProvider;
-						//if(
-					}
-
-				}
-				static bool _hasInitialized;
-				static void Initialize()
-				{
-					if (_hasInitialized) return;
-
-					lock (_initLock)
-					{
-						if (_hasInitialized) return;
-						//Load configure setting
-						LoadConfig();
-						//Load provider
-						LoadProviders();
-						_hasInitialized = true;
-					}
-				}
-		*/
-
-		static EnvironmentManager _environmentManager;
-		static object _initLock = new object();
-
 		/// <summary>
-		/// Gets or sets the current Environment Manager.
+		/// Gets the configure.
 		/// </summary>
-		/// <value>The current.</value>
-		public static EnvironmentManager Current
+		/// <value>The configure.</value>
+		public static EnvironmentConfigure Configure
 		{
 			get
 			{
-				if (_environmentManager == null)
-				{
-					lock (_initLock)
-					{
-						if (_environmentManager == null)
-						{
-							_environmentManager = new EnvironmentManager();
-						}
-					}
-				}
-				return _environmentManager;
+				return _environmentConfigure;
 			}
-			set
+		}
+
+		/// <summary>
+		/// Gets the assembly maps.
+		/// </summary>
+		/// <value>The assembly maps.</value>
+		public static IDictionary<string, PlugableAssembly> AssemblyMaps
+		{
+			get
 			{
-				_environmentManager = value;
+				return _assemblyMaps;
 			}
+		}
+
+
+		#region privates methods/properties
+
+		static ILogger _sysLogger;
+		static EnvironmentConfigure _environmentConfigure;
+		static IDictionary<string, PlugableAssembly> _assemblyMaps;
+		static IDictionary<string, string> _configFiles;
+
+		/// <summary>
+		/// Initializes the <see cref="T:qshine.Configuration.EnvironmentManager"/> class when access any EnvironmentManager proeprty or method.
+		/// </summary>
+		static EnvironmentManager()
+		{
+			Log.DevDebug("EnvironmentManager.ctor begin");
+
+			//Initial variables
+			_environmentConfigure = new EnvironmentConfigure();
+			_assemblyMaps = new Dictionary<string, PlugableAssembly>();
+			_configFiles = new Dictionary<string, string>();
+			_sysLogger = Log.SysLogger;
+
+
+			//Load configure setting
+			LoadConfig();
+			//Load binary setting
+			LoadBinary();
+			//Set application assembly resolver
+			SetAssemblyResolve();
+			//Load type from binary assembly
+			LoadComponents();
+
+			Log.DevDebug("EnvironmentManager.ctor end");
 		}
 
 		[SecuritySafeCritical]
-		static void Initialize_Application()
+		static void SetAssemblyResolve()
 		{
-			AppDomain.CurrentDomain.AssemblyResolve += LookupAssembly;
+			AppDomain.CurrentDomain.AssemblyResolve += ApplicationAssemblyResolve;
 		}
-
-
-		static object lockObject = new object();
 
 		/// <summary>
 		/// Resolve assembly location when lookup type by a qualified type name.
@@ -97,7 +140,7 @@ namespace qshine.Configuration
 		/// <param name="sender"></param>
 		/// <param name="args"></param>
 		/// <returns></returns>
-		static Assembly LookupAssembly(object sender, ResolveEventArgs args)
+		static Assembly ApplicationAssemblyResolve(object sender, ResolveEventArgs args)
 		{
 			// Ignore missing resources
 			if (args.Name.Contains(".resources")) return null;
@@ -108,10 +151,10 @@ namespace qshine.Configuration
 
 			var assemblyName = assemblyParts[0];
 
-			if (EnvironmentManager.Current.AssemblyMaps.ContainsKey(assemblyName) && EnvironmentManager.Current.AssemblyMaps[assemblyName].Assembly != null)
+			if (_assemblyMaps.ContainsKey(assemblyName) && _assemblyMaps[assemblyName].Assembly != null)
 			{
 				// check for assemblies already loaded by the framework
-				return EnvironmentManager.Current.AssemblyMaps[assemblyName].Assembly;
+				return _assemblyMaps[assemblyName].Assembly;
 			}
 
 
@@ -124,82 +167,51 @@ namespace qshine.Configuration
 			//Add loaded assembly in the list
 			if (assembly != null)
 			{
-				lock (lockObject)
-				{
-					EnvironmentManager.Current.AssemblyMaps[assemblyName] = new PlugableAssembly { Assembly = assembly };
-					//Logger.SystemDebug(string.Format("Loaded from AppDomain assembly {0}", assemby.FullName));
-				}
+				_assemblyMaps[assemblyName] = new PlugableAssembly { Assembly = assembly };
+				Log.SysLogger.Debug("Loaded from AppDomain assembly {0}", assembly.FullName);
 			}
 			else
 			{
 
 				//Try to load assembly from different configured folders
-				if (EnvironmentManager.Current.AssemblyMaps.ContainsKey(assemblyName))
+				if (_assemblyMaps.ContainsKey(assemblyName))
 				{
 					//Assembly already loaded 
-					if (EnvironmentManager.Current.AssemblyMaps[assemblyName].Assembly != null)
+					if (_assemblyMaps[assemblyName].Assembly != null)
 					{
-						return EnvironmentManager.Current.AssemblyMaps[assemblyName].Assembly;
+						return _assemblyMaps[assemblyName].Assembly;
 					}
 
-					lock (lockObject)
-					{
-
-						assembly = Assembly.LoadFrom(EnvironmentManager.Current.AssemblyMaps[assemblyName].Path);
-
-						EnvironmentManager.Current.AssemblyMaps[assemblyName].Assembly = assembly;
-					}
+					assembly = Assembly.LoadFrom(_assemblyMaps[assemblyName].Path);
+					_assemblyMaps[assemblyName].Assembly = assembly;
+				}
+				else {
+					//Couldn't find assembly
+					_sysLogger.Warn("Couldn't find assembly {0}", assemblyName);
 				}
 			}
-			//			else {
-			//Couldn't find assembly
-			//Logger.SystemDebug(string.Format("==> no assembly found in list matching {0}", justAssemblyName));
-			//			}
 
 			return assembly;
 		}
 
 
-
-		EnvironmentConfigure _environmentConfigure = new EnvironmentConfigure();
-		IDictionary<string, PlugableAssembly> _assemblyMaps = new Dictionary<string, PlugableAssembly>();
-
-		ILogger _logger;
-
-		public EnvironmentManager()
+		static void LoadComponents()
 		{
-			_logger = Logger.GetLogger<EnvironmentManager>();
-			//Load configure setting
-			LoadConfig();
-			LoadBinary();
-			LoadComponents();
-		}
+			Log.DevDebug("EnvironmentManager.LoadComponents begin");
 
-		public EnvironmentConfigure EnvironmentConfigure {
-			get{
-				return _environmentConfigure;
-			}
-		}
-
-		public IDictionary<string, PlugableAssembly> AssemblyMaps
-		{
-			get
-			{
-				return _assemblyMaps;
-			}
-		}
-
-
-		private void LoadComponents()
-		{
 			foreach (var c in _environmentConfigure.Components)
 			{
 				SafeLoadType(c.Value);
 			}
+
+			Log.DevDebug("EnvironmentManager.LoadComponents end");
+
 		}
 
-		private void SafeLoadType(PlugableComponent component)
+		static void SafeLoadType(PlugableComponent component)
 		{
+			Log.DevDebug("EnvironmentManager.SafeLoadType begin {0}",component.FormatObjectValues());
+
 			string typeName=string.Empty;
 			try
 			{
@@ -207,15 +219,46 @@ namespace qshine.Configuration
 				component.InterfaceType = Type.GetType(component.InterfaceTypeName);
 				typeName = component.ClassTypeName;
 				component.ClassType = Type.GetType(component.ClassTypeName);
+
+				if (component.ClassType == null)
+				{
+					//This should not happen. Just in case type cannot be resolved by previous assembly_resolver, need load type from assembly directly
+					var assemblyNameParts = component.ClassTypeName.Split(',');
+					if (assemblyNameParts.Length > 1)
+					{
+						var assemblyName = assemblyNameParts[1].Trim();
+						var typeNameOnly = assemblyNameParts[0].Trim();
+						if (_assemblyMaps.ContainsKey(assemblyName))
+						{
+							var assembly = _assemblyMaps[assemblyName].Assembly;
+							if (assembly != null)
+							{
+								component.ClassType = assembly.GetType(typeNameOnly, true);
+							}
+						}
+					}
+				}
+				if (component.InterfaceType == null)
+				{
+					_sysLogger.Error("Invalid interface type [{0}].", component.InterfaceTypeName);
+				}
+				if (component.ClassType == null)
+				{
+					_sysLogger.Error("Invalid class type [{0}].", component.ClassTypeName);
+				}
 			}
 			catch (Exception ex)
 			{
-				_logger.Error("Load component type [{0}] error. {1}", typeName, ex.Message);
+				_sysLogger.Error("Load component type [{0}] error. {1}", typeName, ex.Message);
 			}
+
+			Log.DevDebug("EnvironmentManager.SafeLoadType end");
 		}
 
-		private void LoadBinary()
+		static void LoadBinary()
 		{
+			Log.DevDebug("EnvironmentManager.LoadBinary begin");
+
 			foreach (var binPath in _environmentConfigure.AssemblyFolders)
 			{
 				if (Directory.Exists(binPath))
@@ -233,6 +276,9 @@ namespace qshine.Configuration
 					}
 				}
 			}
+
+			Log.DevDebug("EnvironmentManager.LoadBinary end");
+
 		}
 
 		/// <summary>
@@ -240,8 +286,10 @@ namespace qshine.Configuration
 		/// 
 		/// </summary>
 		/// <param name="configFile">Config file. The default is application domain configuration file: app.config or web.config</param>
-		private EnvironmentConfigure LoadConfig(string configFile = null)
+		static EnvironmentConfigure LoadConfig(string configFile = null)
 		{
+			Log.DevDebug("EnvironmentManager.LoadConfig begin");
+			
 			System.Configuration.Configuration config;
 			try
 			{
@@ -252,13 +300,21 @@ namespace qshine.Configuration
 				}
 				else
 				{
+					var fileName = Path.GetFileName(configFile).ToLower();
+					if (_configFiles.ContainsKey(fileName))
+					{
+						//Do not load the file if it already loaded
+						return _environmentConfigure;
+					}
+					_configFiles.Add(fileName, configFile);
+
 					var fileMap = new System.Configuration.ExeConfigurationFileMap { ExeConfigFilename = configFile };
 					config = System.Configuration.ConfigurationManager.OpenMappedExeConfiguration(fileMap, System.Configuration.ConfigurationUserLevel.None);
 				}
 			}
 			catch (Exception ex)
 			{
-				_logger.Error("Load config {0} throw an exception {1}", configFile ?? "default", ex.Message);
+				Log.SysLogger.Error("Load config {0} throw an exception {1}", configFile ?? "default", ex.Message);
 				return _environmentConfigure;
 			}
 
@@ -325,12 +381,17 @@ namespace qshine.Configuration
 					}
 				}
 			}
+
+			Log.DevDebug("EnvironmentManager.LoadConfig end");
+
 			return _environmentConfigure;
 		}
 
-		string[] _versionPaths;
-		void SetBinaryFolders(string path)
+		static void SetBinaryFolders(string path)
 		{
+			Log.DevDebug("EnvironmentManager.SetBinaryFolders begin {0}", path);
+
+
 			var binFolder = Path.Combine(Path.GetFullPath(path),"bin");
 			                             
 			if (Directory.Exists(binFolder) && !_environmentConfigure.AssemblyFolders.Contains(binFolder))
@@ -342,12 +403,18 @@ namespace qshine.Configuration
 					if (Directory.Exists(versionPath) && !_environmentConfigure.AssemblyFolders.Contains(versionPath))
 					{
 						_environmentConfigure.AssemblyFolders.Add(versionPath);
+
+						Log.DevDebug("EnvironmentManager.SetBinaryFolders version path {0} found",versionPath);
 						break;
 					}
 				}
 			}
+
+			Log.DevDebug("EnvironmentManager.SetBinaryFolders end");
+
 		}
 
+		static string[] _versionPaths;
 		/// <summary>
 		/// Get framework version paths.
 		/// bin/4
@@ -355,7 +422,7 @@ namespace qshine.Configuration
 		/// bin/471
 		/// </summary>
 		/// <returns>The version paths.</returns>
-		public string[] FrameworkVersionPaths()
+		static string[] FrameworkVersionPaths()
 		{
 			if (_versionPaths == null)
 			{
@@ -375,10 +442,13 @@ namespace qshine.Configuration
 			return _versionPaths;
 		}
 
-		string UnifiedPath(string path)
+		static string UnifiedPath(string path)
 		{
 			return Path.GetFullPath(path);
 		}
+
+		#endregion
+	
 	}
 
 }

@@ -19,6 +19,12 @@ namespace qshine.IoC
     ///   Step 2: Register all types that need be used by DI. The best place doing this is in application initialization.
     ///   
     ///   Step 3: Call Resolve() to get the instance for particular type of class which is registered early.
+	/// 
+	///   To auto release the instances created by IoC container you can use following technique:
+	/// 	IoC.Bind(httpContext);
+	/// 	IoC.Unbind(httpContext);
+	/// 
+	/// or iocContainer.Bind(httpContext)/Unbind(httpContext;
     ///   
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Io")]
@@ -33,41 +39,43 @@ namespace qshine.IoC
 		private static object _containerLockObject = new Object();
 		private static IIoCContainer _container;
 
-		private static IoCLifetimeScope defaultLifetimeScope = IoCLifetimeScope.Transient;
+		private static IoCInstanceScope _defaultInstanceScope = IoCInstanceScope.Transient;
 
         #endregion
 
 		#region Get/Set default lifetime scope
 		/// <summary>
-		/// get/set global level default lifetime scope for container
+		/// get/set default insatnce scope
 		/// </summary>
-		public static IoCLifetimeScope DefaultLifetimeScope
+		public static IoCInstanceScope DefaultInstanceScope
 		{
 			get
 			{
-				return defaultLifetimeScope;
+				return _defaultInstanceScope;
 			}
 			set
 			{
-				defaultLifetimeScope = value;
-				Current.DefaultLifetimeScope = value;
+				_defaultInstanceScope = value;
+				Current.DefaultInstanceScope = value;
 			}
 		}
 		#endregion
 
 
-        #region Container provider
+		#region Container provider
 
-
+		static IIoCProvider _internalIoCProvider = new TinyIoCProvider();
+		/// <summary>
+		/// Gets or sets IoC provider.
+		/// </summary>
+		/// <value>The provider.</value>
 		public static IIoCProvider Provider{
 			get{
 				if(_provider==null){
 					lock(_providerLockObject){
-						if(_provider==null){
-							_provider = EnvironmentManager.GetProvider(typeof(IIoCProvider)) as IIoCProvider;
-							if(_provider==null){
-								_provider = new TinyIoCProvider();
-							}
+						if(_provider==null || _provider == _internalIoCProvider){
+							//try to load a plugable IoC provider
+							_provider = EnvironmentManager.GetProvider<IIoCProvider>()??_internalIoCProvider;
 						}
 					}
 				}
@@ -77,7 +85,6 @@ namespace qshine.IoC
 				_provider = value;
 			}
 		}
-
 
         #endregion
                 
@@ -130,18 +137,18 @@ namespace qshine.IoC
             return Current.RegisterType<IT, T>(name);
         }
 
-        static public IIoCContainer RegisterType<IT, T>(IoCLifetimeScope lifetimeScope)
+        static public IIoCContainer RegisterType<IT, T>(IoCInstanceScope instanceScope)
             where IT : class
             where T : class, IT
         {
-            return Current.RegisterType<IT, T>(lifetimeScope);
+            return Current.RegisterType<IT, T>(instanceScope);
         }
 
-        static public IIoCContainer RegisterType<IT, T>(string name, IoCLifetimeScope lifetimeScope)
+        static public IIoCContainer RegisterType<IT, T>(string name, IoCInstanceScope instanceScope)
             where IT : class
             where T : class, IT
         {
-            return Current.RegisterType(typeof(IT),typeof(T),name,lifetimeScope);
+            return Current.RegisterType(typeof(IT),typeof(T),name,instanceScope);
         }
 
         #endregion

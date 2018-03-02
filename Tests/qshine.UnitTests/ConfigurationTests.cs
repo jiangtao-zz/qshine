@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using qshine.Configuration;
+using qshine.IoC;
 
 namespace qshine.UnitTests
 {
@@ -9,10 +10,12 @@ namespace qshine.UnitTests
 		[Test()]
 		public void LoadConfig_Default_File()
 		{
-			var configure = EnvironmentManager.Current.EnvironmentConfigure;
+			Log.SysLogger.Info("LoadConfig_Default_File Start..");
 
-			Assert.AreEqual("../../mySystemFolder/config", configure.Environments["top"].Path);
-			Assert.AreEqual("", configure.Environments["top"].Host);
+			var configure = EnvironmentManager.Configure;
+
+			Assert.AreEqual("d:\\qshine.root\\config", configure.Environments["root"].Path);
+			Assert.AreEqual("", configure.Environments["root"].Host);
 			Assert.AreEqual("mySystemFolder/QA_config", configure.Environments["qa"].Path);
 			Assert.AreEqual("202.22.22.22", configure.Environments["qa"].Host);
 			Assert.AreEqual("mySystemFolder/UA_config", configure.Environments["ua"].Path);
@@ -22,7 +25,17 @@ namespace qshine.UnitTests
 			Assert.IsTrue(configure.ConfigureFolders.Count > 0);
 			Assert.IsTrue(configure.AssemblyFolders.Count > 0);
 
-			Assert.IsTrue(EnvironmentManager.Current.AssemblyMaps["log4net"].Path.Contains("log4net.dll"));
+			Assert.IsTrue(EnvironmentManager.AssemblyMaps["log4net"].Path.Contains("log4net.dll"));
+			Assert.IsTrue(EnvironmentManager.AssemblyMaps["Autofac"].Path.Contains("Autofac.dll"));
+
+			Log.SysLogger.Info("LoadConfig_Default_File End");
+
+		}
+		[Test()]
+		public void App_init()
+		{
+			var iocProvider = EnvironmentManager.GetProvider<IIoCProvider>();
+			Assert.IsNotNull(iocProvider);
 
 		}
 	}

@@ -7,6 +7,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9815AB74
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.UnitTests", "Tests\qshine.UnitTests\qshine.UnitTests.csproj", "{35C33326-EFDF-44D2-A247-6CB1B7B37125}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "qshine.extension", "qshine.extension", "{CCF4C5FB-952E-4D9B-B081-B9D693A56276}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.ioc.autofac", "qshine.extension\qshine.ioc.autofac\qshine.ioc.autofac.csproj", "{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D82665D7-65D6-4788-A427-DCC973C267B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.ioc.autofac.UnitTests", "qshine.extension\qshine.ioc.autofac.UnitTests\qshine.ioc.autofac.UnitTests.csproj", "{791CE255-66C3-4D07-8DF5-93654E3141B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.log.nlog", "qshine.extension\qshine.log.nlog\qshine.log.nlog.csproj", "{77E94174-61DC-4BBD-8F4F-48F6F14E1D98}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +31,24 @@ Global
 		{35C33326-EFDF-44D2-A247-6CB1B7B37125}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35C33326-EFDF-44D2-A247-6CB1B7B37125}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35C33326-EFDF-44D2-A247-6CB1B7B37125}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{791CE255-66C3-4D07-8DF5-93654E3141B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{791CE255-66C3-4D07-8DF5-93654E3141B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{791CE255-66C3-4D07-8DF5-93654E3141B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{791CE255-66C3-4D07-8DF5-93654E3141B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77E94174-61DC-4BBD-8F4F-48F6F14E1D98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77E94174-61DC-4BBD-8F4F-48F6F14E1D98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77E94174-61DC-4BBD-8F4F-48F6F14E1D98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77E94174-61DC-4BBD-8F4F-48F6F14E1D98}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{35C33326-EFDF-44D2-A247-6CB1B7B37125} = {9815AB74-82AC-463A-B740-B1D78CE5E6FA}
+		{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60} = {CCF4C5FB-952E-4D9B-B081-B9D693A56276}
+		{D82665D7-65D6-4788-A427-DCC973C267B0} = {CCF4C5FB-952E-4D9B-B081-B9D693A56276}
+		{791CE255-66C3-4D07-8DF5-93654E3141B7} = {D82665D7-65D6-4788-A427-DCC973C267B0}
+		{77E94174-61DC-4BBD-8F4F-48F6F14E1D98} = {CCF4C5FB-952E-4D9B-B081-B9D693A56276}
 	EndGlobalSection
 EndGlobal

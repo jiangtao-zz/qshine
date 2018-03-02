@@ -42,5 +42,11 @@ namespace qshine
 		/// <value>The parameters.</value>
 		public IDictionary<string, string> Parameters { get { return _parameters; } }
 
+		/// <summary>
+		/// Indicates whether the component has been registered and ready
+		/// </summary>
+		/// <value><c>true</c> if is registered; otherwise, <c>false</c>.</value>
+		public bool hasRegistered { get; set; }
+
 	}
 }

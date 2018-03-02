@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<resheader name="resmimetype">
+		<value>text/microsoft-resx</value>
+	</resheader>
+	<resheader name="version">
+		<value>2.0</value>
+	</resheader>
+	<resheader name="reader">
+		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+	</resheader>
+	<resheader name="writer">
+		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+	</resheader>
+	<data name="IoCExceptionProviderNotFound" xml:space="preserve">
+	<value>The IoC provider {0} is not found.</value>
+	</data>
+	<data name="IoCExceptionRegisterMessage" xml:space="preserve">
+	<value>IoC error occured while trying register a type {0}.</value>
+	</data>
+	<data name="IoCExceptionRegisterModuleMessage" xml:space="preserve">
+	<value>IoC error occurred while trying to register a module.</value>
+	</data>
+	<data name="IoCExceptionRegisterNameMessage" xml:space="preserve">
+	<value>IoC error occured while trying register a type {0} with a name {1}.</value>
+	</data>
+	<data name="IoCExceptionRegisterSectionFirstMessage" xml:space="preserve">
+	<value>Castle Windsor configuration registration should be done earlier than  any other type registration.</value>
+	</data>
+	<data name="IoCExceptionRegisterSectionMessage" xml:space="preserve">
+	<value>IoC error occured while trying to register types through a XML configuration section {0}. </value>
+	</data>
+	<data name="IoCExceptionResolveAllMessage" xml:space="preserve">
+	<value>IoC error occured while trying to resolve all registered type {0}.</value>
+	</data>
+	<data name="IoCExceptionResolveMessage" xml:space="preserve">
+	<value>IoC error occured while trying to resolve type {0}.</value>
+	<comment>Message while trying call IoC Resolve() method.</comment>
+	</data>
+	<data name="IoCExceptionResolveNamedMessage" xml:space="preserve">
+	<value>IoC error occured while trying to resolve type {0} with a specific name {1}.</value>
+	</data>
+	<data name="SectionNotFound" xml:space="preserve">
+	<value>The section {0} is not found. Check the section name and section handler type.</value>
+	</data>
+	<data name="TypeNotFound" xml:space="preserve">
+	<value>The type {0} is not found.</value>
+	</data>
+	
+</root>

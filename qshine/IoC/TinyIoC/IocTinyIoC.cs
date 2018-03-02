@@ -21,7 +21,7 @@ namespace qshine.IoC
     /// Native interface:
     ///     public TinyIoCContainer TinyContainer
     /// </summary>
-    public class IoCTinyIoC : IoCImplBase
+	public class IoCTinyIoC : IoCContainerBase
     {
         #region internal class
         internal sealed class NamedIoCType
@@ -106,9 +106,7 @@ namespace qshine.IoC
                     {
                         return container.Resolve(interfaceType,overloadParameter);
                     }
-                    else{
-                        return container.Resolve(interfaceType);
-                    }
+                    return container.Resolve(interfaceType);
                 }
                 catch (Exception ex)
                 {
@@ -125,9 +123,7 @@ namespace qshine.IoC
                     {
                         return container.Resolve(interfaceType,name,overloadParameter);
                     }
-                    else{
-                        return container.Resolve(interfaceType, name);
-                    }
+                    return container.Resolve(interfaceType, name);
                 }
                 catch (Exception ex)
                 {
@@ -142,7 +138,7 @@ namespace qshine.IoC
         #endregion
 
         #region RegisterType
-        public override IIoCContainer RegisterType(Type requestedType, Type actualType, string name, IoCLifetimeScope lifetimeOption, params NamedValue[] constructorParameters)
+		public override IIoCContainer RegisterType(Type requestedType, Type actualType, string name, IoCInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
         {
             if (name == null)
             {
@@ -151,7 +147,7 @@ namespace qshine.IoC
 
             try
             {
-                if (constructorParameters.Length > 0 && lifetimeOption == IoCLifetimeScope.Singleton)
+                if (constructorParameters.Length > 0 && instanceScopeOption == IoCInstanceScope.Singleton)
                 {
                     //The TinyIoC do not support singleton parameter constructor
                     //we need implement one for it.
@@ -195,7 +191,7 @@ namespace qshine.IoC
                     {
                         typeWithCtorParameters.Add(new NamedIoCType(requestedType, name), constructorParameters);
                     }
-                    this.SetLifetimeScope(container.Register(requestedType, actualType, name), lifetimeOption);
+                    this.SetInstanceScope(container.Register(requestedType, actualType, name), instanceScopeOption);
                 }
                 return this;
             }
@@ -240,20 +236,15 @@ namespace qshine.IoC
         
         #region Private
 
-        private void SetLifetimeScope(TinyIoCContainer.RegisterOptions instanceScope, IoCLifetimeScope lifetimeOption)
+        private void SetInstanceScope(TinyIoCContainer.RegisterOptions instanceScope, IoCInstanceScope instanceScopeOption)
         {
-            //Force life time scope option to be Singleton when the web environment is unavaliable.
-            if (lifetimeOption == IoCLifetimeScope.HttpRequest && !EnvironmentEx.IsWebApplication)
-            {
-				lifetimeOption = IoCLifetimeScope.Transient;
-            }
 
-            switch (lifetimeOption)
+            switch (instanceScopeOption)
             {
-                case IoCLifetimeScope.Singleton:
+                case IoCInstanceScope.Singleton:
                     instanceScope.AsSingleton();
                     break;
-                case IoCLifetimeScope.Transient:
+                case IoCInstanceScope.Transient:
                     instanceScope.AsMultiInstance();
                     break;
                 default:
@@ -261,111 +252,119 @@ namespace qshine.IoC
             }
         }
 
-        //private object InvokeGenericRegisterInstance(Type requestedType, object instance, string name)
-        //{
-        //    if (string.IsNullOrEmpty(name))
-        //    {
-        //        return InvokeGenericMethod(container, "Register", new string[] { "RegisterType" },
-        //            new Type[] { requestedType },
-        //            new Type[] { instance.GetType()}, new object[] { instance});
-        //    }
-        //    else
-        //    {
-        //        return InvokeGenericMethod(container, "Register", new string[] { "RegisterType" },
-        //            new Type[] { requestedType },
-        //            new Type[] { instance.GetType(), typeof(string) }, new object[] { instance, name });
-        //    }
-        //}
-        
-        #endregion
+		public override void Bind()
+		{
+		}
 
-        //#region Special private
-        ////This class in for TinyIoC only, 
-        ////it should be remove if TinyIoC has Register(Type,Type) method available
-        //public object InvokeGenericMethod(object instance, string methodName, string[] genericTypeNames, Type[] genericTypes, Type[] parameterTypes, object[] parameters) 
-        //{
-        //    Type type = instance.GetType();
+		public override void Unbind()
+		{
+		}
 
-        //    MethodInfo invokeMethod = (from method in type.GetMethods()
-        //                  where method.Name == methodName 
-        //                        && method.IsGenericMethodDefinition
-        //                  let methodParameters = method.GetParameters()
-        //                  where methodParameters.Length == parameterTypes.Length
-        //                        && MatchTypes(methodParameters, parameterTypes, genericTypeNames, genericTypes)
-        //                  let genericArguments = method.GetGenericArguments()
-        //                    where genericArguments.Length == genericTypeNames.Length
-        //                        && MatchTypes(genericArguments, genericTypeNames)
-        //                            select method).SingleOrDefault <MethodInfo>()
-        //                  ;
-        //    if (invokeMethod!=null)
-        //    {
-        //        return invokeMethod.MakeGenericMethod(genericTypes)
-        //            .Invoke(instance, parameters);
-        //    }
-        //    else
-        //    {
-        //        throw new ArgumentNullException("method is not found.");
-        //    }
-        //}
+		//private object InvokeGenericRegisterInstance(Type requestedType, object instance, string name)
+		//{
+		//    if (string.IsNullOrEmpty(name))
+		//    {
+		//        return InvokeGenericMethod(container, "Register", new string[] { "RegisterType" },
+		//            new Type[] { requestedType },
+		//            new Type[] { instance.GetType()}, new object[] { instance});
+		//    }
+		//    else
+		//    {
+		//        return InvokeGenericMethod(container, "Register", new string[] { "RegisterType" },
+		//            new Type[] { requestedType },
+		//            new Type[] { instance.GetType(), typeof(string) }, new object[] { instance, name });
+		//    }
+		//}
+
+		#endregion
+
+		//#region Special private
+		////This class in for TinyIoC only, 
+		////it should be remove if TinyIoC has Register(Type,Type) method available
+		//public object InvokeGenericMethod(object instance, string methodName, string[] genericTypeNames, Type[] genericTypes, Type[] parameterTypes, object[] parameters) 
+		//{
+		//    Type type = instance.GetType();
+
+		//    MethodInfo invokeMethod = (from method in type.GetMethods()
+		//                  where method.Name == methodName 
+		//                        && method.IsGenericMethodDefinition
+		//                  let methodParameters = method.GetParameters()
+		//                  where methodParameters.Length == parameterTypes.Length
+		//                        && MatchTypes(methodParameters, parameterTypes, genericTypeNames, genericTypes)
+		//                  let genericArguments = method.GetGenericArguments()
+		//                    where genericArguments.Length == genericTypeNames.Length
+		//                        && MatchTypes(genericArguments, genericTypeNames)
+		//                            select method).SingleOrDefault <MethodInfo>()
+		//                  ;
+		//    if (invokeMethod!=null)
+		//    {
+		//        return invokeMethod.MakeGenericMethod(genericTypes)
+		//            .Invoke(instance, parameters);
+		//    }
+		//    else
+		//    {
+		//        throw new ArgumentNullException("method is not found.");
+		//    }
+		//}
 
 
-        //private bool MatchTypes(Type[] genericTypes, string[] targetNames)
-        //{
-        //    for (int i = 0; i < genericTypes.Length; i++)
-        //    {
-        //        if (!genericTypes[i].Name.Equals(targetNames[i], StringComparison.InvariantCultureIgnoreCase))
-        //        {
-        //            return false;
-        //        }
-        //    }
-        //    return true;
-        //}
+		//private bool MatchTypes(Type[] genericTypes, string[] targetNames)
+		//{
+		//    for (int i = 0; i < genericTypes.Length; i++)
+		//    {
+		//        if (!genericTypes[i].Name.Equals(targetNames[i], StringComparison.InvariantCultureIgnoreCase))
+		//        {
+		//            return false;
+		//        }
+		//    }
+		//    return true;
+		//}
 
-        //private bool MatchTypes(ParameterInfo[] source, Type[] target,string[] genericTypeNames, Type[] genericTypes)
-        //{
-        //    for (int i = 0; i < source.Length; i++)
-        //    {
-        //        if(source[i].ParameterType.IsGenericParameter)
-        //        {
-        //            int j;
-        //            for (j = 0; j < genericTypeNames.Length; j++)
-        //            {
-        //                if (source[i].ParameterType.Name == genericTypeNames[j])
-        //                {
-        //                    if (!genericTypes[j].IsAssignableFrom(target[i]))
-        //                    {
-        //                        return false;
-        //                    }
-        //                    else
-        //                    {
-        //                        break;
-        //                    }
-        //                }
-        //            }
-        //            if (j == genericTypeNames.Length)
-        //            {
-        //                return false;
-        //            }
-        //        }else{
-        //            if (!source[i].ParameterType.IsAssignableFrom(target[i]))
-        //            {
-        //                return false;
-        //            }
-        //        }
-        //    }
-        //    return true;
-        //}
-        //#endregion
+		//private bool MatchTypes(ParameterInfo[] source, Type[] target,string[] genericTypeNames, Type[] genericTypes)
+		//{
+		//    for (int i = 0; i < source.Length; i++)
+		//    {
+		//        if(source[i].ParameterType.IsGenericParameter)
+		//        {
+		//            int j;
+		//            for (j = 0; j < genericTypeNames.Length; j++)
+		//            {
+		//                if (source[i].ParameterType.Name == genericTypeNames[j])
+		//                {
+		//                    if (!genericTypes[j].IsAssignableFrom(target[i]))
+		//                    {
+		//                        return false;
+		//                    }
+		//                    else
+		//                    {
+		//                        break;
+		//                    }
+		//                }
+		//            }
+		//            if (j == genericTypeNames.Length)
+		//            {
+		//                return false;
+		//            }
+		//        }else{
+		//            if (!source[i].ParameterType.IsAssignableFrom(target[i]))
+		//            {
+		//                return false;
+		//            }
+		//        }
+		//    }
+		//    return true;
+		//}
+		//#endregion
 
-        #region Expose native IoC component interface for special implementation
-        /// <summary>
-        /// Get TinyIoC container to resolve interface dependency at granularity level.
-        /// </summary>
-        /// <remarks>
-        /// The Container property expose the TinyIoC container that gives user more control on the IoC container.
-        /// In most cases, we should not use this property, instead, call Resolve() method to get the concrete class instance.
-        /// </remarks>
-        public TinyIoCContainer TinyContainer
+		#region Expose native IoC component interface for special implementation
+		/// <summary>
+		/// Get TinyIoC container to resolve interface dependency at granularity level.
+		/// </summary>
+		/// <remarks>
+		/// The Container property expose the TinyIoC container that gives user more control on the IoC container.
+		/// In most cases, we should not use this property, instead, call Resolve() method to get the concrete class instance.
+		/// </remarks>
+		public TinyIoCContainer TinyContainer
         {
             get
             {

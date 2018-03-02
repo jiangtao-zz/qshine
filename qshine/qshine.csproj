@@ -30,6 +30,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
     <OutputPath>bin\Release</OutputPath>
+    <DefineConstants>TRACE;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
@@ -48,8 +49,8 @@
       <IncludeInPackage>false</IncludeInPackage>
     </Compile>
     <Compile Include="IoC\IoCException.cs" />
-    <Compile Include="IoC\IoCImplBase.cs" />
-    <Compile Include="IoC\IoCLifetimeScope.cs" />
+    <Compile Include="IoC\IocContainerBase.cs" />
+    <Compile Include="IoC\IoCInstanceScope.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="IoC\TinyIoC\IocTinyIoC.cs" />
     <Compile Include="IoC\TinyIoC\TinyIoC.cs" />
@@ -76,11 +77,20 @@
     <Compile Include="Configuration\PlugableComponent.cs" />
     <Compile Include="Configuration\Setting\PlugableAssembly.cs" />
     <Compile Include="Logger\ILoggerProvider.cs" />
-    <Compile Include="Logger\Logging.cs" />
+    <Compile Include="Logger\Log.cs" />
     <Compile Include="Logger\ILogger.cs" />
     <Compile Include="Logger\TraceLogger.cs" />
     <Compile Include="Logger\LoggerBase.cs" />
     <Compile Include="Utility\EnvironmentEx.cs" />
+    <Compile Include="Utility\ObjectInspector.cs" />
+    <Compile Include="Utility\EnumExtension.cs" />
+    <Compile Include="Globalization\Resources.Designer.cs">
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Context\ContextManager.cs" />
+    <Compile Include="Context\CallContextLogicStore.cs" />
+    <Compile Include="Context\CallContextLocalStore.cs" />
+    <Compile Include="Context\IContextStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="IoC\" />
@@ -91,6 +101,8 @@
     <Folder Include="sampleEnvironment\myApplicationFolder\config\" />
     <Folder Include="Configuration\Setting\" />
     <Folder Include="Logger\" />
+    <Folder Include="Globalization\" />
+    <Folder Include="Context\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Resource.resx" />
@@ -99,6 +111,12 @@
     <None Include="sampleEnvironment\mySystemFolder\config\main.config" />
     <None Include="sampleEnvironment\myApplicationFolder\config\ioc.config" />
     <None Include="Configuration\Setting\readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Globalization\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

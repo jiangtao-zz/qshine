@@ -5,8 +5,11 @@ namespace qshine
 {
 	/// <summary>
 	/// Trace logger provider.
+	/// The Trace Logger use Debug/Trace to write logging message based on .NET diagnostics configure section setting.
+	/// The configure setting source and switch will be used to determine whether trace logging enabled.
+	/// The listener must setup in trace section instead of source section. 
 	/// </summary>
-	public class TraceLoggerProvider:ILoggerProvider
+	public class TraceLoggerProvider : ILoggerProvider
 	{
 		/// <summary>
 		/// Gets the logger.
@@ -18,14 +21,16 @@ namespace qshine
 			return new TraceLogger(category);
 		}
 	}
-	
-	public class TraceLogger:LoggerBase
+	/// <summary>
+	/// Trace logger.
+	/// </summary>
+	public class TraceLogger : LoggerBase
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="T:qshine.TraceLogger"/> class.
 		/// </summary>
 		/// <param name="category">Category.</param>
-		public TraceLogger(string category):base(category) { }
+		public TraceLogger(string category) : base(category) { }
 
 		TraceSource _source;
 
@@ -49,7 +54,7 @@ namespace qshine
 		{
 			get
 			{
-				return _source.Switch!=null && _source.Switch.Level!= SourceLevels.Off;
+				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Critical);
 			}
 		}
 
@@ -61,7 +66,7 @@ namespace qshine
 		{
 			get
 			{
-				return _source.Switch!=null && _source.Switch.ShouldTrace(TraceEventType.Critical);
+				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Critical);
 			}
 		}
 
@@ -73,7 +78,7 @@ namespace qshine
 		{
 			get
 			{
-				return _source.Switch!=null && _source.Switch.ShouldTrace(TraceEventType.Error);
+				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Error);
 			}
 		}
 
@@ -85,7 +90,7 @@ namespace qshine
 		{
 			get
 			{
-				return _source.Switch!=null && _source.Switch.ShouldTrace(TraceEventType.Warning);
+				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Warning);
 			}
 		}
 
@@ -97,7 +102,7 @@ namespace qshine
 		{
 			get
 			{
-				return _source.Switch!=null && _source.Switch.ShouldTrace(TraceEventType.Information);
+				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Information);
 			}
 		}
 
@@ -109,7 +114,7 @@ namespace qshine
 		{
 			get
 			{
-				return _source.Switch!=null && _source.Switch.ShouldTrace(TraceEventType.Verbose);
+				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Verbose);
 			}
 		}
 
@@ -121,7 +126,7 @@ namespace qshine
 		{
 			get
 			{
-				return _source.Switch!=null && _source.Switch.ShouldTrace(TraceEventType.Verbose);
+				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Verbose);
 			}
 		}
 
@@ -135,16 +140,23 @@ namespace qshine
 		/// <param name="properties">Properties.</param>
 		public override void Log(TraceEventType severity, string message, Exception ex = null, params object[] properties)
 		{
-			if (IsLoggingEnabled)
+			if (TraceSource.Switch.ShouldTrace(severity))
 			{
-				var formattedMessage = string.Format("{0}",string.IsNullOrEmpty(message) ? string.Empty :
+				var formattedMessage = string.Format("{0}", string.IsNullOrEmpty(message) ? string.Empty :
 					string.Format(message, properties));
 				if (ex != null)
 				{
 					formattedMessage += "\r\n" + string.Format("Detail:{0}", ex);
 					formattedMessage += "\r\n";
 				}
-				_source.TraceEvent(severity, 0, formattedMessage);
+#if DEBUG
+				System.Diagnostics.Debug.WriteLine(formattedMessage);
+#else
+				System.Diagnostics.Trace.WriteLine(formattedMessage);
+
+//				_source.TraceEvent(severity, 0, formattedMessage);
+#endif
+				_source.Close();
 			}
 		}
 
