@@ -46,5 +46,8 @@
 	<data name="TypeNotFound" xml:space="preserve">
 	<value>The type {0} is not found.</value>
 	</data>
+	<data name="InvalidCommandBusFactory" xml:space="preserve">
+	<value>Couldn't find a configured named command bus factory ({0}:{1}).</value>
+	</data>	
 	
 </root>

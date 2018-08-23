@@ -1,6 +1,6 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using qshine.Configuration;
-using qshine.IoC;
+using qshine;
 
 namespace qshine.UnitTests
 {
@@ -11,10 +11,10 @@ namespace qshine.UnitTests
 		public void LoadConfig_Default_File()
 		{
 			Log.SysLogger.Info("LoadConfig_Default_File Start..");
-
+			EnvironmentManager.Boot();
 			var configure = EnvironmentManager.Configure;
 
-			Assert.AreEqual("d:\\qshine.root\\config", configure.Environments["root"].Path);
+			Assert.AreEqual("..\\..\\mySystemFolder\\config", configure.Environments["root"].Path);
 			Assert.AreEqual("", configure.Environments["root"].Host);
 			Assert.AreEqual("mySystemFolder/QA_config", configure.Environments["qa"].Path);
 			Assert.AreEqual("202.22.22.22", configure.Environments["qa"].Host);
@@ -34,9 +34,26 @@ namespace qshine.UnitTests
 		[Test()]
 		public void App_init()
 		{
-			var iocProvider = EnvironmentManager.GetProvider<IIoCProvider>();
+			EnvironmentManager.Boot();
+			var iocProvider = EnvironmentManager.GetProvider<IIocProvider>();
 			Assert.IsNotNull(iocProvider);
-
 		}
+
+		[Test()]
+		public void ConnectionStrings()
+		{
+			EnvironmentManager.Boot();
+			var db1 = EnvironmentManager.Configure.ConnectionStrings["db1"];
+			Assert.AreEqual("testProvider",db1.ProviderName);
+			Assert.AreEqual("abc,001",db1.ConnectionString);
+
+			var db2 = EnvironmentManager.Configure.ConnectionStrings["db2"];
+			Assert.AreEqual("testProvider2",db2.ProviderName);
+			Assert.AreEqual("abc2,aaa",db2.ConnectionString);
+
+			var db3 = EnvironmentManager.Configure.ConnectionStrings["db3"];
+			Assert.IsNull(db3);
+		}
+
 	}
 }

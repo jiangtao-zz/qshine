@@ -1,7 +1,7 @@
 ﻿using System;
 namespace qshine
 {
-	public interface IContextStore
+	public interface IContextStore:IProvider
 	{
 		/// <summary>
 		/// Sets the data.

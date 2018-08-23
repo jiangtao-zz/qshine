@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,25 +8,25 @@ using qshine.Configuration;
 using qshine.Globalization;
 using System.Runtime.Remoting.Messaging;
 
-namespace qshine.IoC
+namespace qshine
 
 {
 	/// <summary>
 	/// Base implementation of IIoCContainer for IoC.
 	/// The actual concrete IoC container should be inherited from this base
 	/// </summary>
-	public abstract class IoCContainerBase : IIoCContainer
+	public abstract class IocContainerBase : IIocContainer
 	{
 
 		#region fields
-		IoCInstanceScope _defaultInstanceScope = IoC.DefaultInstanceScope;
+		IocInstanceScope _defaultInstanceScope = IoC.DefaultInstanceScope;
 		#endregion
 
 		#region IIoCContainer Members
 
 		#region DefaultInstanceScope
 
-		public virtual IoCInstanceScope DefaultInstanceScope
+		public virtual IocInstanceScope DefaultInstanceScope
 		{
 			get
 			{
@@ -94,69 +94,69 @@ namespace qshine.IoC
 
 		#region RegisterType
 
-		public virtual IIoCContainer RegisterType<IT, T>(params NamedValue[] constructorParameters)
+		public virtual IIocContainer RegisterType<IT, T>(params NamedValue[] constructorParameters)
 			where IT : class
 			where T : class, IT
 		{
 			return RegisterType(typeof(IT), typeof(T), string.Empty, constructorParameters);
 		}
 
-		public virtual IIoCContainer RegisterType<IT, T>(string name, params NamedValue[] constructorParameters)
+		public virtual IIocContainer RegisterType<IT, T>(string name, params NamedValue[] constructorParameters)
 			where IT : class
 			where T : class, IT
 		{
 			return RegisterType(typeof(IT), typeof(T), name, constructorParameters);
 		}
 
-		public virtual IIoCContainer RegisterType<IT, T>(IoCInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
+		public virtual IIocContainer RegisterType<IT, T>(IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
 			where IT : class
 			where T : class, IT
 		{
 			return RegisterType(typeof(IT), typeof(T), string.Empty, instanceScopeOption, constructorParameters);
 		}
 
-		public virtual IIoCContainer RegisterType<IT, T>(string name, IoCInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
+		public virtual IIocContainer RegisterType<IT, T>(string name, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
 			where IT : class
 			where T : class, IT
 		{
 			return RegisterType(typeof(IT), typeof(T), name, instanceScopeOption, constructorParameters);
 		}
 
-		public virtual IIoCContainer RegisterType<IT>(Type actualType, params NamedValue[] constructorParameters)
+		public virtual IIocContainer RegisterType<IT>(Type actualType, params NamedValue[] constructorParameters)
 			where IT : class
 		{
 			return RegisterType(typeof(IT), actualType, string.Empty, constructorParameters);
 		}
 
-		public virtual IIoCContainer RegisterType<IT>(Type actualType, string name, params NamedValue[] constructorParameters)
+		public virtual IIocContainer RegisterType<IT>(Type actualType, string name, params NamedValue[] constructorParameters)
 			where IT : class
 		{
 			return RegisterType(typeof(IT), actualType, name, constructorParameters);
 		}
 
-		public virtual IIoCContainer RegisterType<IT>(Type actualType, IoCInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
+		public virtual IIocContainer RegisterType<IT>(Type actualType, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
 			where IT : class
 		{
 			return RegisterType(typeof(IT), actualType, string.Empty, instanceScopeOption, constructorParameters);
 		}
 
-		public virtual IIoCContainer RegisterType<IT>(Type actualType, string name, IoCInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
+		public virtual IIocContainer RegisterType<IT>(Type actualType, string name, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
 			where IT : class
 		{
 			return RegisterType(typeof(IT), actualType, name, instanceScopeOption, constructorParameters);
 		}
 
-		public virtual IIoCContainer RegisterType(Type requestedType, Type actualType, params NamedValue[] constructorParameters)
+		public virtual IIocContainer RegisterType(Type requestedType, Type actualType, params NamedValue[] constructorParameters)
 		{
 			return RegisterType(requestedType, actualType, string.Empty, constructorParameters);
 		}
 
-		public virtual IIoCContainer RegisterType(Type requestedType, Type actualType, string name, params NamedValue[] constructorParameters)
+		public virtual IIocContainer RegisterType(Type requestedType, Type actualType, string name, params NamedValue[] constructorParameters)
 		{
 			return RegisterType(requestedType, actualType, name, DefaultInstanceScope, constructorParameters);
 		}
 
-		public virtual IIoCContainer RegisterType(Type requestedType, Type actualType, IoCInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
+		public virtual IIocContainer RegisterType(Type requestedType, Type actualType, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
 		{
 			return RegisterType(requestedType, actualType, string.Empty, instanceScopeOption, constructorParameters);
 		}
@@ -169,7 +169,7 @@ namespace qshine.IoC
 		/// <param name="name">A name associate to particular registration. null for default registration</param>
 		/// <param name="instanceScopeOption">Option to manage the life time of instance creating.</param>
 		/// <returns>Current container instance</returns>
-		public virtual IIoCContainer RegisterType(Type requestedType, Type actualType, string name, IoCInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
+		public virtual IIocContainer RegisterType(Type requestedType, Type actualType, string name, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
 		{
 			throw new NotImplementedException();
 		}
@@ -189,7 +189,7 @@ namespace qshine.IoC
 		/// The instance dispose way may different for each IoC implemention. Some container may have a reference 
 		/// to the instance, some may not.
 		/// </remarks>
-		public virtual IIoCContainer RegisterInstance<IT>(IT instance)
+		public virtual IIocContainer RegisterInstance<IT>(IT instance)
 			where IT : class
 		{
 			return RegisterInstance(typeof(IT), instance);
@@ -207,7 +207,7 @@ namespace qshine.IoC
 		/// The instance dispose way may different for each IoC implemention. Some container may have a reference 
 		/// to the instance, some may not.
 		/// </remarks>
-		public virtual IIoCContainer RegisterInstance<IT>(IT instance, string name)
+		public virtual IIocContainer RegisterInstance<IT>(IT instance, string name)
 			where IT : class
 		{
 			return RegisterInstance(typeof(IT), instance, name);
@@ -224,7 +224,7 @@ namespace qshine.IoC
 		/// The instance dispose way may different for each IoC implemention. Some container may have a reference 
 		/// to the instance, some may not.
 		/// </remarks>
-		public virtual IIoCContainer RegisterInstance(Type requestedType, object instance)
+		public virtual IIocContainer RegisterInstance(Type requestedType, object instance)
 		{
 			return RegisterInstance(requestedType, instance, String.Empty);
 		}
@@ -236,7 +236,7 @@ namespace qshine.IoC
 		/// <param name="instance">Object to be returned</param>
 		/// <param name="name">A name associate to a particular registration</param>
 		/// <returns>Current container</returns>
-		public virtual IIoCContainer RegisterInstance(Type requestedType, object instance, string name)
+		public virtual IIocContainer RegisterInstance(Type requestedType, object instance, string name)
 		{
 			throw new NotImplementedException();
 		}
@@ -244,11 +244,11 @@ namespace qshine.IoC
 
 		#region RegisterModule
 
-		public virtual IIoCContainer RegisterModule(object module)
+		public virtual IIocContainer RegisterModule(object module)
 		{
 			try
 			{
-				var registerModule = module as IIoCModule;
+				var registerModule = module as IIocModule;
 				registerModule.Load(this);
 			}
 			catch (Exception ex)
@@ -258,7 +258,7 @@ namespace qshine.IoC
 			return this;
 		}
 
-		public virtual IIoCContainer RegisterModule(Assembly assembly)
+		public virtual IIocContainer RegisterModule(Assembly assembly)
 		{
 			throw new NotImplementedException();
 		}
@@ -277,18 +277,18 @@ namespace qshine.IoC
 		#endregion
 
 		#region Convert Life time scope
-		protected IoCInstanceScope GetLifetimeScope(string instanceScopeOption)
+		protected IocInstanceScope GetLifetimeScope(string instanceScopeOption)
 		{
-			IoCInstanceScope result;
+			IocInstanceScope result;
 
 			switch (instanceScopeOption)
 			{
 				case "Singleton":
-					result = IoCInstanceScope.Singleton;
+					result = IocInstanceScope.Singleton;
 					break;
 				case "Transient":
 				case "":
-					result = IoCInstanceScope.Transient;
+					result = IocInstanceScope.Transient;
 					break;
 				default:
 					throw new NotImplementedException();

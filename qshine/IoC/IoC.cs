@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using qshine.Configuration;
 using qshine.Globalization;
 
-namespace qshine.IoC
+namespace qshine
 {
 
 //    public delegate IIoCContainer IoCProvider();
@@ -34,12 +34,12 @@ namespace qshine.IoC
         #region Fields
 
 		private static object _providerLockObject = new Object();
-        private static IIoCProvider _provider;
+        private static IIocProvider _provider;
 
 		private static object _containerLockObject = new Object();
-		private static IIoCContainer _container;
+		private static IIocContainer _container;
 
-		private static IoCInstanceScope _defaultInstanceScope = IoCInstanceScope.Transient;
+		private static IocInstanceScope _defaultInstanceScope = IocInstanceScope.Transient;
 
         #endregion
 
@@ -47,7 +47,7 @@ namespace qshine.IoC
 		/// <summary>
 		/// get/set default insatnce scope
 		/// </summary>
-		public static IoCInstanceScope DefaultInstanceScope
+		public static IocInstanceScope DefaultInstanceScope
 		{
 			get
 			{
@@ -64,18 +64,18 @@ namespace qshine.IoC
 
 		#region Container provider
 
-		static IIoCProvider _internalIoCProvider = new TinyIoCProvider();
+		static IIocProvider _internalIoCProvider = new TinyIocProvider();
 		/// <summary>
 		/// Gets or sets IoC provider.
 		/// </summary>
 		/// <value>The provider.</value>
-		public static IIoCProvider Provider{
+		public static IIocProvider Provider{
 			get{
 				if(_provider==null){
 					lock(_providerLockObject){
 						if(_provider==null || _provider == _internalIoCProvider){
 							//try to load a plugable IoC provider
-							_provider = EnvironmentManager.GetProvider<IIoCProvider>()??_internalIoCProvider;
+							_provider = EnvironmentManager.GetProvider<IIocProvider>()??_internalIoCProvider;
 						}
 					}
 				}
@@ -86,7 +86,16 @@ namespace qshine.IoC
 			}
 		}
 
-        #endregion
+		#endregion
+
+		/// <summary>
+		/// Create a new container.
+		/// </summary>
+		/// <returns>The container.</returns>
+		public static IIocContainer CreateContainer()
+		{
+			return Provider.CreateContainer();
+		}
                 
         #region Get current container
 
@@ -98,7 +107,7 @@ namespace qshine.IoC
         /// The Container property expose the Autofac container that gives user more control on the IoC container.
         /// In most cases, we should not use this property, instead, call Resolve() method to get the concrete class instance.
         /// </remarks>
-        static public IIoCContainer Current
+        static public IIocContainer Current
         {
             get
             {
@@ -123,28 +132,28 @@ namespace qshine.IoC
 
         #region Shortcut of Current.RegisterType
 
-        static public IIoCContainer RegisterType<IT, T>()
+        static public IIocContainer RegisterType<IT, T>()
             where IT : class
             where T : class, IT
         {
             return Current.RegisterType<IT, T>();
         }
 
-        static public IIoCContainer RegisterType<IT, T>(string name)
+        static public IIocContainer RegisterType<IT, T>(string name)
             where IT : class
             where T : class, IT
         {
             return Current.RegisterType<IT, T>(name);
         }
 
-        static public IIoCContainer RegisterType<IT, T>(IoCInstanceScope instanceScope)
+        static public IIocContainer RegisterType<IT, T>(IocInstanceScope instanceScope)
             where IT : class
             where T : class, IT
         {
             return Current.RegisterType<IT, T>(instanceScope);
         }
 
-        static public IIoCContainer RegisterType<IT, T>(string name, IoCInstanceScope instanceScope)
+        static public IIocContainer RegisterType<IT, T>(string name, IocInstanceScope instanceScope)
             where IT : class
             where T : class, IT
         {
@@ -180,14 +189,34 @@ namespace qshine.IoC
             return Current.Resolve<T>(name);
         }
 
-        #endregion
+		#endregion
 
-        #region Private
+		#region Bind/Unbind
 
-        /// <summary>
-        /// Hide constructor
-        /// </summary>
-        private IoC() { }
+		/// <summary>
+		/// bind injected instances to context
+		/// </summary>
+		static public void Bind()
+		{
+			Current.Bind();
+		}
+
+		/// <summary>
+		/// Unbind/release all bound injected instances
+		/// </summary>
+		static public void Unbind()
+		{
+			Current.Unbind();
+		}
+
+		#endregion
+
+		#region Private
+
+		/// <summary>
+		/// Hide constructor
+		/// </summary>
+		private IoC() { }
 
         #endregion
 

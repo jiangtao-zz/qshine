@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 
 
-namespace qshine.IoC
+namespace qshine
 {
     /// <summary>
     /// Defines an IoC exception while dealing with actual IoC component.

@@ -26,5 +26,13 @@ namespace qshine
 				             );
 			}
 		}
+
+		public static string CpuArchitecture
+		{
+			get
+			{
+				return Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
+			}
+		}
 	}
 }

@@ -1,0 +1,57 @@
+﻿@startuml
+
+
+skinparam {
+	backgroundColor white
+	titleBorderRoundCorner 15
+	titleBorderThickness 1
+	titleBorderColor black
+	titleBackgroundColor Aqua-CadetBlue
+	}
+
+title High level components
+
+[EnvironmentManager] <<static>>
+
+() "Boot" as Boot
+() "GetProvider" as Provider
+
+
+Boot - [EnvironmentManager]
+[EnvironmentManager] -right- EnvironmentConfigure
+[EnvironmentManager] -down- GetConfigFile
+[EnvironmentManager] -up- Provider
+
+
+package "Environment Config Files" as configureFiles #LightGoldenRodYellow {
+	file "config file"
+	folder "config files"
+}
+
+EnvironmentManager -down-> configureFiles:Initial load
+
+[IoC] <<static IoC\nprovider>>
+[Log] <<static Logging\n provider>>
+[Cache] <<static\nper provider>>
+[ContextManager] <<static\nper provider>>
+[DbHelper] <<static \nper factory provider>>
+[Utility]
+
+[IoC] ..> Provider : IIocProvider
+[Log] ..> Provider :ILoggerProvider
+[Cache] ..> Provider :ICacheProvider
+[ContextManager] ..> Provider :IContextStore
+
+[DbHelper] ..> EnvironmentConfigure :ConnectionStrings
+[Utility] -right.>>Extensions
+
+rectangle "Any class method" <<Concept>> {
+	rectangle "Method" <<Concept>> as interceptMethod
+}
+[Interceptor] <<static\nper class>>
+
+[interceptMethod] ..>JoinPoint:use
+
+JoinPoint -[Interceptor] 
+
+@enduml

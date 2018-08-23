@@ -1,0 +1,24 @@
+﻿@startuml
+
+skinparam {
+	backgroundColor white
+	titleBorderRoundCorner 15
+	titleBorderThickness 1
+	titleBorderColor black
+	titleBackgroundColor Aqua-CadetBlue
+	}
+
+title Command Bus : Send (command, slip=null)
+
+Service -> CommandBus :1.0 CommandBus.Send(command)\nSend Command and attach a return slip
+CommandBus -> CommandBus :2.1 Get Command Bus instance
+CommandBus -> "CommandBus\nInstance" as _bus :2.2 Call Send (command)
+_bus -> _bus :3.0 Get registered Command Handler
+_bus -> CommandHandler :3.1 Invoke command handler
+CommandHandler -> CommandHandler : 4.0 Get command slip if exist
+CommandHandler -> CommandHandler : 4.1 Handle command message
+CommandHandler -> CommandHandler : 4.2 Update command slip with command result
+CommandHandler -> CommandSlipRepository : 4.3 Push command slip back to sender
+Service -> CommandSlipRepository : 5.0 Get command return slip
+
+@enduml

@@ -1,0 +1,36 @@
+﻿@startuml
+
+skinparam {
+	backgroundColor white
+	titleBorderRoundCorner 10
+	titleBorderThickness 1
+	titleBorderColor black
+	titleBackgroundColor Aqua
+	}
+
+title Typic application configure files and assemblies
+
+package "Application Folder" as appFolder #LightGoldenRodYellow {
+
+	file "app.config" as appConfigFile 
+
+	folder "./config folder" as topConfigFolder {
+		file "nlog.config" as logConfigFile 
+	}
+
+
+	folder "c:/global/config" as globalConfigFolder {
+		file "connectionStrings.config"
+		file "mail.config"
+		file "server.config"
+		folder "bin folder" as binFolder {
+			file "qshine.log.nlog.dll"
+			file "qshine.logInterceptor.dll"
+			file "qshine.ioc.autofac.dll"
+		}
+	}
+
+appConfigFile -> topConfigFolder
+appConfigFile -down-> globalConfigFolder
+
+@enduml

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Runtime.Remoting.Messaging;
-using System.Web;
+﻿using qshine.Configuration;
 
 namespace qshine
 {
@@ -18,6 +16,7 @@ namespace qshine
 	public class ContextManager
 	{
 		static IContextStore _currentContextStore;
+		static object lockObject = new object();
 		/// <summary>
 		/// Gets or sets the name of the context type.
 		/// </summary>
@@ -28,7 +27,19 @@ namespace qshine
 			{
 				if (_currentContextStore == null)
 				{
-					_currentContextStore = new CallContextLocalStore();
+					lock(lockObject)
+					{
+						if (_currentContextStore == null)
+						{
+							//Load from configure
+							_currentContextStore = EnvironmentManager.GetProvider<IContextStore>();
+							if (_currentContextStore == null)
+							{
+								//load default
+								_currentContextStore = new CallContextLocalStore();
+							}
+						}
+					}
 				}
 				return _currentContextStore;
 			}

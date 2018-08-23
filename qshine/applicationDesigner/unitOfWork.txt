@@ -1,0 +1,103 @@
+﻿@startuml
+
+skinparam {
+	backgroundColor white
+	titleBorderRoundCorner 15
+	titleBorderThickness 1
+	titleBorderColor black
+	titleBackgroundColor Aqua-CadetBlue
+	}
+
+title Unit Of Work (DbUnitOfWork) : Single database and single transaction (Best Case)
+
+participant Class1 order 10 
+participant "Unit Of Work" as _uw0 order 20 
+participant DbClient1 order 30
+participant Class2 order 40
+participant DbClient2 order 50
+participant "UnitOfWork2" as _uw1 order 60
+participant DbClient21 order 70
+participant DbClient22 order 80
+participant DbClient11 order 90
+participant "Current DbContext" as Context order 100
+participant DbTransaction order 110
+
+
+create _uw0
+
+Class1-> _uw0 : new
+activate _uw0
+_uw0 -> _uw0 : CanComplete = false
+_uw0 -> Context: push current unitOfWork
+note right: 1 unitOfWork
+
+create DbClient1
+Class1 -> DbClient1 : new DbClient(db1)
+activate DbClient1
+	DbClient1 --> DbTransaction :Begin Transaction
+	DbClient1 --> DbTransaction : persist data1
+Class1 -> DbClient1 :Dispose()
+deactivate DbClient1
+
+Class1 -> Class2 :call
+	create DbClient2
+	Class2 -> DbClient2 : new DbClient(db1)
+		activate DbClient2
+		DbClient2 --> DbTransaction : persist data2
+	Class2 -> DbClient2 :Dispose()
+		deactivate DbClient2
+
+	create _uw1
+	Class2 -> _uw1 : new UnitOfWork()
+		activate _uw1
+		_uw1 -> _uw1 : CanComplete = false
+		_uw1 -> Context: push current unitOfWork
+		note right: 2 unitOfWorks
+
+	create DbClient21
+	Class2 -> DbClient21 : new DbClient(db1)
+		activate DbClient21
+		DbClient21 --> DbTransaction : persist data21
+	Class2 -> DbClient21 :Dispose()
+		deactivate DbClient21
+
+		create DbClient22
+	Class2 -> DbClient22 : new DbClient(db1)
+		activate DbClient22
+		DbClient22 --> DbTransaction : persist data22
+	Class2 -> DbClient22 :Dispose()
+		deactivate DbClient22
+
+alt successful case
+	Class2->_uw1 :Complete() 
+	_uw1 -> _uw1 : CanComplete = true
+end
+
+	Class2->_uw1 :Dispose()
+		_uw1 -> Context: pop current unitOfWork
+		note right: 1 unitOfWorks
+alt failure case (if CanComplete = false)
+		_uw1 -> Context: mark all unitOfWork in cancel status
+end
+
+
+		deactivate _uw1
+
+create DbClient11
+Class1 -> DbClient11 : new DbClient(db1)
+activate DbClient11
+	DbClient11 --> DbTransaction : persist data11
+Class1 -> DbClient11 :Dispose()
+deactivate DbClient11
+
+Class1 -> _uw0 :Dispose()
+_uw0 -> Context: pop current unitOfWork
+note right: 0 unitOfWorks
+
+alt successful case (if all unit of works are completed)
+	_uw0 -> DbTransaction :Commit
+else failure case
+	_uw0 -> DbTransaction :Rollback
+end
+
+@enduml

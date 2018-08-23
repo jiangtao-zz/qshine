@@ -62,6 +62,15 @@ namespace qshine.Globalization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Couldn&apos;t find a configured named command bus factory ({0}:{1})..
+        /// </summary>
+        internal static string InvalidCommandBusFactory {
+            get {
+                return ResourceManager.GetString("InvalidCommandBusFactory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The IoC provider {0} is not found..
         /// </summary>
         internal static string IoCExceptionProviderNotFound {

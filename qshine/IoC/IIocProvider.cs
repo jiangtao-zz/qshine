@@ -1,16 +1,16 @@
-﻿using System;
-namespace qshine.IoC
+using System;
+namespace qshine
 {
 	/// <summary>
 	/// Ioc provider.
 	/// </summary>
-	public interface IIoCProvider:IProvider
+	public interface IIocProvider:IProvider
 	{
 		/// <summary>
 		/// Create a container
 		/// </summary>
 		/// <returns>The container.</returns>
-		IIoCContainer CreateContainer();
+		IIocContainer CreateContainer();
 	}
 
 }

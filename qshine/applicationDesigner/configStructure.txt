@@ -1,0 +1,49 @@
+﻿@startuml
+
+skinparam {
+	backgroundColor white
+	titleBorderRoundCorner 15
+	titleBorderThickness 1
+	titleBorderColor black
+	titleBackgroundColor Aqua-CadetBlue
+	}
+
+title Application Configuration File Structure
+
+package "Environment Config Files" as configureFiles #LightGoldenRodYellow {
+
+	file "app.config/\nweb.config" as appConfigFile 
+
+	folder "top level config folder" as topConfigFolder {
+		file "plugin components\nconfig"
+		file "connection\nconfig"
+		file "environment\nconfig" as pointToSecondLevelConfigFolder
+		folder "bin folder" as binFolder {
+			file "plugable assemblies"{
+			() "IProvider" as ip1
+			() "IModuleLoader" as im1
+			[plugin] -left-ip1
+			[plugin] -right-im1
+			}
+		}
+	}
+
+	folder "second level config folder" as secondConfigFolder {
+		folder "bin folder" as bin2Folder {
+			file "logging assembly" as loggingPlugin {
+			ILoggingProvider - [logging component]
+			IInterceptorHandler - [Interceptor component]
+			}
+
+			}
+		file "loggin config" as LogFile
+		file "ioc\nconfig"
+		file "plugin\nconfig"
+		file "global variable\nconfig"
+	}
+}
+
+appConfigFile -down-> topConfigFolder
+pointToSecondLevelConfigFolder -down-> secondConfigFolder
+
+@enduml

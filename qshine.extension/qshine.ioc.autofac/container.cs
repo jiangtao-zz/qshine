@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 using Autofac;
 using Autofac.Builder;
 
-using qshine.IoC;
 using qshine.Configuration;
 
 using qshine.ioc.autofac.Properties;
@@ -17,8 +16,7 @@ namespace qshine.ioc.autofac
     ///     public Autofac.ContainerBuilder AutofacBuilder
     ///     public Autofac.IContainer AutofacContainer
     /// </summary>
-    public class Container : IoCContainerBase
-
+    public class Container : IocContainerBase
     {
         #region Fields
 
@@ -89,7 +87,7 @@ namespace qshine.ioc.autofac
 
         #region RegisterType
 
-		public override IIoCContainer RegisterType(Type requestedType, Type actualType, string name, IoCInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
+		public override IIocContainer RegisterType(Type requestedType, Type actualType, string name, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
         {
             try
             {
@@ -150,7 +148,7 @@ namespace qshine.ioc.autofac
         #endregion
 
         #region RegisterInstance
-        public override IIoCContainer RegisterInstance(Type requestedType, object instance, string name)
+        public override IIocContainer RegisterInstance(Type requestedType, object instance, string name)
         {
             try
             {
@@ -258,14 +256,14 @@ namespace qshine.ioc.autofac
 
         #region Private
 
-        private void SetInstanceScope<T, V>(IRegistrationBuilder<object, T, V> instanceScope, IoCInstanceScope instanceScopeOption)
+        private void SetInstanceScope<T, V>(IRegistrationBuilder<object, T, V> instanceScope, IocInstanceScope instanceScopeOption)
         {
             switch (instanceScopeOption)
             {
-                case IoCInstanceScope.Singleton:
+                case IocInstanceScope.Singleton:
                     instanceScope.SingleInstance();
                     break;
-                case IoCInstanceScope.Transient:
+                case IocInstanceScope.Transient:
                     instanceScope.InstancePerDependency();
                     break;
                 default:

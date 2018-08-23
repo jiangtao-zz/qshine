@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 
 namespace qshine.Configuration
 {
@@ -66,6 +67,14 @@ namespace qshine.Configuration
 			get
 			{
 				return _keyValues;
+			}
+		}
+
+		public ConnectionStringSettingsCollection ConnectionStrings
+		{
+			get
+			{
+				return _connectionStrings;
 			}
 		}
 
@@ -153,6 +162,15 @@ namespace qshine.Configuration
 				}
 			}
 			return _moduleConfigure[module.Name];
+		}
+
+		ConnectionStringSettingsCollection _connectionStrings = new ConnectionStringSettingsCollection();
+		public void AddConnectionString(ConnectionStringSettings c)
+		{
+			if (_connectionStrings[c.Name] == null)
+			{
+				_connectionStrings.Add(new ConnectionStringSettings(c.Name, c.ConnectionString, c.ProviderName));
+			}
 		}
 	}
 }

@@ -6,21 +6,52 @@ using System.Reflection;
 using System.Security;
 using System.Linq;
 using qshine.Configuration;
+using System.Configuration;
 
 namespace qshine.Configuration
 {
 	public class EnvironmentManager
 	{
+		static Interceptor _configureSectionInterceptor;
+		/// <summary>
+		/// Gets or sets the global interceptor.
+		/// </summary>
+		/// <value>The global interceptor.</value>
+		public static Interceptor ConfigureSectionInterceptor
+		{
+			get { return _configureSectionInterceptor; }
+		}
+
+		public static void Boot()
+		{
+			//Auto load configure when call the static method
+			Init();
+
+		}
+
 		/// <summary>
 		/// Gets the provider.
 		/// </summary>
 		/// <returns>The provider.</returns>
 		/// <typeparam name="T">The 1st type parameter.</typeparam>
 		public static T GetProvider<T>()
-		where T:class,IProvider
+		where T : class, IProvider
 		{
 			return GetProvider(typeof(T)) as T;
 		}
+
+		/// <summary>
+		/// Gets the provider by name.
+		/// </summary>
+		/// <returns>The provider.</returns>
+		/// <param name="name">Name.</param>
+		/// <typeparam name="T">The 1st type parameter.</typeparam>
+		public static T GetProvider<T>(string name)
+		where T : class, IProvider
+		{
+			return GetProvider(name, typeof(T)) as T;
+		}
+
 
 		/// <summary>
 		/// Gets the provider.
@@ -29,26 +60,45 @@ namespace qshine.Configuration
 		/// <param name="providerInterface">Provider interface.</param>
 		public static IProvider GetProvider(Type providerInterface)
 		{
-			PlugableComponent providerComponent=null;
+			return GetProvider(string.Empty, providerInterface);
+		}
+
+		/// <summary>
+		/// Gets the provider by name.
+		/// </summary>
+		/// <returns>The provider.</returns>
+		/// <param name="providerInterface">Provider interface.</param>
+		public static IProvider GetProvider(string name, Type providerInterface)
+		{
+            Init();
+			PlugableComponent providerComponent = null;
 			foreach (var component in _environmentConfigure.Components)
 			{
-				if (component.Value.InterfaceType.Name == providerInterface.Name)
+				if (component.Value.InterfaceType!=null &&  component.Value.InterfaceType.Name == providerInterface.Name &&
+				    (component.Value.Name==name ||string.IsNullOrEmpty(name)))
 				{
 					providerComponent = component.Value;
 					break;
 				}
 			}
 
-			if(providerComponent!=null)
+			if (providerComponent != null && providerComponent.ClassType != null)
 			{
-				var type = providerComponent.ClassType;
-				if (type == null) return null;
-
-				var parameters = providerComponent.Parameters.Values.ToArray();
-				var instance = Activator.CreateInstance(type,parameters);
-				return instance as IProvider;
+				return CreateInstance(providerComponent.ClassType, providerComponent.Parameters.Values.ToArray()) as IProvider;
 			}
 			return null;
+		}
+
+		/// <summary>
+		/// Creates the instance from a type.
+		/// </summary>
+		/// <returns>The instance.</returns>
+		/// <param name="type">Type.</param>
+		/// <param name="parameters">Parameters.</param>
+		public static object CreateInstance(Type type, params object[] parameters)
+		{
+			if (type == null) return null;
+			return Activator.CreateInstance(type, parameters);
 		}
 
 		/// <summary>
@@ -94,6 +144,41 @@ namespace qshine.Configuration
 			}
 		}
 
+		static readonly Dictionary<string, Type> _commonNamedType = new Dictionary<string, Type>();
+		static readonly object lockObject = new object();
+		/// <summary>
+		/// Gets the type by type name. The type name could be a qualified type name accessible by the environment.
+		/// The plugable assembly always be accessible.
+		/// </summary>
+		/// <returns>The named type.</returns>
+		/// <param name="typeName">Type name.</param>
+		public static Type GetNamedType (string typeName)
+		{
+			var type = Type.GetType(typeName);
+            if (type == null)
+            {
+                if (_commonNamedType.ContainsKey(typeName))
+                {
+                    return _commonNamedType[typeName];
+                }
+
+				type = AssemblyMaps.Values.Where(x=>x.Assembly!=null)
+                    .Select(a => a.Assembly.GetType(typeName))
+                    .FirstOrDefault(t => t != null);
+                if (type != null)
+                {
+                    lock (lockObject)
+                    {
+                        if (!_commonNamedType.ContainsKey(typeName))
+                        {
+                            _commonNamedType.Add(typeName, type);
+                        }
+                    }
+                }
+            }
+            return type;			
+		}
+
 
 		#region privates methods/properties
 
@@ -101,32 +186,159 @@ namespace qshine.Configuration
 		static EnvironmentConfigure _environmentConfigure;
 		static IDictionary<string, PlugableAssembly> _assemblyMaps;
 		static IDictionary<string, string> _configFiles;
+		static IDictionary<string, IModuleLoader> _modules;
 
+		static bool isInit;
+		static object lockEnvironment = new object();
 		/// <summary>
 		/// Initializes the <see cref="T:qshine.Configuration.EnvironmentManager"/> class when access any EnvironmentManager proeprty or method.
 		/// </summary>
-		static EnvironmentManager()
+		static void Init()
 		{
-			Log.DevDebug("EnvironmentManager.ctor begin");
+			if (!isInit)
+			{
+				lock (lockEnvironment)
+				{
+					if (!isInit)
+					{
+						Log.DevDebug("EnvironmentManager.Init begin");
 
-			//Initial variables
-			_environmentConfigure = new EnvironmentConfigure();
-			_assemblyMaps = new Dictionary<string, PlugableAssembly>();
-			_configFiles = new Dictionary<string, string>();
-			_sysLogger = Log.SysLogger;
+						//Initial variables
+						_environmentConfigure = new EnvironmentConfigure();
+						_assemblyMaps = new Dictionary<string, PlugableAssembly>();
+						_configFiles = new Dictionary<string, string>();
+						_modules = new Dictionary<string, IModuleLoader>();
+						_sysLogger = Log.SysLogger;
 
+						//Load all domain user dlls
+						MapDomainUserAssemblies();
+						//Load intercept handlers before load plugin components
+						LoadInterceptHandlers();
 
-			//Load configure setting
-			LoadConfig();
-			//Load binary setting
-			LoadBinary();
-			//Set application assembly resolver
-			SetAssemblyResolve();
-			//Load type from binary assembly
-			LoadComponents();
+						_configureSectionInterceptor = new Interceptor(typeof(EnvironmentManager));
 
-			Log.DevDebug("EnvironmentManager.ctor end");
+						//Load configure setting
+						LoadConfig();
+						//Load binary setting
+						LoadBinary();
+						//Set application assembly resolver
+						SetAssemblyResolve();
+						//Load type from binary assembly
+						LoadComponents();
+						//Load modules
+						LoadModules();
+
+						//Load intercept handlers after plugin components loaded
+						LoadInterceptHandlers();
+
+						isInit = true;
+						Log.DevDebug("EnvironmentManager.Init end");
+					}
+				}
+			}
 		}
+
+		static Dictionary<Type, object> _interceptHandlers = new Dictionary<Type, object>();
+		static void LoadInterceptHandlers()
+		{
+			var types = SafeGetInterfacedTypes(typeof(IInterceptorHandler));
+			foreach (var type in types)
+			{
+				Interceptor.RegisterHandlerType(type);
+			}
+		}
+
+
+		static void MapDomainUserAssemblies()
+		{
+			foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+			{
+				if (IsSystemAssembly.Any(x=>x(a))){
+					continue;
+				}
+				var assemblyParts = a.FullName.Split(',');
+				//Should never happen
+				if (assemblyParts.Length == 0) continue;
+				var assemblyName = assemblyParts[0];
+				if (!_assemblyMaps.ContainsKey(assemblyName))
+				{
+					_assemblyMaps.Add(assemblyName, new PlugableAssembly
+					{
+						Path = a.FullName,
+						Assembly = a
+					}); 
+				}
+			}			
+		}
+
+		private static IList<Type> SafeGetInterfacedTypes(Assembly assembly, Type interfacedType)
+		{
+			Type[] types;
+
+			try
+			{
+				types = assembly.GetTypes();
+			}
+			catch (FileNotFoundException)
+			{
+				types = new Type[] { };
+			}
+			catch (NotSupportedException)
+			{
+				types = new Type[] { };
+			}
+			catch (ReflectionTypeLoadException e)
+			{
+				types = e.Types.Where(t => t != null).ToArray();
+			}
+			return types.Where(t => interfacedType.IsAssignableFrom(t) && t.IsClass).ToList();
+		}
+
+		public static IList<Type> SafeGetInterfacedTypes(Type interfaceType)
+		{
+			var selectedTypes = new List<Type>();
+			foreach (var a in _assemblyMaps.Values)
+			{
+				if (a.Assembly != null)
+				{
+					var types = SafeGetInterfacedTypes(a.Assembly, interfaceType);
+					if (types != null && types.Count > 0)
+					{
+						selectedTypes.AddRange(types);
+					}
+				}
+			}
+			return selectedTypes;
+			
+		}
+
+		public static readonly List<Func<Assembly, bool>> IsSystemAssembly = new List<Func<Assembly, bool>>
+		{
+			a => (
+				String.IsNullOrEmpty(a.Location) || //ignore byte array loaded assembly
+				a.ManifestModule.Name == "<In Memory Module>" || //ignore in memory module
+				a.Location.IndexOf("App_Web", StringComparison.Ordinal) > -1 || //ignore web dynamic compile dlls
+				a.Location.IndexOf("App_global", StringComparison.Ordinal) > -1 || //ignore web app resource dlls
+				a.FullName.IndexOf("CppCodeProvider", StringComparison.Ordinal) > -1 || //ignore code dom provider
+				a.FullName.IndexOf("SMDiagnostics", StringComparison.Ordinal) > -1 || //WCF
+				a.FullName.StartsWith("WebMatrix.", StringComparison.Ordinal) || // ignore MS web secuirty dll
+				a.FullName.StartsWith("Microsoft.", StringComparison.Ordinal) || //Microsoft dlls
+				a.FullName.StartsWith("WindowsBase.", StringComparison.Ordinal) || //WPF
+				a.FullName.StartsWith("System.", StringComparison.Ordinal) || //Microsoft System dlls
+				a.FullName.StartsWith("System,", StringComparison.Ordinal) || //Microsoft System dll
+				a.FullName.StartsWith("mscorlib,", StringComparison.Ordinal) || //Core
+				a.FullName.StartsWith("Oracle.", StringComparison.Ordinal)), //Oracle
+			a => a.FullName.StartsWith("nunit,", StringComparison.Ordinal),
+			a => a.FullName.StartsWith("nunit.", StringComparison.Ordinal),
+			a => a.FullName.StartsWith("Ninject,", StringComparison.Ordinal),
+			a => a.FullName.StartsWith("Ninject.", StringComparison.Ordinal),
+			a => a.FullName.StartsWith("Castle.", StringComparison.Ordinal),
+			a => a.FullName.StartsWith("TypeMock", StringComparison.Ordinal),
+			a => a.FullName.StartsWith("Typemock", StringComparison.Ordinal),
+			a => a.FullName.StartsWith("Telerik.", StringComparison.Ordinal),
+			a => a.FullName.StartsWith("Oracle.", StringComparison.Ordinal)
+		};
+
 
 		[SecuritySafeCritical]
 		static void SetAssemblyResolve()
@@ -161,9 +373,9 @@ namespace qshine.Configuration
 			// check for assemblies already loaded by the current application domain. It is necessary. See. 
 			// https://docs.microsoft.com/en-us/dotnet/framework/deployment/best-practices-for-assembly-loading
 			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-			var assembly = assemblies.FirstOrDefault(assem => assem.GetName().FullName.Equals(args.Name) ||
-													assem.GetName().Name.Equals(args.Name) ||
-													assem.GetName().Name.Equals(assemblyName));
+			var assembly = assemblies.FirstOrDefault(a => a.GetName().FullName.Equals(args.Name) ||
+													a.GetName().Name.Equals(args.Name) ||
+													a.GetName().Name.Equals(assemblyName));
 			//Add loaded assembly in the list
 			if (assembly != null)
 			{
@@ -201,29 +413,54 @@ namespace qshine.Configuration
 
 			foreach (var c in _environmentConfigure.Components)
 			{
-				SafeLoadType(c.Value);
+				LoadComponent(c.Value);
 			}
 
 			Log.DevDebug("EnvironmentManager.LoadComponents end");
 
 		}
 
-		static void SafeLoadType(PlugableComponent component)
+		static void LoadModules()
 		{
-			Log.DevDebug("EnvironmentManager.SafeLoadType begin {0}",component.FormatObjectValues());
+			Log.DevDebug("EnvironmentManager.LoadModules begin");
 
-			string typeName=string.Empty;
+			foreach (var c in _environmentConfigure.Modules)
+			{
+				LoadModule(c);
+			}
+
+			Log.DevDebug("EnvironmentManager.LoadModules end");
+		}
+
+		static void LoadModule(KeyValuePair<string,NamedTypeElement> module)
+		{
+			var instance = CreateInstance(SafeLoadType(module.Value.Type)) as IModuleLoader;
+			if (instance != null)
+			{
+				if (!_modules.ContainsKey(module.Key))
+				{
+					_modules.Add(module.Key, instance);
+					instance.Initialize();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Load a qualified type without throw exception
+		/// </summary>
+		/// <returns>The type or null.</returns>
+		/// <param name="typeValue">Type value.</param>
+		public static Type SafeLoadType(string typeValue)
+		{
+			Type type = null;
 			try
 			{
-				typeName = component.InterfaceTypeName;
-				component.InterfaceType = Type.GetType(component.InterfaceTypeName);
-				typeName = component.ClassTypeName;
-				component.ClassType = Type.GetType(component.ClassTypeName);
+				type = Type.GetType(typeValue);
 
-				if (component.ClassType == null)
+				if (type == null)
 				{
 					//This should not happen. Just in case type cannot be resolved by previous assembly_resolver, need load type from assembly directly
-					var assemblyNameParts = component.ClassTypeName.Split(',');
+					var assemblyNameParts = typeValue.Split(',');
 					if (assemblyNameParts.Length > 1)
 					{
 						var assemblyName = assemblyNameParts[1].Trim();
@@ -233,26 +470,31 @@ namespace qshine.Configuration
 							var assembly = _assemblyMaps[assemblyName].Assembly;
 							if (assembly != null)
 							{
-								component.ClassType = assembly.GetType(typeNameOnly, true);
+								type = assembly.GetType(typeNameOnly, true);
 							}
 						}
 					}
 				}
-				if (component.InterfaceType == null)
+				if (type == null)
 				{
-					_sysLogger.Error("Invalid interface type [{0}].", component.InterfaceTypeName);
-				}
-				if (component.ClassType == null)
-				{
-					_sysLogger.Error("Invalid class type [{0}].", component.ClassTypeName);
+					_sysLogger.Error("Invalid type [{0}].", typeValue);
 				}
 			}
 			catch (Exception ex)
 			{
-				_sysLogger.Error("Load component type [{0}] error. {1}", typeName, ex.Message);
+				_sysLogger.Error("SafeLoadType {0} failed: {1}", typeValue, ex.Message);
 			}
+			return type;
+		}
 
-			Log.DevDebug("EnvironmentManager.SafeLoadType end");
+		static void LoadComponent(PlugableComponent component)
+		{
+			Log.DevDebug("EnvironmentManager.LoadComponent begin {0}",component.FormatObjectValues());
+
+			component.InterfaceType = SafeLoadType(component.InterfaceTypeName);
+			component.ClassType = SafeLoadType(component.ClassTypeName);
+
+			Log.DevDebug("EnvironmentManager.LoadComponent end");
 		}
 
 		static void LoadBinary()
@@ -272,6 +514,7 @@ namespace qshine.Configuration
 							{
 								Path = dll.FullName
 							});
+							Log.DevDebug("EnvironmentManager.LoadBinary {0}", dll.FullName);
 						}
 					}
 				}
@@ -288,112 +531,152 @@ namespace qshine.Configuration
 		/// <param name="configFile">Config file. The default is application domain configuration file: app.config or web.config</param>
 		static EnvironmentConfigure LoadConfig(string configFile = null)
 		{
-			Log.DevDebug("EnvironmentManager.LoadConfig begin");
-			
-			System.Configuration.Configuration config;
-			try
+			return ConfigureSectionInterceptor.JoinPoint(() =>
 			{
-				if (string.IsNullOrEmpty(configFile))
+
+				System.Configuration.Configuration config;
+				try
 				{
-					// Get the current configuration file.
-					config = System.Configuration.ConfigurationManager.OpenExeConfiguration(System.Configuration.ConfigurationUserLevel.None);
-				}
-				else
-				{
-					var fileName = Path.GetFileName(configFile).ToLower();
-					if (_configFiles.ContainsKey(fileName))
+					if (string.IsNullOrEmpty(configFile))
 					{
-						//Do not load the file if it already loaded
-						return _environmentConfigure;
+						// Get the current configuration file.
+						config = System.Configuration.ConfigurationManager.OpenExeConfiguration(System.Configuration.ConfigurationUserLevel.None);
 					}
-					_configFiles.Add(fileName, configFile);
+					else
+					{
+						var fileName = Path.GetFileName(configFile).ToLower();
+						if (_configFiles.ContainsKey(fileName))
+						{
+							//Do not load the file if it already loaded
+							return _environmentConfigure;
+						}
+						_configFiles.Add(fileName, configFile);
 
-					var fileMap = new System.Configuration.ExeConfigurationFileMap { ExeConfigFilename = configFile };
-					config = System.Configuration.ConfigurationManager.OpenMappedExeConfiguration(fileMap, System.Configuration.ConfigurationUserLevel.None);
+						var fileMap = new System.Configuration.ExeConfigurationFileMap { ExeConfigFilename = configFile };
+						config = System.Configuration.ConfigurationManager.OpenMappedExeConfiguration(fileMap, System.Configuration.ConfigurationUserLevel.None);
+					}
+				}
+				catch (Exception ex)
+				{
+					Log.SysLogger.Error("Load config {0} throw an exception {1}", configFile ?? "default", ex.Message);
+					return _environmentConfigure;
+				}
+
+				if (config != null)
+				{
+					foreach (var section in config.Sections)
+					{
+						//intercept section element
+						ConfigureSectionInterceptor.ForEach(section);
+
+						LoadEnvironmentSection(section as EnvironmentSection);
+						LoadDbConnectionStrings(section as ConnectionStringsSection);
+					}
+				}
+
+				return _environmentConfigure;
+			}, "LoadConfig", configFile);
+		}
+
+		static void LoadDbConnectionStrings(ConnectionStringsSection section)
+		{
+			if (section != null)
+			{
+				if (section.SectionInformation.IsProtected)
+				{
+					section.SectionInformation.UnprotectSection();
+				}
+				foreach (ConnectionStringSettings c in section.ConnectionStrings)
+				{
+					_environmentConfigure.AddConnectionString(c);
 				}
 			}
-			catch (Exception ex)
-			{
-				Log.SysLogger.Error("Load config {0} throw an exception {1}", configFile ?? "default", ex.Message);
-				return _environmentConfigure;
-			}
+		}
 
-			if (config != null)
+		static void LoadEnvironmentSection(EnvironmentSection section)
+		{
+			if (section != null)
 			{
-				foreach (var section in config.Sections)
+				#region Load Components
+				foreach (var component in section.Components)
 				{
-					var mySection = section as EnvironmentSection;
+					_environmentConfigure.AddComponent(component);
+				}
+				#endregion
 
-					if (mySection != null)
+				#region Load Modules
+				foreach (var module in section.Modules)
+				{
+					_environmentConfigure.AddModule(module);
+				}
+				#endregion
+
+				#region Load Applistion Settings
+				foreach (var setting in section.AppSettings)
+				{
+					if (!_environmentConfigure.AppSettings.ContainsKey(setting.Key))
 					{
-						#region Load Components
-						foreach (var component in mySection.Components)
-						{
-							_environmentConfigure.AddComponent(component);
-						}
-						#endregion
+						_environmentConfigure.AppSettings.Add(setting.Key, setting.Value);
+					}
+				}
+				#endregion
 
-						#region Load Modules
-						foreach (var module in mySection.Modules)
-						{
-							_environmentConfigure.AddModule(module);
-						}
-						#endregion
+				#region Load other level configures
+				foreach (var environment in section.Environments)
+				{
+					_environmentConfigure.AddEnvironment(environment);
+					//Only load environment related setting
+					if (string.IsNullOrEmpty(environment.Host) ||
+						environment.Host == Environment.MachineName ||
+					   environment.Host == EnvironmentEx.MachineIp)
+					{
 
-						#region Load Applistion Settings
-						foreach (var setting in mySection.AppSettings)
+						var folder = Path.GetDirectoryName(section.CurrentConfiguration.FilePath);
+						var path = UnifiedPath(folder,environment.Path);
+						if (Directory.Exists(path) && !_environmentConfigure.ConfigureFolders.Contains(path))
 						{
-							if (!_environmentConfigure.AppSettings.ContainsKey(setting.Key))
+							_environmentConfigure.ConfigureFolders.Add(path);
+
+							string binfolders = "bin";
+							if (!string.IsNullOrEmpty(environment.Bin))
 							{
-								_environmentConfigure.AppSettings.Add(setting.Key, setting.Value);
+								binfolders = environment.Bin;
 							}
-						}
-						#endregion
 
-						#region Load other level configures
-						foreach (var environment in mySection.Environments)
-						{
-							_environmentConfigure.AddEnvironment(environment);
-							//Only load environment related setting
-							if (string.IsNullOrEmpty(environment.Host) ||
-							    environment.Host == Environment.MachineName ||
-							   environment.Host == EnvironmentEx.MachineIp)
+							var folders = binfolders.Split(',');
+							if (folders.Length > 0)
 							{
-								var path = UnifiedPath(environment.Path);
-								if (Directory.Exists(path) && !_environmentConfigure.ConfigureFolders.Contains(path))
+								foreach (var binfolder in folders)
 								{
-									_environmentConfigure.ConfigureFolders.Add(path);
-									SetBinaryFolders(path);
-									//Find all configure files and load all
-									var files = Directory.GetFiles(path, "*.config");
-									if (files != null)
+									if (!string.IsNullOrEmpty(binfolder))
 									{
-										for (int i = 0; i < files.Length; i++)
-										{
-											LoadConfig(files[i]);
-										}
+										var binFolder = Path.Combine(Path.GetFullPath(path), binfolder);
+										SetBinaryFolders(binFolder);
 									}
 								}
 							}
-						}
-						#endregion
 
+							//Find all configure files and load all
+							var files = Directory.GetFiles(path, "*.config");
+							if (files != null)
+							{
+								for (int i = 0; i<files.Length; i++)
+								{
+									LoadConfig(files[i]);
+								}
+							}
+						}
 					}
 				}
+				#endregion
 			}
-
-			Log.DevDebug("EnvironmentManager.LoadConfig end");
-
-			return _environmentConfigure;
 		}
 
-		static void SetBinaryFolders(string path)
+		static void SetBinaryFolders(string binFolder)
 		{
-			Log.DevDebug("EnvironmentManager.SetBinaryFolders begin {0}", path);
+			Log.DevDebug("EnvironmentManager.SetBinaryFolders begin {0}", binFolder);
 
 
-			var binFolder = Path.Combine(Path.GetFullPath(path),"bin");
-			                             
 			if (Directory.Exists(binFolder) && !_environmentConfigure.AssemblyFolders.Contains(binFolder))
 			{
 				_environmentConfigure.AssemblyFolders.Add(binFolder);
@@ -407,6 +690,13 @@ namespace qshine.Configuration
 						Log.DevDebug("EnvironmentManager.SetBinaryFolders version path {0} found",versionPath);
 						break;
 					}
+				}
+				var cpuArchitecturePath = Path.Combine(binFolder, EnvironmentEx.CpuArchitecture);
+				if (Directory.Exists(cpuArchitecturePath) && !_environmentConfigure.AssemblyFolders.Contains(cpuArchitecturePath))
+				{
+					_environmentConfigure.AssemblyFolders.Add(cpuArchitecturePath);
+
+					Log.DevDebug("EnvironmentManager.SetBinaryFolders CPU Architecture path {0} found",cpuArchitecturePath);
 				}
 			}
 
@@ -442,9 +732,12 @@ namespace qshine.Configuration
 			return _versionPaths;
 		}
 
-		static string UnifiedPath(string path)
+
+		static string UnifiedPath(string folder, string path)
 		{
-			return Path.GetFullPath(path);
+			if (Path.IsPathRooted(path)) return path;
+
+			return Path.Combine(folder, path);
 		}
 
 		#endregion

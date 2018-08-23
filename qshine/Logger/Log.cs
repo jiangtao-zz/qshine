@@ -10,7 +10,7 @@ using System.Threading;
 namespace qshine
 {
 	/// <summary>
-	/// High level static logger API.
+	/// Logger API.
 	/// 	1. Get logger instance from .NET trace logger provider for system logging message
 	/// 	2. Get logger instance from a plug-in logger provider for application logging message
 	/// 	3. Provide general logger instance for application logging message

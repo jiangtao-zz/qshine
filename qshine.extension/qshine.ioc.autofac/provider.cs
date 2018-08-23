@@ -1,10 +1,10 @@
-﻿using System;
-using qshine.IoC;
+using System;
+using qshine;
 namespace qshine.ioc.autofac
 {
-	public class Provider:IIoCProvider
+	public class Provider:IIocProvider
 	{
-		public IIoCContainer CreateContainer()
+		public IIocContainer CreateContainer()
 		{
 			return new Container();
 		}

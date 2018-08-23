@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using qshine.Configuration;
 using qshine.Globalization;
@@ -6,13 +6,13 @@ using qshine;
 using TinyIoC;
 
 
-namespace qshine.IoC
+namespace qshine
 {
-	public class TinyIoCProvider: IIoCProvider
+	public class TinyIocProvider: IIocProvider
 	{
-		public IIoCContainer CreateContainer()
+		public IIocContainer CreateContainer()
 		{
-			return new IoCTinyIoC();
+			return new IocTinyIoc();
 		}
 	}
 
@@ -21,7 +21,7 @@ namespace qshine.IoC
     /// Native interface:
     ///     public TinyIoCContainer TinyContainer
     /// </summary>
-	public class IoCTinyIoC : IoCContainerBase
+	public class IocTinyIoc : IocContainerBase
     {
         #region internal class
         internal sealed class NamedIoCType
@@ -65,7 +65,7 @@ namespace qshine.IoC
 
         #region constructor
 
-        public IoCTinyIoC()
+        public IocTinyIoc()
         {
             this.ProviderName = "TinyIoC";
             container = new TinyIoCContainer();
@@ -138,7 +138,7 @@ namespace qshine.IoC
         #endregion
 
         #region RegisterType
-		public override IIoCContainer RegisterType(Type requestedType, Type actualType, string name, IoCInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
+		public override IIocContainer RegisterType(Type requestedType, Type actualType, string name, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
         {
             if (name == null)
             {
@@ -147,7 +147,7 @@ namespace qshine.IoC
 
             try
             {
-                if (constructorParameters.Length > 0 && instanceScopeOption == IoCInstanceScope.Singleton)
+                if (constructorParameters.Length > 0 && instanceScopeOption == IocInstanceScope.Singleton)
                 {
                     //The TinyIoC do not support singleton parameter constructor
                     //we need implement one for it.
@@ -210,14 +210,14 @@ namespace qshine.IoC
         #endregion
 
         #region RegisterInstance
-        public override IIoCContainer RegisterInstance<IT>(IT instance)
+        public override IIocContainer RegisterInstance<IT>(IT instance)
         {
             container.Register<IT>(instance);
 
             return this;
         }
 
-        public override IIoCContainer RegisterInstance(Type requestedType, object instance, string name)
+        public override IIocContainer RegisterInstance(Type requestedType, object instance, string name)
         {
             container.Register(requestedType, instance, name);
 
@@ -236,15 +236,15 @@ namespace qshine.IoC
         
         #region Private
 
-        private void SetInstanceScope(TinyIoCContainer.RegisterOptions instanceScope, IoCInstanceScope instanceScopeOption)
+        private void SetInstanceScope(TinyIoCContainer.RegisterOptions instanceScope, IocInstanceScope instanceScopeOption)
         {
 
             switch (instanceScopeOption)
             {
-                case IoCInstanceScope.Singleton:
+                case IocInstanceScope.Singleton:
                     instanceScope.AsSingleton();
                     break;
-                case IoCInstanceScope.Transient:
+                case IocInstanceScope.Transient:
                     instanceScope.AsMultiInstance();
                     break;
                 default:

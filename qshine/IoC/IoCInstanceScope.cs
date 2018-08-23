@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace qshine.IoC
+namespace qshine
 {
     /// <summary>
     /// The options to control instance life time scope.
 	/// It do not have per-request scope. Use context bind/unbind to release instance per-request.
     /// </summary>
-    public enum IoCInstanceScope
+    public enum IocInstanceScope
     {
         /// <summary>
         /// Signle instance per container.
