@@ -12,44 +12,46 @@ namespace qshine.database
 		public static void Main()
 		{
 			EnvironmentManager.Boot();
-			//Interceptor.RegisterHandlerType(typeof(DbClientLog));
+            //Interceptor.RegisterHandlerType(typeof(DbClientLog));
 
-			var db = new SqlDatabase("testDatabase");
-			db
-				//Register Common tables
-				.RegisterTable(new Location())
-				.RegisterTable(new BuildingHour())
-				.RegisterTable(new Person())
-				.RegisterTable(new LookupType())
-				.RegisterTable(new Lookup())
-				.RegisterTable(new Module())
-				.RegisterTable(new Application())
-				.RegisterTable(new Language())
-				.RegisterTable(new Translation())
+            using (var db = new SqlDatabase("testDatabase"))
+            {
+                db
+                    //Register Common tables
+                    .RegisterTable(new Location())
+                    .RegisterTable(new BuildingHour())
+                    .RegisterTable(new Person())
+                    .RegisterTable(new LookupType())
+                    .RegisterTable(new Lookup())
+                    .RegisterTable(new Module())
+                    .RegisterTable(new Application())
+                    .RegisterTable(new Language())
+                    .RegisterTable(new Translation())
 
-				//Register Identity Manager
-				.RegisterTable(new User())
-				.RegisterTable(new Group())
-				.RegisterTable(new Role())
-				.RegisterTable(new Principal())
-				.RegisterTable(new RoleMember())
-				.RegisterTable(new GroupMember())
+                    //Register Identity Manager
+                    .RegisterTable(new User())
+                    .RegisterTable(new Group())
+                    .RegisterTable(new Role())
+                    .RegisterTable(new Principal())
+                    .RegisterTable(new RoleMember())
+                    .RegisterTable(new GroupMember())
 
-				//Register Resources
-				.RegisterTable(new SecureResourceType())
-				.RegisterTable(new ResourceOperation())
-				.RegisterTable(new SecureResource())
-				;
-			
-			var result = db.Build(true);
-			if (result == true)
-			{
-				Console.WriteLine("The database has been updated sucessfully.");
-			}
-			else
-			{
-				Console.WriteLine("Failed to build database {0}. Last error is [{1}].", db.ConnectionStringName, db.LastErrorMessage);
-			}
+                    //Register Resources
+                    .RegisterTable(new SecureResourceType())
+                    .RegisterTable(new ResourceOperation())
+                    .RegisterTable(new SecureResource())
+                    ;
+
+                var result = db.Build(true);
+                if (result == true)
+                {
+                    Console.WriteLine("The database has been updated sucessfully.");
+                }
+                else
+                {
+                    Console.WriteLine("Failed to build database {0}. Last error is [{1}].", db.ConnectionStringName, db.LastErrorMessage);
+                }
+            }
 		}
 	}
 }

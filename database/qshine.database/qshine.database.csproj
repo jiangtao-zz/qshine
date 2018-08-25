@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -8,7 +8,8 @@
     <RootNamespace>qshine.database</RootNamespace>
     <AssemblyName>qshine.database</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <ApplicationManifest></ApplicationManifest>
+    <ApplicationManifest>
+    </ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -62,26 +63,17 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="scripts\" />
-    <Folder Include="tables\" />
-    <Folder Include="tables\queue\" />
-    <Folder Include="tables\Security\" />
-    <Folder Include="tables\Security\idm\" />
-    <Folder Include="applicationDesign\" />
-    <Folder Include="config\" />
-    <Folder Include="config\sqliteConfig\" />
-    <Folder Include="config\sqliteConfig\bin\" />
-    <Folder Include="config\sqliteConfig\bin\net45\" />
-    <Folder Include="config\sqliteConfig\bin\net45\x64\" />
-    <Folder Include="config\sqliteConfig\bin\net45\x86\" />
-    <Folder Include="tables\Common\" />
-    <Folder Include="tables\Common\Language\" />
-    <Folder Include="config\bin\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="applicationDesign\0_readme.txt" />
     <None Include="App.config" />
+    <None Include="config\mysqlConfig\App.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </None>
     <None Include="config\sqliteConfig\App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </None>
     <None Include="config\sqliteConfig\bin\net45\System.Data.SQLite.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -97,6 +89,7 @@
     </None>
     <None Include="config\main.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </None>
     <None Include="config\sqliteConfig\bin\net45\x64\SQLite.Interop.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -128,6 +121,11 @@
       <Project>{05162FC4-73A3-4190-A336-568E2289302C}</Project>
       <Name>qshine</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="config\mysqlConfig\bin\qshine.database.mysql.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

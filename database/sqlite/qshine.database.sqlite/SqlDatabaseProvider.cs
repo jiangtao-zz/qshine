@@ -36,7 +36,27 @@ namespace qshine.database.sqlite
 			_logger = Log.GetLogger("database");
 		}
 
-		public string LastErrorMessage
+        public void Dispose()
+        {
+            if (_dbClient != null)
+            {
+                _dbClient.Dispose();
+                _dbClient = null;
+            }
+        }
+
+        /// <summary>
+        /// named parameter prefix symbol
+        /// </summary>
+        public string ParameterPrefix
+        {
+            get
+            {
+                return "@";
+            }
+        }
+
+        public string LastErrorMessage
 		{
 			get;set;
 		}

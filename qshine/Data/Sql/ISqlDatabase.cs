@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 namespace qshine.database
 {
-	public interface ISqlDatabase
-	{
+	public interface ISqlDatabase: System.IDisposable
+    {
 		/// <summary>
 		/// Gets the name of the provider.
 		/// </summary>
@@ -73,5 +73,10 @@ namespace qshine.database
 		/// </summary>
 		/// <value><c>true</c> if can create; otherwise, <c>false</c>.</value>
 		bool CanCreate { get; }
+
+        /// <summary>
+        /// Get named parameter prefix symbol.
+        /// </summary>
+        string ParameterPrefix { get; }
 	}
 }

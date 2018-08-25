@@ -8,7 +8,7 @@ namespace qshine.database
 	/// <summary>
 	/// Sql database structure management class.
 	/// </summary>
-	public class SqlDatabase
+	public class SqlDatabase:IDisposable
 	{
 		string _lastErrorMessage = "";
 		List<SqlDDLTable> _tables;
@@ -27,6 +27,17 @@ namespace qshine.database
 			_nativeDatabase = GetDatabaseInstance(connectionStringName);
 			_trackingTable = new SqlDDLTracking(_nativeDatabase);
 		}
+
+        public void Dispose()
+        {
+            if (_nativeDatabase != null)
+            {
+                _nativeDatabase.Dispose();
+                _nativeDatabase = null;
+            }
+        }
+
+
 		#region Properties
 
 		/// <summary>

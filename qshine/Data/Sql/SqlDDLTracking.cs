@@ -92,14 +92,21 @@ namespace qshine.database
 			}
 		}
 
+        string ParameterName(string name)
+        {
+            return _nativeDatabase.ParameterPrefix + name;
+        }
+
 		/// <summary>
 		/// Load table tracking information.
 		/// </summary>
 		public void Load()
 		{
-			var sql = string.Format(@"select c.id, t.object_name, c.column_name, c.column_type, c.size, c.default_value, c.allow_null,
-			c.reference, c.is_unique, c.is_pk, c.constraint_value, c.auto_increase, c.is_index, c.version, c.created_on, c.updated_on, c.comments from {0} c inner join {1} t on c.table_id=t.id
-			 and t.object_type=:p1", TrackingColumnTableName, TrackingTableName);
+			var sql = string.Format(
+@"select c.id, t.object_name, c.column_name, c.column_type, c.size, c.default_value, c.allow_null,
+c.reference, c.is_unique, c.is_pk, c.constraint_value, c.auto_increase, c.is_index, c.version, c.created_on, c.updated_on, c.comments 
+from {0} c inner join {1} t on c.table_id=t.id
+and t.object_type={2}", TrackingColumnTableName, TrackingTableName, ParameterName("p1"));
 
 			_trackingTableColumns = _nativeDatabase.DBClient.Retrieve(
 				(x) =>
@@ -127,8 +134,9 @@ namespace qshine.database
 			}, sql, DbParameters.New.Input("p1", (int)TrackingObjectType.Table, DbType.Int32));
 
 
-			sql = string.Format(@"select t.id, t.schema_name, t.object_type, t.object_name, t.object_hash, t.version, t.created_on, t.updated_on, t.comments, t.category from {0} t
-						 inner join sqlite_master m on t.object_name=m.name and m.type='table' and object_type=:p1", TrackingTableName);
+			sql = string.Format(
+@"select t.id, t.schema_name, t.object_type, t.object_name, t.object_hash, t.version, t.created_on, t.updated_on, t.comments, t.category 
+from {0} t where t.object_type={1}", TrackingTableName, ParameterName("p1"));
 			
 			_trackingTables = _nativeDatabase.DBClient.Retrieve(
 				(x) =>
@@ -159,26 +167,37 @@ namespace qshine.database
 		public void AddToTrackingTable(SqlDDLTable table)
 		{
 			//Create a tracking table record
-			var sql = string.Format(
-				"insert into {0} (schema_name, object_type,object_name,object_hash,version, comments, category) values (:p1,:p2,:p3,:p4,:p5,:p6,:p7)",
-				SqlDDLTracking.TrackingTableName);
+			var sql = string.Format("insert into {0} (schema_name, object_type,object_name,object_hash,version, comments, category) values ({1},{2},{3},{4},{5},{6},{7})",
+                TrackingTableName,
+                ParameterName("p1"),
+                ParameterName("p2"),
+                ParameterName("p3"),
+                ParameterName("p4"),
+                ParameterName("p5"),
+                ParameterName("p6"),
+                ParameterName("p7"));
 
 			_nativeDatabase.DBClient.Sql(sql, DbParameters.New
-										 .Input("p1", table.SchemaName, System.Data.DbType.String)
-										 .Input("p2", (int)TrackingObjectType.Table)
-										 .Input("p3", table.TableName)
-										 .Input("p4", table.GetHashCode())
-										 .Input("p5", table.Version)
-										 .Input("p6", table.Comments)
-										 .Input("p7", table.Category)
+                .Input("p1", table.SchemaName, System.Data.DbType.String)
+                .Input("p2", (int)TrackingObjectType.Table)
+                .Input("p3", table.TableName)
+                .Input("p4", table.GetHashCode())
+                .Input("p5", table.Version)
+                .Input("p6", table.Comments)
+                .Input("p7", table.Category)
 										);
 			var tableId = _nativeDatabase.DBClient.SqlSelect(
-				string.Format("select id from {0} where schema_name=:p1 and object_type=:p2 and object_name=:p3", SqlDDLTracking.TrackingTableName),
-															 DbParameters.New
-															 .Input("p1", table.SchemaName)
-															 .Input("p2", (int)TrackingObjectType.Table)
-															 .Input("p3", table.TableName));
-			if (tableId != null)
+                string.Format("select id from {0} where schema_name={1} and object_type={2} and object_name={3}",
+                TrackingTableName, 
+                ParameterName("p1"),
+                ParameterName("p2"),
+                ParameterName("p3")),
+                DbParameters.New
+                .Input("p1", table.SchemaName)
+                .Input("p2", (int)TrackingObjectType.Table)
+                .Input("p3", table.TableName));
+
+            if (tableId != null)
 			{
 				//Create tracking table column records
 				foreach (var column in table.Columns)
@@ -229,30 +248,46 @@ namespace qshine.database
 				if (columnChanged)
 				{
 					//Column attribute changed
-					sql = string.Format(
-						@"update {0} set column_name=:p1, column_type=:p2, size=:p3, default_value=:p4, allow_null=:p5, reference=:p6, is_unique=:p7, is_pk=:p8, constraint_value=:p9, auto_increase=:p10, is_index=:p11, version=:p12, updated_on=:p13, comments=:p14
-							  		where id=:p15", SqlDDLTracking.TrackingColumnTableName);
+					sql = string.Format(@"update {0} set column_name={1}, column_type={2}, size={3}, default_value={4}, allow_null={5}, 
+reference={6}, is_unique={7}, is_pk={8}, constraint_value={9}, auto_increase={10}, is_index={11},
+version={12}, updated_on={13}, comments={14}
+where id={15}", 
+                        TrackingColumnTableName,
+                        ParameterName("p1"),
+                        ParameterName("p2"),
+                        ParameterName("p3"),
+                        ParameterName("p4"),
+                        ParameterName("p5"),
+                        ParameterName("p6"),
+                        ParameterName("p7"),
+                        ParameterName("p8"),
+                        ParameterName("p9"),
+                        ParameterName("p10"),
+                        ParameterName("p11"),
+                        ParameterName("p12"),
+                        ParameterName("p13"),
+                        ParameterName("p14"),
+                        ParameterName("p15"));
 
-					_nativeDatabase.DBClient.Sql(sql, DbParameters.New
-												 .Input("p1", column.Name)
-												 .Input("p2", column.DbType.ToString())
-												 .Input("p3", column.Size)
-												 .Input("p4", column.DefaultValue)
-												 .Input("p5", column.AllowNull)
-												 .Input("p6", column.Reference)
-												 .Input("p7", column.IsUnique)
-												 .Input("p8", column.IsPK)
-												 .Input("p9", column.CheckConstraint)
-												 .Input("p10", column.AutoIncrease)
-												 .Input("p11", column.IsIndex)
-												 .Input("p12", column.Version)
-												 .Input("p13", DateTime.Now)
-												 .Input("p14", column.Comments)
-												 .Input("p15", trackingColumn.Id)
-												);
+                    _nativeDatabase.DBClient.Sql(sql, DbParameters.New
+                        .Input("p1", column.Name)
+                        .Input("p2", column.DbType.ToString())
+						.Input("p3", column.Size)
+						.Input("p4", column.DefaultValue)
+						.Input("p5", column.AllowNull)
+						.Input("p6", column.Reference)
+						.Input("p7", column.IsUnique)
+						.Input("p8", column.IsPK)
+						.Input("p9", column.CheckConstraint)
+						.Input("p10", column.AutoIncrease)
+						.Input("p11", column.IsIndex)
+						.Input("p12", column.Version)
+						.Input("p13", DateTime.Now)
+						.Input("p14", column.Comments)
+						.Input("p15", trackingColumn.Id)
+					);
 				}
 			}
-
 		}
 
 
@@ -264,18 +299,26 @@ namespace qshine.database
 		public void UpdateTrackingTable(TrackingTable trackingTable, SqlDDLTable table)
 		{
 			var sql = string.Format(
-				"update {0} set schema_name=:p1, object_name=:p2, object_hash=:p3, version=:p4, comments=:p5, category=:p6 where id=:p7",
-				SqlDDLTracking.TrackingTableName);
+                "update {0} set schema_name={1}, object_name={2}, object_hash={3}, version={4}, comments={5}, category={6} where id={7}",
+                TrackingTableName,
+                ParameterName("p1"),
+                ParameterName("p2"),
+                ParameterName("p3"),
+                ParameterName("p4"),
+                ParameterName("p5"),
+                ParameterName("p6"),
+                ParameterName("p7")
+                );
 
 			_nativeDatabase.DBClient.Sql(sql, DbParameters.New
-										 .Input("p1", table.SchemaName, System.Data.DbType.String)
-										 .Input("p2", table.TableName)
-										 .Input("p3", table.GetHashCode())
-										 .Input("p4", table.Version)
-										 .Input("p5", table.Comments)
-										 .Input("p6", table.Category)
-										 .Input("p7", trackingTable.Id)
-										);
+				.Input("p1", table.SchemaName, System.Data.DbType.String)
+				.Input("p2", table.TableName)
+				.Input("p3", table.GetHashCode())
+				.Input("p4", table.Version)
+				.Input("p5", table.Comments)
+				.Input("p6", table.Category)
+				.Input("p7", trackingTable.Id)
+                );
 		}
 
 		/// <summary>
@@ -286,27 +329,42 @@ namespace qshine.database
 		void AddNewTrackingColumn(long tableId, SqlDDLColumn column)
 		{
 
-			var sql = string.Format(
-				@"insert into {0} (table_id, column_name, column_type, size, default_value, allow_null, reference, is_unique, is_pk, constraint_value, auto_increase, is_index, version, comments)
-							  values(:P1,:p2,:p3,:p4,:p5,:p6,:p7,:p8,:p9,:p10,:p11,:p12,:p13, :p14)", SqlDDLTracking.TrackingColumnTableName);
+			var sql = string.Format(@"insert into {0} (table_id, column_name, column_type, size, default_value, allow_null, reference, is_unique, is_pk, constraint_value, auto_increase, is_index, version, comments)
+values({1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14})",
+                TrackingColumnTableName,
+                ParameterName("p1"),
+                ParameterName("p2"),
+                ParameterName("p3"),
+                ParameterName("p4"),
+                ParameterName("p5"),
+                ParameterName("p6"),
+                ParameterName("p7"),
+                ParameterName("p8"),
+                ParameterName("p9"),
+                ParameterName("p10"),
+                ParameterName("p11"),
+                ParameterName("p12"),
+                ParameterName("p13"),
+                ParameterName("p14")
+                );
 
 			_nativeDatabase.DBClient.Sql(sql, DbParameters.New
-										 .Input("p1", tableId)
-										 .Input("p2", column.Name)
-										 .Input("p3", column.DbType.ToString())
-										 .Input("p4", column.Size)
-										 .Input("p5", column.DefaultValue)
-										 .Input("p6", column.AllowNull)
-										 .Input("p7", column.Reference)
-										 .Input("p8", column.IsUnique)
-										 .Input("p9", column.IsPK)
-										 .Input("p10", column.CheckConstraint)
-										 .Input("p11", column.AutoIncrease)
-										 .Input("p12", column.IsIndex)
-										 .Input("p13", column.Version)
-										 .Input("p14", column.Comments)
-													);
-		}
+                .Input("p1", tableId)
+				.Input("p2", column.Name)
+				.Input("p3", column.DbType.ToString())
+				.Input("p4", column.Size)
+				.Input("p5", column.DefaultValue)
+				.Input("p6", column.AllowNull)
+				.Input("p7", column.Reference)
+				.Input("p8", column.IsUnique)
+				.Input("p9", column.IsPK)
+				.Input("p10", column.CheckConstraint)
+				.Input("p11", column.AutoIncrease)
+				.Input("p12", column.IsIndex)
+				.Input("p13", column.Version)
+				.Input("p14", column.Comments)
+                );
+        }
 
 
 

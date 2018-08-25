@@ -9,11 +9,6 @@ namespace qshine
 	/// </summary>
 	public class DbClient:IDisposable
 	{
-		////Indicates the connection is managed by other component
-		////private bool _isUnmanagedConnection;
-		//Current database data reader
-		IDataReader _currentDataReader;
-
 		Database _database;
 
 		/// <summary>
@@ -167,34 +162,27 @@ namespace qshine
 		}
 
 
-		/// <summary>
-		/// Execute a SQL statement or StoredProcedure and retrieve batch data from IDataReader
-		/// </summary>
-		/// <param name="commandType">A CommandType object to indicate a Sql command or a storedprocedure command</param>
-		/// <param name="commandString">SQL statement or stored procedure</param>
-		/// <param name="parameters">input parameters and output parameters</param>
-		/// <returns>IDataReader object</returns>
-		public IDataReader ExecuteReader(CommandType commandType, string commandString, DbParameters parameters=null)
+        /// <summary>
+        /// Execute a SQL statement or StoredProcedure and retrieve batch data from IDataReader
+        /// </summary>
+        /// <param name="readerData">A function to process data reader. The reader will be dispose after process completed</param>
+        /// <param name="commandType">A CommandType object to indicate a Sql command or a storedprocedure command</param>
+        /// <param name="commandString">SQL statement or stored procedure</param>
+        /// <param name="parameters">input parameters and output parameters</param>
+        public void ExecuteReader(Action<IDataReader> readerData, CommandType commandType, string commandString, DbParameters parameters=null)
 		{
-			return _interceptor.JoinPoint<IDataReader>(() =>
+			_interceptor.JoinPoint(() =>
 			{
-				using (var command = ActiveConnection.CreateCommand())
+                using (var command = ActiveConnection.CreateCommand())
 				{
 					command.CommandType = commandType;
 					command.CommandText = commandString;
 					AddCommandParameters(command, parameters.Params);
-					if (_currentDataReader != null)
-					{
-						if (!_currentDataReader.IsClosed)
-						{
-							_currentDataReader.Close();
-						}
-						_currentDataReader = null;
-					}
-					_currentDataReader = command.ExecuteReader();
-					RetrieveCommandParameterValues(command, parameters.Params);
-				}
-				return _currentDataReader;
+
+					var dataReader = command.ExecuteReader();
+                    readerData(dataReader);
+                    return 0;
+                }
 			},this, "ExecuteReader", commandType, commandString, parameters);
 		}
 
@@ -233,15 +221,15 @@ namespace qshine
 			return ExecuteScalar(CommandType.Text, commandString, parameters);
 		}
 
-		/// <summary>
-		/// Execute a SQL statement and retrieve batch data from IDataReader
-		/// </summary>
-		/// <param name="commandString">SQL statement</param>
-		/// <param name="parameters">input parameters for SQL statement.</param>
-		/// <returns>IDataReader object</returns>
-		public IDataReader SqlReader(string commandString, DbParameters parameters=null)
+        /// <summary>
+        /// Execute a SQL statement and retrieve batch data from IDataReader
+        /// </summary>
+        /// <param name="readerData">A function to process data reader. The reader will be dispose after process completed</param>
+        /// <param name="commandString">SQL statement</param>
+        /// <param name="parameters">input parameters for SQL statement.</param>
+        public void SqlReader(Action<IDataReader> readerData, string commandString, DbParameters parameters=null)
 		{
-			return ExecuteReader(CommandType.Text, commandString, parameters);
+			ExecuteReader(readerData, CommandType.Text, commandString, parameters);
 		}
 
 		/// <summary>
@@ -254,38 +242,38 @@ namespace qshine
 		{
 			return _interceptor.JoinPoint(() =>
 			 {
-				 var dataTable = new DataTable();
-				 var reader = SqlReader(commandString, parameters);
-				 dataTable.Load(reader);
-				 reader.Close();
-				 return dataTable;
+                 var dataTable = new DataTable();
+                 SqlReader((reader) =>
+                {
+                    dataTable.Load(reader);
+                }, commandString, parameters);
+                return dataTable;
 			 }, this, "SqlDataTable", commandString, parameters);
 		}
 
-		/// <summary>
-		/// Retrieve a list of entity from a sql statement
-		/// </summary>
-		/// <typeparam name="T">Entity type</typeparam>
-		/// <param name="ParseObjectFromReader">Callback function to parse data reader into an entity object</param>
-		/// <param name="commandString">SQL statement</param>
-		/// <param name="parameters">input parameters for SQL statement.</param>
-		/// <returns>A list of entity object</returns>
-		public List<T> Retrieve<T>(Func<IDataReader, T> ParseObjectFromReader, string commandString, DbParameters parameters=null)
-		{
-			return _interceptor.JoinPoint(() =>
-			{
-				var result = new List<T>();
-				using (var reader = SqlReader(commandString, parameters))
-				{
-					while (reader.Read())
-					{
-						var t = ParseObjectFromReader(reader);
-						result.Add(t);
-					}
-					reader.Close();
-				}
-				return result;
-			}, "Retrieve", commandString, parameters);
+        /// <summary>
+        /// Retrieve a list of entity from a sql statement
+        /// </summary>
+        /// <typeparam name="T">Entity type</typeparam>
+        /// <param name="ParseObjectFromReader">Callback function to parse data reader into an entity object</param>
+        /// <param name="commandString">SQL statement</param>
+        /// <param name="parameters">input parameters for SQL statement.</param>
+        /// <returns>A list of entity object</returns>
+        public List<T> Retrieve<T>(Func<IDataReader, T> ParseObjectFromReader, string commandString, DbParameters parameters = null)
+        {
+            return _interceptor.JoinPoint(() =>
+            {
+                var result = new List<T>();
+                SqlReader((reader) =>
+                {
+                    while (reader.Read())
+                    {
+                        var t = ParseObjectFromReader(reader);
+                        result.Add(t);
+                    }
+                }, commandString, parameters);
+                return result;
+            }, "Retrieve", commandString, parameters);
 		}
 
 
