@@ -6,13 +6,13 @@ namespace qshine.database
 	/// <summary>
 	/// Native Sql database interface
 	/// </summary>
-	public interface ISqlDatabaseProvider:IProvider
+	public interface ISqlDDLSyntaxProvider:IProvider
 	{
 		/// <summary>
 		/// Gets the database instance.
 		/// </summary>
 		/// <returns>The instance.</returns>
 		/// <param name="dbConnectionString">Db connection string.</param>
-		ISqlDatabase GetInstance(string dbConnectionString);
+		ISqlDDLSyntax GetInstance(string dbConnectionString);
 	}
 }

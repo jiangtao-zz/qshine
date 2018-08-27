@@ -6,7 +6,7 @@ namespace qshine
 	public abstract class LoggerBase:ILogger
 	{
 		string _category;
-		TraceSwitch _switch;
+		//TraceSwitch _switch;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="T:qshine.LoggerBase"/> class.

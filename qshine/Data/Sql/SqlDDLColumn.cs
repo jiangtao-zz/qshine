@@ -35,5 +35,15 @@ namespace qshine.database
 				return _columnNameHistory;
 			}
 		}
+
+        /// <summary>
+        /// Previous column information from tracking column table.
+        /// </summary>
+        public TrackingColumn PreviousColumn { get; set; }
+
+        /// <summary>
+        /// The Column attribute changed.
+        /// </summary>
+        public bool IsDirty { get; set; }
 	}
 }

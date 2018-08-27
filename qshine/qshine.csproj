@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -22,7 +22,8 @@
       <CustomCommands>
         <Command>
           <type>AfterBuild</type>
-          <command></command>
+          <command>
+          </command>
         </Command>
       </CustomCommands>
     </CustomCommands>
@@ -47,6 +48,7 @@
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\Sql\SqlDDLSyntaxBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IoC\IIocContainer.cs" />
     <Compile Include="IoC\IIocModule.cs" />
@@ -139,9 +141,9 @@
     <Compile Include="Compiler\ScriptCompiler.cs" />
     <Compile Include="Compiler\ScriptBuilder.cs" />
     <Compile Include="Compiler\ScriptBlock.cs" />
-    <Compile Include="Data\Sql\ISqlDatabase.cs" />
-    <Compile Include="Data\Sql\ISqlDatabaseProvider.cs" />
-    <Compile Include="Data\Sql\SqlDatabase.cs" />
+    <Compile Include="Data\Sql\ISqlDDLSyntax.cs" />
+    <Compile Include="Data\Sql\ISqlDDLSyntaxProvider.cs" />
+    <Compile Include="Data\Sql\SqlDDLBuilder.cs" />
     <Compile Include="Data\Sql\SqlDDL.cs" />
     <Compile Include="Data\Sql\SqlDDLColumn.cs" />
     <Compile Include="Data\Sql\SqlDDLTable.cs" />
@@ -151,29 +153,7 @@
     <Compile Include="Data\Sql\TrackingTable.cs" />
     <Compile Include="Messaging\CommandBus.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="IoC\" />
-    <Folder Include="sampleEnvironment\" />
-    <Folder Include="sampleEnvironment\mySystemFolder\" />
-    <Folder Include="sampleEnvironment\myApplicationFolder\" />
-    <Folder Include="sampleEnvironment\mySystemFolder\config\" />
-    <Folder Include="sampleEnvironment\myApplicationFolder\config\" />
-    <Folder Include="Configuration\Setting\" />
-    <Folder Include="Logger\" />
-    <Folder Include="Globalization\" />
-    <Folder Include="Context\" />
-    <Folder Include="Cache\" />
-    <Folder Include="Cache\CommonCache\" />
-    <Folder Include="Data\" />
-    <Folder Include="applicationDesigner\" />
-    <Folder Include="Messaging\" />
-    <Folder Include="Exception\" />
-    <Folder Include="Messaging\DefaultCommandBus\" />
-    <Folder Include="Utility\Json\" />
-    <Folder Include="Data\UnitOfWork\" />
-    <Folder Include="Compiler\" />
-    <Folder Include="Data\Sql\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="Resources\Resource.resx" />
     <None Include="sampleEnvironment\myApplicationFolder\app.config" />

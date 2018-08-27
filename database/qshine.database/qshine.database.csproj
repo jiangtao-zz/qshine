@@ -128,4 +128,12 @@
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)\qshine.database.sqlite.dll" "$(ProjectDir)config\sqliteConfig\bin"
+xcopy  /F /R /Y /D "$(ProjectDir)..\mysql\qshine.database.mysql\$(OutDir)\qshine.database.mysql.dll" "$(ProjectDir)config\mysqlConfig\bin"</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>if exist "$(TargetPath).locked" del "$(TargetPath).locked"
+if exist "$(TargetPath)" if not exist "$(TargetPath).locked" move "$(TargetPath)" "$(TargetPath).locked"</PreBuildEvent>
+  </PropertyGroup>
 </Project>

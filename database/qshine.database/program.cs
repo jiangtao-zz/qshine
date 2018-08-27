@@ -14,7 +14,7 @@ namespace qshine.database
 			EnvironmentManager.Boot();
             //Interceptor.RegisterHandlerType(typeof(DbClientLog));
 
-            using (var db = new SqlDatabase("testDatabase"))
+            using (var db = new SqlDDLBuilder("testDatabase"))
             {
                 db
                     //Register Common tables

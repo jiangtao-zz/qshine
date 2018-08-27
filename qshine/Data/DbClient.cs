@@ -153,9 +153,15 @@ namespace qshine
 				 {
 					 command.CommandType = commandType;
 					 command.CommandText = commandString;
-					 AddCommandParameters(command, parameters.Params);
+                     if (parameters != null && parameters.Params != null)
+                     {
+                         AddCommandParameters(command, parameters.Params);
+                     }
 					 result = command.ExecuteScalar();
-					RetrieveCommandParameterValues(command, parameters.Params);
+                     if (parameters != null && parameters.Params != null)
+                     {
+                         RetrieveCommandParameterValues(command, parameters.Params);
+                     }
 				 }
 				 return result;
 			 }, this, "ExecuteScalar", commandType, commandString, parameters);

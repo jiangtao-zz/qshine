@@ -10,16 +10,20 @@ namespace qshine.database
 	/// </summary>
 	public class SqlDDLTracking
 	{
-		ISqlDatabase _nativeDatabase;
+        ISqlDDLSyntax _nativeDatabaseSyntax;
 		List<TrackingTable> _trackingTables;
 		List<TrackingColumn> _trackingTableColumns;
 		SqlDDLTable _ddlTrackingTable;
 		SqlDDLTable _ddlTrackingColumnTable;
 
-		public SqlDDLTracking(ISqlDatabase database)
+        DbClient _dbClient;
+
+		public SqlDDLTracking(ISqlDDLSyntax databaseSyntax, DbClient dbClient)
 		{
-			_nativeDatabase = database;
-		}
+			_nativeDatabaseSyntax = databaseSyntax;
+            _dbClient = dbClient;
+
+        }
 
 		/// <summary>
 		/// The name of the tracking table.
@@ -94,7 +98,7 @@ namespace qshine.database
 
         string ParameterName(string name)
         {
-            return _nativeDatabase.ParameterPrefix + name;
+            return _nativeDatabaseSyntax.ParameterPrefix + name;
         }
 
 		/// <summary>
@@ -108,7 +112,7 @@ c.reference, c.is_unique, c.is_pk, c.constraint_value, c.auto_increase, c.is_ind
 from {0} c inner join {1} t on c.table_id=t.id
 and t.object_type={2}", TrackingColumnTableName, TrackingTableName, ParameterName("p1"));
 
-			_trackingTableColumns = _nativeDatabase.DBClient.Retrieve(
+			_trackingTableColumns = _dbClient.Retrieve(
 				(x) =>
 			{
 				return new TrackingColumn
@@ -138,7 +142,7 @@ and t.object_type={2}", TrackingColumnTableName, TrackingTableName, ParameterNam
 @"select t.id, t.schema_name, t.object_type, t.object_name, t.object_hash, t.version, t.created_on, t.updated_on, t.comments, t.category 
 from {0} t where t.object_type={1}", TrackingTableName, ParameterName("p1"));
 			
-			_trackingTables = _nativeDatabase.DBClient.Retrieve(
+			_trackingTables = _dbClient.Retrieve(
 				(x) =>
 			{
 				var tableName = x.GetString(3);
@@ -177,7 +181,7 @@ from {0} t where t.object_type={1}", TrackingTableName, ParameterName("p1"));
                 ParameterName("p6"),
                 ParameterName("p7"));
 
-			_nativeDatabase.DBClient.Sql(sql, DbParameters.New
+            _dbClient.Sql(sql, DbParameters.New
                 .Input("p1", table.SchemaName, System.Data.DbType.String)
                 .Input("p2", (int)TrackingObjectType.Table)
                 .Input("p3", table.TableName)
@@ -186,7 +190,7 @@ from {0} t where t.object_type={1}", TrackingTableName, ParameterName("p1"));
                 .Input("p6", table.Comments)
                 .Input("p7", table.Category)
 										);
-			var tableId = _nativeDatabase.DBClient.SqlSelect(
+			var tableId = _dbClient.SqlSelect(
                 string.Format("select id from {0} where schema_name={1} and object_type={2} and object_name={3}",
                 TrackingTableName, 
                 ParameterName("p1"),
@@ -269,7 +273,7 @@ where id={15}",
                         ParameterName("p14"),
                         ParameterName("p15"));
 
-                    _nativeDatabase.DBClient.Sql(sql, DbParameters.New
+                    _dbClient.Sql(sql, DbParameters.New
                         .Input("p1", column.Name)
                         .Input("p2", column.DbType.ToString())
 						.Input("p3", column.Size)
@@ -310,7 +314,7 @@ where id={15}",
                 ParameterName("p7")
                 );
 
-			_nativeDatabase.DBClient.Sql(sql, DbParameters.New
+            _dbClient.Sql(sql, DbParameters.New
 				.Input("p1", table.SchemaName, System.Data.DbType.String)
 				.Input("p2", table.TableName)
 				.Input("p3", table.GetHashCode())
@@ -348,7 +352,7 @@ values({1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14})",
                 ParameterName("p14")
                 );
 
-			_nativeDatabase.DBClient.Sql(sql, DbParameters.New
+            _dbClient.Sql(sql, DbParameters.New
                 .Input("p1", tableId)
 				.Input("p2", column.Name)
 				.Input("p3", column.DbType.ToString())
