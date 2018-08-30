@@ -45,7 +45,7 @@ namespace qshine
 			};
             if (value is bool)
             {
-                _currentParameter.DbType = DbType.Int16;
+                _currentParameter.DbType = DbType.Boolean;
             }
 
 			_dbParameters.Add(_currentParameter);

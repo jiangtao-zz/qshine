@@ -12,8 +12,9 @@ namespace qshine.database
 	{
 		string _lastErrorMessage = "";
 		List<SqlDDLTable> _tables;
-        ISqlDDLSyntaxProvider _nativeDatabaseProvider;
-		ISqlDDLSyntax _nativeDatabaseSyntax;
+        ISqlDialectProvider _sqlDialectProvider;
+		ISqlDialect _sqlDialect;
+        Database _database;
 
 
         /// <summary>
@@ -22,9 +23,11 @@ namespace qshine.database
         /// <param name="connectionStringName">Database name.</param>
         public SqlDDLBuilder(string connectionStringName)
 		{
-			ConnectionStringName = connectionStringName;
+            _database = new Database(connectionStringName);
+
+			//ConnectionStringName = connectionStringName;
 			_tables = new List<SqlDDLTable>();
-			_nativeDatabaseSyntax = GetDatabaseInstance(connectionStringName);
+			LoadSqlDialect(_database.ConnectionString);
 		}
 
         SqlDDLTracking _trackingTable;
@@ -34,7 +37,7 @@ namespace qshine.database
             {
                 if (_trackingTable == null)
                 {
-                    _trackingTable = new SqlDDLTracking(_nativeDatabaseSyntax, DBClient);
+                    _trackingTable = new SqlDDLTracking(_sqlDialect, DBClient);
                 }
                 return _trackingTable;
             }
@@ -94,14 +97,14 @@ namespace qshine.database
 		public bool Build(bool createNewDatabase = false)
 		{
 			//Create a new database instance if the database is not existing.
-			bool isDatabaseExists = _nativeDatabaseSyntax.IsDatabaseExists();
+			bool isDatabaseExists = _sqlDialect.DatabaseExists();
 
 			//Create a new database instance if the database not exists when run Build(true)
 			if (!isDatabaseExists && createNewDatabase)
 			{
-				if (_nativeDatabaseSyntax.CanCreate)
+				if (_sqlDialect.CanCreate)
 				{
-					isDatabaseExists = _nativeDatabaseSyntax.CreateDatabase();
+					isDatabaseExists = _sqlDialect.CreateDatabase();
 					if (!isDatabaseExists)
 					{
 						_lastErrorMessage = string.Format("Failed to create a database {0} instance. You need create database instance manually.", ConnectionStringName);
@@ -131,10 +134,12 @@ namespace qshine.database
 			{
 				if (!IsTableExists(table.TableName))
 				{
-					//if table not exists, create a new table
-					CreateTable(table);
-                    //add to tracking table
-                    TrackingTable.AddToTrackingTable(table);
+                    //if table not exists, create a new table
+                    if (CreateTable(table))
+                    {
+                        //add to tracking table
+                        TrackingTable.AddToTrackingTable(table);
+                    }
 				}
 				else
 				{
@@ -147,7 +152,7 @@ namespace qshine.database
 
         bool IsTableExists(string tableName)
         {
-            var statement = _nativeDatabaseSyntax.GetTableNameStatement(tableName);
+            var statement = _sqlDialect.TableExistSql(tableName);
             var name = DBClient.SqlSelect(statement);
             if (name == null) return false;
             return true;
@@ -165,7 +170,7 @@ namespace qshine.database
             {
                 if (_dbClient == null)
                 {
-                    _dbClient = new DbClient(_nativeDatabaseSyntax.Database);
+                    _dbClient = new DbClient(_database);
                 }
                 return _dbClient;
             }
@@ -210,7 +215,7 @@ namespace qshine.database
             {
                 //_logger.Debug("Rename table {0} to {1}.", oldTableName, newTableName);
 
-                DBClient.Sql(_nativeDatabaseSyntax.GetRenameTableStatement(oldTableName, newTableName));
+                DBClient.Sql(_sqlDialect.TableRenameSql(oldTableName, newTableName));
 
                 //_logger.Debug("Rename table completed.");
 
@@ -233,7 +238,7 @@ namespace qshine.database
             try
             {
                 //_logger.Debug("Create a table {0}.", table.TableName);
-                var statement = _nativeDatabaseSyntax.GetCreateTableStatement(table);
+                var statement = _sqlDialect.TableCreateSql(table);
 
                 //comments are not support
                 DBClient.Sql(statement);
@@ -261,7 +266,7 @@ namespace qshine.database
             {
                 if (AnalyseTable(table, trackingTable))
                 {
-                    var sql = _nativeDatabaseSyntax.GetUpdateTableStatement(table);
+                    var sql = _sqlDialect.TableUpdateSql(table);
                     if (!string.IsNullOrEmpty(sql))
                     {
                         //_logger.Debug("Update table {0}.", table.TableName);
@@ -361,7 +366,7 @@ namespace qshine.database
                     return true;
                 }
 
-                if (_nativeDatabaseSyntax.ToNativeDBType(column.DbType.ToString(), column.Size) != _nativeDatabaseSyntax.ToNativeDBType(trackingColumn.ColumnType, column.Size))
+                if (_sqlDialect.ToNativeDBType(column.DbType.ToString(), column.Size) != _sqlDialect.ToNativeDBType(trackingColumn.ColumnType, column.Size))
                 {
                     return true;
                 }
@@ -384,18 +389,18 @@ namespace qshine.database
 		/// Gets the database instance.
 		/// </summary>
 		/// <returns>The database instance.</returns>
-		/// <param name="connectionStringName">Connection string name.</param>
-		public ISqlDDLSyntax GetDatabaseInstance(string connectionStringName)
+		/// <param name="connectionString">Connection string name.</param>
+		public void LoadSqlDialect(string connectionString)
 		{
-			if (_nativeDatabaseProvider == null)
+			if (_sqlDialectProvider == null)
 			{
-				_nativeDatabaseProvider = EnvironmentManager.GetProvider<ISqlDDLSyntaxProvider>();
-				if (_nativeDatabaseProvider == null)
+				_sqlDialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+				if (_sqlDialectProvider == null)
 				{
 					throw new NotImplementedException("Couldn't load Sql database provider from environment configuration.");
 				}				
 			}
-			return _nativeDatabaseProvider.GetInstance(connectionStringName);
+			_sqlDialect = _sqlDialectProvider.GetSqlDialect(connectionString);
 		}
 
 		static bool _internalTableExists = false;

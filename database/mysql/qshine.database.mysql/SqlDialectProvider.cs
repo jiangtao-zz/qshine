@@ -12,34 +12,49 @@ namespace qshine.database.mysql
     /// <summary>
     /// Implement MySql DDL provider.
     /// </summary>
-    public class SqlDDLSyntaxProvider : ISqlDDLSyntaxProvider
+    public class SqlDialectProvider : ISqlDialectProvider
     {
-        public ISqlDDLSyntax GetInstance(string dbConnectionString)
+        public ISqlDialect GetSqlDialect(string dbConnectionString)
         {
-            return new SqlDDLSyntax(dbConnectionString);
+            return new SqlDialect(dbConnectionString);
         }
     }
 
     /// <summary>
     /// MySql DDL Database instance class
     /// </summary>
-    public class SqlDDLSyntax : SqlDDLSyntaxBase
+    public class SqlDialect : SqlDialectStandard
     {
         //ILogger _logger;
         string _dataSource;
+        string _connectionString;
         const string _sqlProviderName = "MySql.Data.MySqlClient";
         MySqlConnectionStringBuilder _connectionBuilder;
+
 
         /// <summary>
         /// Construct a database instance by connectionStrings setting
         /// </summary>
-        /// <param name="connectionStringName"></param>
-        public SqlDDLSyntax(string connectionStringName)
-            :base(connectionStringName)
+        /// <param name="connectionString"></param>
+        public SqlDialect(string connectionString)
+            :base(connectionString)
         {
-            _connectionBuilder = new MySqlConnectionStringBuilder(Database.ConnectionString);
+            _connectionString = connectionString;
+            _connectionBuilder = new MySqlConnectionStringBuilder(connectionString);
 
             _dataSource = _connectionBuilder.Database;
+        }
+
+        /// <summary>
+        /// Gets the name of the provider.
+        /// </summary>
+        /// <value>The name of the provider.</value>
+        public override string ProviderName
+        {
+            get
+            {
+                return _sqlProviderName;
+            }
         }
 
         /// <summary>
@@ -57,37 +72,10 @@ namespace qshine.database.mysql
         }
 
         /// <summary>
-        /// Creates a new database instance.
-        /// </summary>
-        /// <returns><c>true</c>, if database was created, <c>false</c> otherwise.</returns>
-        public override bool CreateDatabase()
-        {
-            try
-            {
-                using (var conn = new MySqlConnection(GetSystemDatabaseConnectionString()))
-                {
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        conn.Open();
-                        cmd.CommandText = string.Format("CREATE DATABASE IF NOT EXISTS {0};", _dataSource);
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                LastErrorMessage = String.Format("Failed to create database {0}. Exception: {1}", Database.ConnectionString, ex.Message);
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Check whether the database instance exists.
+        /// Check database instance exists.
         /// </summary>
         /// <returns><c>true</c>, if database exists, <c>false</c> otherwise.</returns>
-        public override bool IsDatabaseExists()
+        public override bool DatabaseExists()
         {
             try
             {
@@ -113,39 +101,64 @@ namespace qshine.database.mysql
             }
         }
 
-
         /// <summary>
-        /// Gets the name of the provider.
+        /// Creates a database based on given connection string.
         /// </summary>
-        /// <value>The name of the provider.</value>
-        public override string ProviderName
+        /// <returns><c>true</c>, if database was created, <c>false</c> otherwise.</returns>
+        public override bool CreateDatabase()
         {
-            get
+            try
             {
-                return _sqlProviderName;
+                using (var conn = new MySqlConnection(GetSystemDatabaseConnectionString()))
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        conn.Open();
+                        cmd.CommandText = string.Format("create database if not exists {0};", _dataSource);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LastErrorMessage = String.Format("Failed to create database {0}. Exception: {1}", _connectionString, ex.Message);
+                return false;
             }
         }
 
         /// <summary>
-        /// Sql statement for table name check
+        /// Gets a value indicating whether a database can be created.
+        /// Some database only can be created by DBA.
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <value><c>true</c> if can create; otherwise, <c>false</c>.</value>
+        public override bool CanCreate
+        {
+            get { return true; }
+        }
+
+
+        /// <summary>
+        /// Get a SQL statement to check table exists.
+        /// </summary>
+        /// <param name="tableName">table name</param>
         /// <returns></returns>
-        public override string GetTableNameStatement(string tableName)
+        public override string TableExistSql(string tableName)
         {
             return string.Format(@"select table_name from information_schema.tables where table_name = '{0}'", tableName);
         }
 
         /// <summary>
-        /// Get Sql statement to rename a table
+        /// Get a SQL statement to rename a table 
         /// </summary>
-        /// <param name="oldTableName">old table name</param>
+        /// <param name="oldTableName">table name to be changed</param>
         /// <param name="newTableName">new table name</param>
-        /// <returns></returns>
-        public override string GetRenameTableStatement(string oldTableName, string newTableName)
-        {
-            return string.Format("rename table {0} to {1}", oldTableName, newTableName);
-        }
+        /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
+        //public override string TableRenameSql(string oldTableName, string newTableName)
+        //{
+        //    return string.Format("rename table {0} to {1}", oldTableName, newTableName);
+        //}
 
 
         /// <summary>
@@ -167,40 +180,40 @@ namespace qshine.database.mysql
         }
 
         /// <summary>
-        /// Get a keyword of Foreign key in create table statement.
+        /// Get a keyword to set column Foreign key.
         /// </summary>
-        /// <param name="referenceTable"></param>
-        /// <param name="referenceColumn"></param>
+        /// <param name="referenceTable">foreign key table</param>
+        /// <param name="referenceColumn">foreign key table column</param>
         /// <returns></returns>
-        public override string ColumnReferenceKeyword(string referenceTable, string referenceColumn)
-        {
-            return string.Format("references {0}({1})", referenceTable, referenceColumn);
-        }
+        //public override string ColumnReferenceKeyword(string referenceTable, string referenceColumn)
+        //{
+        //    return string.Format("references {0}({1})", referenceTable, referenceColumn);
+        //}
 
         /// <summary>
-        /// Get column rename statement with new column definition
+        /// Get a sql statement to rename a column and set new column definition
         /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="oldColumnName"></param>
-        /// <param name="newColumnName"></param>
-        /// <param name="column"></param>
+        /// <param name="tableName">table name</param>
+        /// <param name="oldColumnName">old column name</param>
+        /// <param name="newColumnName">new column name</param>
+        /// <param name="column">column definition</param>
         /// <returns></returns>
-        public override string GetRenameColumnNameStatement(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
+        public override string ColumnRenameSql(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
             return string.Format("alter table {0} change column {1} {2} {3};", tableName, oldColumnName, newColumnName, ColumnDefinition(column));
         }
 
         /// <summary>
-        /// Get column definition change statement
+        /// Get a sql statement to reset column definition
         /// </summary>
         /// <param name="tableName">table name</param>
         /// <param name="columnName">column name</param>
         /// <param name="column">Column new definition</param>
         /// <returns></returns>
-        public override string GetModifyColumnStatement(string tableName, string columnName, SqlDDLColumn column)
-        {
-            return string.Format("alter table {0} modify column {1} {2};", tableName, columnName, ColumnDefinition(column));
-        }
+        //public override string ColumnModifySql(string tableName, string columnName, SqlDDLColumn column)
+        //{
+        //    return string.Format("alter table {0} modify column {1} {2};", tableName, columnName, ColumnDefinition(column));
+        //}
 
         /// <summary>
         /// Get add new column statement
@@ -209,10 +222,10 @@ namespace qshine.database.mysql
         /// <param name="columnName"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        public override string GetAddColumnStatement(string tableName, string columnName, SqlDDLColumn column)
-        {
-            return string.Format("alter table {0} add column {1} {2};", tableName, columnName, ColumnDefinition(column));
-        }
+        //public override string ColumnAddSql(string tableName, string columnName, SqlDDLColumn column)
+        //{
+        //    return string.Format("alter table {0} add column {1} {2};", tableName, columnName, ColumnDefinition(column));
+        //}
 
         /// <summary>
         /// Convert an object value to database native literals.

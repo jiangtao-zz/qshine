@@ -11,28 +11,18 @@ namespace qshine.database
     /// <summary>
     /// Implement Sql statement syntax provider.
     /// </summary>
-    public abstract class SqlDDLSyntaxBase : ISqlDDLSyntax
+    public abstract class SqlDialectStandard : ISqlDialect
     {
         /// <summary>
-        /// Construct a database instance by connectionStrings setting
+        /// Construct a database standard SQL dialect.
+        /// Other database SQL dialect could inhert from this Dialect and override the non-standard SQL statements.
         /// </summary>
-        /// <param name="connectionStringName"></param>
-        public SqlDDLSyntaxBase(string connectionStringName)
+        public SqlDialectStandard(string connectionString)
         {
-            //_logger = Log.GetLogger("database");
-
-            Database = new Database(connectionStringName);
-
-            if (Database.ProviderName != ProviderName)
-            {
-                LastErrorMessage = String.Format("The sql provider {0} doesn't support connection string {1}", ProviderName, Database.ProviderName);
-
-                throw new InvalidProviderException(LastErrorMessage);
-            }
         }
 
         /// <summary>
-        /// Gets the name of the provider.
+        /// Gets .NET ADO provider name.
         /// </summary>
         /// <value>The name of the provider.</value>
         public abstract string ProviderName
@@ -40,18 +30,9 @@ namespace qshine.database
             get;
         }
 
-        /// <summary>
-        /// Get connection string
-        /// </summary>
-        public Database Database
-        {
-            get;
-            private set;
-        }
-
 
         /// <summary>
-        /// named parameter prefix symbol
+        /// standard named parameter prefix symbol
         /// </summary>
         public virtual string ParameterPrefix
         {
@@ -62,66 +43,56 @@ namespace qshine.database
         }
 
         /// <summary>
-        /// Get last non faltal error message
-        /// </summary>
-        public string LastErrorMessage
-        {
-            get; set;
-        }
-
-        /// <summary>
-        /// Creates a new database instance.
+        /// Creates a database based on given connection string.
         /// </summary>
         /// <returns><c>true</c>, if database was created, <c>false</c> otherwise.</returns>
         public abstract bool CreateDatabase();
 
-        /// <summary>
-        /// Check whether the database instance exists.
-        /// </summary>
-        /// <returns><c>true</c>, if database exists, <c>false</c> otherwise.</returns>
-        public abstract bool IsDatabaseExists();
 
         /// <summary>
-        /// Can a new database instance be created.
-        /// Defualt is true
+        /// Check database instance exists.
         /// </summary>
-        public virtual bool CanCreate
+        /// <returns><c>true</c>, if database exists, <c>false</c> otherwise.</returns>
+        public abstract bool DatabaseExists();
+
+        /// <summary>
+        /// Gets a value indicating whether a database can be created.
+        /// Some database only can be created by DBA.
+        /// </summary>
+        /// <value><c>true</c> if can create; otherwise, <c>false</c>.</value>
+        public abstract bool CanCreate
         {
-            get
-            {
-                return true;
-            }
+            get;
         }
 
         /// <summary>
-        /// Sql statement for table name check
+        /// Get a SQL statement to check table exists.
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">table name</param>
         /// <returns></returns>
-        public abstract string GetTableNameStatement(string tableName);
+        public abstract string TableExistSql(string tableName);
 
         /// <summary>
-        /// Get Sql statement to rename a table
+        /// Get a SQL statement to rename a table 
         /// </summary>
-        /// <param name="oldTableName">old table name</param>
+        /// <param name="oldTableName">table name to be changed</param>
         /// <param name="newTableName">new table name</param>
-        /// <returns></returns>
-        public virtual string GetRenameTableStatement(string oldTableName, string newTableName)
+        /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
+        public virtual string TableRenameSql(string oldTableName, string newTableName)
         {
             return string.Format("rename table {0} to {1}", oldTableName, newTableName);
         }
 
-
         /// <summary>
-        /// Get a keyword of auto increase in create table statement 
+        /// Get a keyword to set Auto-increment column
         /// </summary>
         public virtual string ColumnAutoIncrementKeyword
         {
-            get { return "auto_increment"; }
+            get { return "generated always as identity"; }
         }
 
         /// <summary>
-        /// Get a keyword of default 
+        /// Get a keyword to set column default value
         /// </summary>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
@@ -131,10 +102,10 @@ namespace qshine.database
         }
 
         /// <summary>
-        /// Get a keyword of Foreign key in create table statement.
+        /// Get a keyword to set column Foreign key.
         /// </summary>
-        /// <param name="referenceTable"></param>
-        /// <param name="referenceColumn"></param>
+        /// <param name="referenceTable">foreign key table</param>
+        /// <param name="referenceColumn">foreign key table column</param>
         /// <returns></returns>
         public virtual string ColumnReferenceKeyword(string referenceTable, string referenceColumn)
         {
@@ -142,38 +113,38 @@ namespace qshine.database
         }
 
         /// <summary>
-        /// Get column rename statement with new column definition
+        /// Get a sql statement to rename a column and set new column definition
         /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="oldColumnName"></param>
-        /// <param name="newColumnName"></param>
-        /// <param name="column"></param>
+        /// <param name="tableName">table name</param>
+        /// <param name="oldColumnName">old column name</param>
+        /// <param name="newColumnName">new column name</param>
+        /// <param name="column">column definition</param>
         /// <returns></returns>
-        public virtual string GetRenameColumnNameStatement(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
+        public virtual string ColumnRenameSql(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
             return string.Format("alter table {0} change column {1} {2} {3};", tableName, oldColumnName, newColumnName, ColumnDefinition(column));
         }
 
         /// <summary>
-        /// Get column definition change statement
+        /// Get a sql statement to reset column definition
         /// </summary>
         /// <param name="tableName">table name</param>
         /// <param name="columnName">column name</param>
         /// <param name="column">Column new definition</param>
         /// <returns></returns>
-        public virtual string GetModifyColumnStatement(string tableName, string columnName, SqlDDLColumn column)
+        public virtual string ColumnModifySql(string tableName, string columnName, SqlDDLColumn column)
         {
             return string.Format("alter table {0} modify column {1} {2};", tableName, columnName, ColumnDefinition(column));
         }
 
         /// <summary>
-        /// Get add new column statement
+        /// Get a sql statement to add a new column
         /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="columnName"></param>
-        /// <param name="column"></param>
+        /// <param name="tableName">table name</param>
+        /// <param name="columnName">new column name</param>
+        /// <param name="column">column definition</param>
         /// <returns></returns>
-        public virtual string GetAddColumnStatement(string tableName, string columnName, SqlDDLColumn column)
+        public virtual string ColumnAddSql(string tableName, string columnName, SqlDDLColumn column)
         {
             return string.Format("alter table {0} add column {1} {2};", tableName, columnName, ColumnDefinition(column));
         }
@@ -198,7 +169,7 @@ namespace qshine.database
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        public virtual string GetCreateTableStatement(SqlDDLTable table)
+        public virtual string TableCreateSql(SqlDDLTable table)
         {
             var builder = new StringBuilder();
 
@@ -237,7 +208,7 @@ namespace qshine.database
         /// </summary>
         /// <returns>table update statement</returns>
         /// <param name="table">Table.</param>
-        public virtual string GetUpdateTableStatement(SqlDDLTable table)
+        public virtual string TableUpdateSql(SqlDDLTable table)
         {
             var builder = new StringBuilder();
 
@@ -249,17 +220,17 @@ namespace qshine.database
                     {
                         var dbType = ToNativeDBType(column.DbType, column.Size);
                         //add new column
-                        builder.Append(GetAddColumnStatement(table.TableName, column.Name, column));
+                        builder.Append(ColumnAddSql(table.TableName, column.Name, column));
                     }
                     else if (column.Name == column.PreviousColumn.ColumnName)
                     {
                         //modify column
-                        builder.Append(GetModifyColumnStatement(table.TableName, column.Name, column));
+                        builder.Append(ColumnModifySql(table.TableName, column.Name, column));
                     }
                     else
                     {
                         //rename
-                        builder.Append(GetRenameColumnNameStatement(table.TableName, column.PreviousColumn.ColumnName, column.Name, column));
+                        builder.Append(ColumnRenameSql(table.TableName, column.PreviousColumn.ColumnName, column.Name, column));
                     }
                 }
             }
@@ -333,6 +304,14 @@ namespace qshine.database
         string ToNativeDBType(System.Data.DbType dbType, int size)
         {
             return ToNativeDBType(dbType.ToString(), size);
+        }
+
+        /// <summary>
+        /// Get last non faltal error message
+        /// </summary>
+        public string LastErrorMessage
+        {
+            get; set;
         }
 
     }

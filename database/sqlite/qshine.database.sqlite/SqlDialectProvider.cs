@@ -9,31 +9,45 @@ using qshine.Configuration;
 
 namespace qshine.database.sqlite
 {
-	public class SqlDDLSyntaxProvider : ISqlDDLSyntaxProvider
+	public class SqlDialectProvider
+        : ISqlDialectProvider
 	{
-		public ISqlDDLSyntax GetInstance(string dbConnectionString)
+		public ISqlDialect GetSqlDialect(string dbConnectionString)
 		{
-			return new SqlDDLSyntax(dbConnectionString);
+			return new SqlDialect(dbConnectionString);
 		}
 	}
 
-	public class SqlDDLSyntax : SqlDDLSyntaxBase
+	public class SqlDialect : SqlDialectStandard
     {
 		string _dataSource;
 		const string _sqliteProviderName = "System.Data.SQLite";
 
-		public SqlDDLSyntax(string connectionStringName)
-            :base(connectionStringName)
+		public SqlDialect(string connectionString)
+            :base(connectionString)
 		{
-			var builder = new SQLiteConnectionStringBuilder(Database.ConnectionString);
+			var builder = new SQLiteConnectionStringBuilder(connectionString);
 			_dataSource = builder.DataSource;
 		}
 
-		/// <summary>
-		/// Creates a new database instance.
-		/// </summary>
-		/// <returns><c>true</c>, if database was created, <c>false</c> otherwise.</returns>
-		public override bool CreateDatabase()
+        /// <summary>
+        /// Gets the name of the provider.
+        /// </summary>
+        /// <value>The name of the provider.</value>
+        public override string ProviderName
+        {
+            get
+            {
+                return _sqliteProviderName;
+            }
+        }
+
+
+        /// <summary>
+        /// Creates a new database instance.
+        /// </summary>
+        /// <returns><c>true</c>, if database was created, <c>false</c> otherwise.</returns>
+        public override bool CreateDatabase()
 		{
 			try
 			{
@@ -52,7 +66,7 @@ namespace qshine.database.sqlite
 		/// Check whether the database exists.
 		/// </summary>
 		/// <returns><c>true</c>, if database exists, <c>false</c> otherwise.</returns>
-		public override bool IsDatabaseExists()
+		public override bool DatabaseExists()
 		{
 			if (string.IsNullOrEmpty(_dataSource))
 			{
@@ -61,28 +75,37 @@ namespace qshine.database.sqlite
 			return File.Exists(_dataSource);
 		}
 
-		/// <summary>
-		/// Gets the name of the provider.
-		/// </summary>
-		/// <value>The name of the provider.</value>
-		public override string ProviderName
-		{
-			get
-			{
-				return _sqliteProviderName;
-			}
-		}
+        /// <summary>
+        /// Gets a value indicating whether a database can be created.
+        /// Some database only can be created by DBA.
+        /// </summary>
+        /// <value><c>true</c> if can create; otherwise, <c>false</c>.</value>
+        public override bool CanCreate
+        {
+            get { return true; }
+        }
 
         /// <summary>
-        /// Get table name check statement
+        /// Get a SQL statement to check table exists.
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">table name</param>
         /// <returns></returns>
-        public override string GetTableNameStatement(string tableName)
+        public override string TableExistSql(string tableName)
         {
 			return
                 string.Format(@"select name from sqlite_master where type = 'table' and name = '{0}'", tableName);
 		}
+
+        ///// <summary>
+        ///// Get a SQL statement to rename a table 
+        ///// </summary>
+        ///// <param name="oldTableName">table name to be changed</param>
+        ///// <param name="newTableName">new table name</param>
+        ///// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
+        //public override string TableRenameSql(string oldTableName, string newTableName)
+        //{
+        //    return string.Format("rename table {0} to {1}", oldTableName, newTableName);
+        //}
 
         /// <summary>
         /// sqlite recomments do not use AUTOINCREMENT attribute for PK. it uses row id for PK column.
@@ -92,14 +115,30 @@ namespace qshine.database.sqlite
             get { return ""; }
         }
 
+        /// <summary>
+        /// Get a keyword to set column default value
+        /// </summary>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
         public override string ColumnDefaultKeyword(string defaultValue)
         {
-            return string.Format("DEFAULT({0})", defaultValue);
+            return string.Format("default({0})", defaultValue);
         }
 
-		public override string ToNativeValue(object value)
+        ///// <summary>
+        ///// Get a keyword to set column Foreign key.
+        ///// </summary>
+        ///// <param name="referenceTable">foreign key table</param>
+        ///// <param name="referenceColumn">foreign key table column</param>
+        ///// <returns></returns>
+        //public override string ColumnReferenceKeyword(string referenceTable, string referenceColumn)
+        //{
+        //    return string.Format("references {0}({1})", referenceTable, referenceColumn);
+        //}
+
+        public override string ToNativeValue(object value)
 		{
-			if (value == null) return "NULL";
+			if (value == null) return "null";
 
 			if(value is String){
 				return "'" + ((string)value).Replace("'", "''")+"'";
@@ -166,9 +205,9 @@ namespace qshine.database.sqlite
 			}
 		}
 
-        public override string GetUpdateTableStatement(SqlDDLTable table)
+        public override string TableUpdateSql(SqlDDLTable table)
         {
-            var statement = base.GetUpdateTableStatement(table);
+            var statement = base.TableUpdateSql(table);
             if (string.IsNullOrEmpty(statement))
             {
                 return "";
@@ -188,7 +227,7 @@ namespace qshine.database.sqlite
                 builder.AppendFormat("ALTER TABLE {0} RENAME TO {1};", table.TableName, tempTable);
 
                 //4. create a new table statement
-                builder.Append(base.GetCreateTableStatement(table));
+                builder.Append(base.TableCreateSql(table));
 
                 var newColumns = String.Join(",", table.Columns.Select(x => x.Name));
                 var prevColumns = String.Join(",", table.Columns.Select(x => x.PreviousColumn == null ? x.Name : x.PreviousColumn.ColumnName));

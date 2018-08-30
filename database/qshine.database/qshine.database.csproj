@@ -67,31 +67,34 @@
   <ItemGroup>
     <None Include="applicationDesign\0_readme.txt" />
     <None Include="App.config" />
-    <None Include="config\mysqlConfig\App.config">
+    <None Include="config\mysql\App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
-    <None Include="config\sqliteConfig\App.config">
+    <None Include="config\postgresql\App.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="config\sqlite\App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
-    <None Include="config\sqliteConfig\bin\net45\System.Data.SQLite.dll">
+    <None Include="config\sqlite\bin\net45\System.Data.SQLite.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="config\sqliteConfig\bin\net45\System.Data.SQLite.xml">
+    <None Include="config\sqlite\bin\net45\System.Data.SQLite.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="config\sqliteConfig\bin\net45\System.Data.SQLite.EF6.dll">
+    <None Include="config\sqlite\bin\net45\System.Data.SQLite.EF6.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="config\sqliteConfig\bin\net45\System.Data.SQLite.Linq.dll">
+    <None Include="config\sqlite\bin\net45\System.Data.SQLite.Linq.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="config\main.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
-    <None Include="config\sqliteConfig\bin\net45\x64\SQLite.Interop.dll">
+    <None Include="config\sqlite\bin\net45\x64\SQLite.Interop.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="tables\queue\idm.tt">
@@ -109,10 +112,10 @@
     <None Include="config\bin\qshine.LogInspector.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="config\sqliteConfig\bin\net45\x86\SQLite.Interop.dll">
+    <None Include="config\sqlite\bin\net45\x86\SQLite.Interop.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="config\sqliteConfig\bin\qshine.database.sqlite.dll">
+    <None Include="config\sqlite\bin\qshine.database.sqlite.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -123,14 +126,55 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="config\mysqlConfig\bin\qshine.database.mysql.dll">
+    <Content Include="config\mysql\bin\qshine.database.mysql.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\Npgsql.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\Npgsql.pdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\Npgsql.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\System.Net.NameResolution.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\System.Net.NetworkInformation.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\System.Net.Ping.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\System.Net.Primitives.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\System.Net.Requests.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\System.Net.Security.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\System.Net.Sockets.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\System.Runtime.CompilerServices.Unsafe.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\System.Threading.Tasks.Extensions.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\postgresql\bin\net45\System.Threading.Tasks.Extensions.xml" />
+    <Content Include="config\postgresql\bin\qshine.database.postgresql.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)\qshine.database.sqlite.dll" "$(ProjectDir)config\sqliteConfig\bin"
-xcopy  /F /R /Y /D "$(ProjectDir)..\mysql\qshine.database.mysql\$(OutDir)\qshine.database.mysql.dll" "$(ProjectDir)config\mysqlConfig\bin"</PostBuildEvent>
+    <PostBuildEvent>xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)qshine.database.sqlite.dll" "$(ProjectDir)config\sqlite\bin"
+xcopy  /F /R /Y /D "$(ProjectDir)..\mysql\qshine.database.mysql\$(OutDir)qshine.database.mysql.dll" "$(ProjectDir)config\mysql\bin"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)qshine.database.postgresql.dll" "$(ProjectDir)config\postgresql\bin"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>if exist "$(TargetPath).locked" del "$(TargetPath).locked"

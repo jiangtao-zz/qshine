@@ -48,7 +48,7 @@
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\Sql\SqlDDLSyntaxBase.cs" />
+    <Compile Include="Data\Sql\SqlDialectStandard.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IoC\IIocContainer.cs" />
     <Compile Include="IoC\IIocModule.cs" />
@@ -141,8 +141,8 @@
     <Compile Include="Compiler\ScriptCompiler.cs" />
     <Compile Include="Compiler\ScriptBuilder.cs" />
     <Compile Include="Compiler\ScriptBlock.cs" />
-    <Compile Include="Data\Sql\ISqlDDLSyntax.cs" />
-    <Compile Include="Data\Sql\ISqlDDLSyntaxProvider.cs" />
+    <Compile Include="Data\Sql\ISqlDialect.cs" />
+    <Compile Include="Data\Sql\ISqlDialectProvider.cs" />
     <Compile Include="Data\Sql\SqlDDLBuilder.cs" />
     <Compile Include="Data\Sql\SqlDDL.cs" />
     <Compile Include="Data\Sql\SqlDDLColumn.cs" />

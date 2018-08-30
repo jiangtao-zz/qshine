@@ -185,8 +185,10 @@ namespace qshine
 					command.CommandText = commandString;
 					AddCommandParameters(command, parameters.Params);
 
-					var dataReader = command.ExecuteReader();
-                    readerData(dataReader);
+                    using (var dataReader = command.ExecuteReader())
+                    {
+                        readerData(dataReader);
+                    }
                     return 0;
                 }
 			},this, "ExecuteReader", commandType, commandString, parameters);

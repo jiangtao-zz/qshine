@@ -10,7 +10,7 @@ namespace qshine.database
 	/// </summary>
 	public class SqlDDLTracking
 	{
-        ISqlDDLSyntax _nativeDatabaseSyntax;
+        ISqlDialect _nativeDatabaseSyntax;
 		List<TrackingTable> _trackingTables;
 		List<TrackingColumn> _trackingTableColumns;
 		SqlDDLTable _ddlTrackingTable;
@@ -18,7 +18,7 @@ namespace qshine.database
 
         DbClient _dbClient;
 
-		public SqlDDLTracking(ISqlDDLSyntax databaseSyntax, DbClient dbClient)
+		public SqlDDLTracking(ISqlDialect databaseSyntax, DbClient dbClient)
 		{
 			_nativeDatabaseSyntax = databaseSyntax;
             _dbClient = dbClient;
@@ -277,7 +277,7 @@ where id={15}",
                         .Input("p1", column.Name)
                         .Input("p2", column.DbType.ToString())
 						.Input("p3", column.Size)
-						.Input("p4", column.DefaultValue)
+						.Input("p4", Convert.ToString(column.DefaultValue))
 						.Input("p5", column.AllowNull)
 						.Input("p6", column.Reference)
 						.Input("p7", column.IsUnique)
@@ -357,7 +357,7 @@ values({1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14})",
 				.Input("p2", column.Name)
 				.Input("p3", column.DbType.ToString())
 				.Input("p4", column.Size)
-				.Input("p5", column.DefaultValue)
+				.Input("p5", Convert.ToString(column.DefaultValue))
 				.Input("p6", column.AllowNull)
 				.Input("p7", column.Reference)
 				.Input("p8", column.IsUnique)

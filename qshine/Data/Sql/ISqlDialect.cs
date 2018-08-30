@@ -1,45 +1,43 @@
 ﻿using System.Collections.Generic;
 namespace qshine.database
 {
-	public interface ISqlDDLSyntax
+	public interface ISqlDialect
     {
 		/// <summary>
-		/// Gets the name of the provider.
+		/// Gets .NET ADO provider name.
 		/// </summary>
 		/// <value>The name of the provider.</value>
 		string ProviderName { get; }
 
-        Database Database { get; }
-
         /// <summary>
-        /// Is the database exists.
+        /// Check database instance exists.
         /// </summary>
-        /// <returns><c>true</c>, if database exists was ised, <c>false</c> otherwise.</returns>
-        bool IsDatabaseExists();
+        /// <returns><c>true</c>, if database exists, <c>false</c> otherwise.</returns>
+        bool DatabaseExists();
 
 		/// <summary>
-		/// Creates the database.
+		/// Creates a database based on given connection string.
 		/// </summary>
 		/// <returns><c>true</c>, if database was created, <c>false</c> otherwise.</returns>
 		bool CreateDatabase();
 
         /// <summary>
-        /// Get table name statement.
+        /// Get a SQL statement to check table exists.
         /// </summary>
-        /// <param name="tableName"></param>
+        /// <param name="tableName">table name</param>
         /// <returns></returns>
-        string GetTableNameStatement(string tableName);
+        string TableExistSql(string tableName);
 
         /// <summary>
-        /// Get Rename table statement
+        /// Get a SQL statement to rename a table 
         /// </summary>
-        /// <param name="oldTableName"></param>
-        /// <param name="newTableName"></param>
+        /// <param name="oldTableName">table name to be changed</param>
+        /// <param name="newTableName">new table name</param>
         /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
-        string GetRenameTableStatement(string oldTableName, string newTableName);
+        string TableRenameSql(string oldTableName, string newTableName);
 
         /// <summary>
-        /// Get table creation statement.
+        /// Get Sql statements to create a new table.
         /// </summary>
         /// <returns>Get table creation statement</returns>
         /// <param name="table">Table.</param>
@@ -50,29 +48,25 @@ namespace qshine.database
         /// };
         /// ...
         /// </example>
-        string GetCreateTableStatement(SqlDDLTable table);
+        string TableCreateSql(SqlDDLTable table);
 
         /// <summary>
-        /// Get table update statement.
+        /// Get Sql statements to update table structure.
         /// </summary>
         /// <returns>table update statement</returns>
         /// <param name="table">Table.</param>
-        string GetUpdateTableStatement(SqlDDLTable table);
-
-        /// <summary>
-        /// Gets the last error message.
-        /// </summary>
-        /// <value>The last error message.</value>
-        string LastErrorMessage { get; }
+        string TableUpdateSql(SqlDDLTable table);
 
 		/// <summary>
-		/// Gets a value indicating whether this Database can create.
+		/// Gets a value indicating whether a database can be created.
+        /// Some database only can be created by DBA.
 		/// </summary>
 		/// <value><c>true</c> if can create; otherwise, <c>false</c>.</value>
 		bool CanCreate { get; }
 
         /// <summary>
-        /// Get named parameter prefix symbol.
+        /// Get named parameter prefix symbol. 
+        /// Standard SQL use "@" as parameter prefix in SQL statement. Ex: select * from t1 where id=@p1.
         /// </summary>
         string ParameterPrefix { get; }
 
@@ -83,5 +77,11 @@ namespace qshine.database
         /// <param name="size"></param>
         /// <returns></returns>
         string ToNativeDBType(string dbType, int size);
+
+        /// <summary>
+        /// Gets the last error message.
+        /// </summary>
+        /// <value>The last error message.</value>
+        string LastErrorMessage { get; }
     }
 }

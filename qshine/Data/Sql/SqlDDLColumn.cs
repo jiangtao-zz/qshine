@@ -45,5 +45,10 @@ namespace qshine.database
         /// The Column attribute changed.
         /// </summary>
         public bool IsDirty { get; set; }
-	}
+        public bool IsDefaultChanged { get; set; }
+        public bool IsTypeChanged { get; set; }
+        public bool IsNullChanged { get; set; }
+        public bool IsConstraintChanged { get; set; }
+        public bool IsReferenceChanged { get; set; }
+    }
 }
