@@ -11,4 +11,4 @@
 			CREATE TRIGGER, CREATE TYPE, CREATE VIEW, UNLIMITED TABLESPACE -
 			to sampledb;
 	5.SQL> exit;
-5. 
+5. If you use Oracle ManagedDataAccess you need Remove the section with oracle.manageddataaccess.client from your machine.config.

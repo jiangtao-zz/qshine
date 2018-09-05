@@ -21,6 +21,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.LogInterceptor", "qshine.extension\qshine.LogInspector\qshine.LogInterceptor.csproj", "{EBA60DCA-6B98-4874-92E8-245499E32776}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "database", "database", "{52DF755E-9402-4382-A8F5-BB6E3819B321}"
+	ProjectSection(SolutionItems) = preProject
+		readme.txt = readme.txt
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sqlite", "sqlite", "{2C44E2C2-3D68-4D91-AA6B-8024E537BAB3}"
 	ProjectSection(SolutionItems) = preProject

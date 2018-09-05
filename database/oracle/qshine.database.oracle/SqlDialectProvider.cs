@@ -278,7 +278,7 @@ begin
     if :new.{2} is null then
         select {3}.nextval into :new.{2} from dual;
     end if;
-end{4}", tableName, tableName, columnName, sequenceName
+end;{4}", tableName, tableName, columnName, sequenceName
 , SqlCommandSeparator);
         }
 

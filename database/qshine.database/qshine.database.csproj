@@ -199,14 +199,39 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)qshine.database.sqlite.dll" "$(ProjectDir)config\sqlite\bin"
-xcopy  /F /R /Y /D "$(ProjectDir)..\mysql\qshine.database.mysql\$(OutDir)qshine.database.mysql.dll" "$(ProjectDir)config\mysql\bin"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)qshine.database.postgresql.dll" "$(ProjectDir)config\postgresql\bin"
-xcopy  /F /R /Y /D "$(ProjectDir)..\sqlserver\qshine.database.sqlserver\$(OutDir)qshine.database.sqlserver.dll" "$(ProjectDir)config\sqlserver\bin"
-xcopy  /F /R /Y /D "$(ProjectDir)..\oracle\qshine.database.oracle\$(OutDir)qshine.database.oracle.dll" "$(ProjectDir)config\oracle\bin"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>if exist "$(TargetPath).locked" del "$(TargetPath).locked"
-if exist "$(TargetPath)" if not exist "$(TargetPath).locked" move "$(TargetPath)" "$(TargetPath).locked"</PreBuildEvent>
+if exist "$(TargetPath)" if not exist "$(TargetPath).locked" move "$(TargetPath)" "$(TargetPath).locked"
+xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)System.Data.SQLite.dll" "$(ProjectDir)config\sqlite\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)System.Data.SQLite.xml" "$(ProjectDir)config\sqlite\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)System.Data.SQLite.EF6.dll" "$(ProjectDir)config\sqlite\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)System.Data.SQLite.Linq.dll" "$(ProjectDir)config\sqlite\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)x64\SQLite.Interop.dll" "$(ProjectDir)config\sqlite\bin\net45\x64"
+xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)x86\SQLite.Interop.dll" "$(ProjectDir)config\sqlite\bin\net45\x86"
+xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)qshine.database.sqlite.dll" "$(ProjectDir)config\sqlite\bin"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.NetworkInformation.dll" "$(ProjectDir)config\postgresql\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Threading.Tasks.Extensions.dll" "$(ProjectDir)config\postgresql\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Security.dll" "$(ProjectDir)config\postgresql\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Sockets.dll" "$(ProjectDir)config\postgresql\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Runtime.CompilerServices.Unsafe.dll" "$(ProjectDir)config\postgresql\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Requests.dll" "$(ProjectDir)config\postgresql\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)Npgsql.dll" "$(ProjectDir)config\postgresql\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)Npgsql.pdb" "$(ProjectDir)config\postgresql\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)Npgsql.xml" "$(ProjectDir)config\postgresql\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Ping.dll" "$(ProjectDir)config\postgresql\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Primitives.dll" "$(ProjectDir)config\postgresql\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.NameResolution.dll" "$(ProjectDir)config\postgresql\bin\net45"
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)qshine.database.postgresql.dll" "$(ProjectDir)config\postgresql\bin"
+xcopy  /F /R /Y /D "$(ProjectDir)..\mysql\qshine.database.mysql\$(OutDir)qshine.database.mysql.dll" "$(ProjectDir)config\mysql\bin"
+xcopy  /F /R /Y /D "$(ProjectDir)..\sqlserver\qshine.database.sqlserver\$(OutDir)qshine.database.sqlserver.dll" "$(ProjectDir)config\sqlserver\bin"
+xcopy  /F /R /Y /D "$(ProjectDir)..\oracle\qshine.database.oracle\$(OutDir)Oracle.ManagedDataAccess.dll" "$(ProjectDir)config\oracle\bin"
+xcopy  /F /R /Y /D "$(ProjectDir)..\oracle\qshine.database.oracle\$(OutDir)qshine.database.oracle.dll" "$(ProjectDir)config\oracle\bin"
+xcopy  /F /R /Y /D "$(ProjectDir)..\..\qshine.extension\qshine.LogInspector\$(OutDir)qshine.LogInspector.dll" "$(ProjectDir)config\bin\"
+
+
+</PreBuildEvent>
   </PropertyGroup>
 </Project>
