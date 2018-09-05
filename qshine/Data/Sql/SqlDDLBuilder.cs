@@ -158,6 +158,15 @@ namespace qshine.database
             return true;
         }
 
+        public void BatchSql(string sql)
+        {
+            var sqls = _sqlDialect.ParseBatchSql(sql);
+            foreach (var sqlText in sqls)
+            {
+                DBClient.Sql(sqlText);
+            }
+        }
+
 
         DbClient _dbClient;
         /// <summary>
@@ -215,7 +224,7 @@ namespace qshine.database
             {
                 //_logger.Debug("Rename table {0} to {1}.", oldTableName, newTableName);
 
-                DBClient.Sql(_sqlDialect.TableRenameSql(oldTableName, newTableName));
+                BatchSql(_sqlDialect.TableRenameSql(oldTableName, newTableName));
 
                 //_logger.Debug("Rename table completed.");
 
@@ -241,7 +250,7 @@ namespace qshine.database
                 var statement = _sqlDialect.TableCreateSql(table);
 
                 //comments are not support
-                DBClient.Sql(statement);
+                BatchSql(statement);
 
                 //_logger.Debug("Table {0} created.", table.TableName);
 
@@ -271,7 +280,7 @@ namespace qshine.database
                     {
                         //_logger.Debug("Update table {0}.", table.TableName);
 
-                        DBClient.Sql(sql);
+                        BatchSql(sql);
 
                         //_logger.Debug("Table {0} updated.", table.TableName);
                         return true;
@@ -366,7 +375,7 @@ namespace qshine.database
                     return true;
                 }
 
-                if (_sqlDialect.ToNativeDBType(column.DbType.ToString(), column.Size) != _sqlDialect.ToNativeDBType(trackingColumn.ColumnType, column.Size))
+                if (_sqlDialect.ToNativeDBType(column.DbType.ToString(), column.Size, column.Scale) != _sqlDialect.ToNativeDBType(trackingColumn.ColumnType, column.Size, column.Scale))
                 {
                     return true;
                 }

@@ -65,7 +65,7 @@ namespace qshine.database
 			return this;
 		}
 
-		public SqlDDLTable AddColumn(string columnName, DbType dbType, int size, bool allowNull = true, object defaultValue = null, string comments = "",
+		public SqlDDLTable AddColumn(string columnName, DbType dbType, int size, int scale=0, bool allowNull = true, object defaultValue = null, string comments = "",
 		                             string checkConstraint = "", bool isUnique = false, string reference = "", bool isIndex = false, int version=1,
 		                             params string[] oldColumnNames)
 		{
@@ -74,6 +74,7 @@ namespace qshine.database
 				Name = columnName,
 				DbType = dbType,
 				Size = size,
+                Scale = scale,
 				DefaultValue = defaultValue,
 				IsUnique = isUnique,
 				AllowNull = allowNull,
@@ -104,9 +105,9 @@ namespace qshine.database
 		public SqlDDLTable AddAuditColumn()
 		{
 			AddColumn("created_by", DbType.String, 100);
-			AddColumn("created_on", DbType.DateTime, 0,false, SqlReservedWord.SysDate);
+			AddColumn("created_on", DbType.DateTime, 0,0,false, SqlReservedWord.SysDate);
             AddColumn("updated_by", DbType.String, 100);
-			AddColumn("updated_on", DbType.DateTime, 0, false, SqlReservedWord.SysDate);
+			AddColumn("updated_on", DbType.DateTime, 0,0, false, SqlReservedWord.SysDate);
 			AddIndex("created_by", GetName("ixa", 1));
 			AddIndex("updated_by", GetName("ixa", 2));
             AddIndex("created_on", GetName("ixa", 3));

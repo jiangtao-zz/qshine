@@ -42,11 +42,27 @@ namespace qshine.database
             }
         }
 
+        public virtual string SqlCommandSeparator
+        {
+            get
+            {
+                return ";";
+            }
+        }
+
+        public virtual List<string> ParseBatchSql(string sql)
+        {
+            return new List<string>() { sql };
+        }
+
         /// <summary>
         /// Creates a database based on given connection string.
         /// </summary>
         /// <returns><c>true</c>, if database was created, <c>false</c> otherwise.</returns>
-        public abstract bool CreateDatabase();
+        public virtual bool CreateDatabase()
+        {
+            throw new NotImplementedException();
+        }
 
 
         /// <summary>
@@ -80,7 +96,8 @@ namespace qshine.database
         /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
         public virtual string TableRenameSql(string oldTableName, string newTableName)
         {
-            return string.Format("rename table {0} to {1}", oldTableName, newTableName);
+            return string.Format("rename table {0} to {1}{2}", 
+                oldTableName, newTableName, SqlCommandSeparator);
         }
 
         /// <summary>
@@ -122,7 +139,9 @@ namespace qshine.database
         /// <returns></returns>
         public virtual string ColumnRenameSql(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} change column {1} {2} {3};", tableName, oldColumnName, newColumnName, ColumnDefinition(column));
+            return string.Format("alter table {0} change column {1} {2} {3}{4}", 
+                tableName, oldColumnName, newColumnName, ColumnDefinition(column)
+                , SqlCommandSeparator);
         }
 
         /// <summary>
@@ -134,7 +153,9 @@ namespace qshine.database
         /// <returns></returns>
         public virtual string ColumnModifySql(string tableName, string columnName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} modify column {1} {2};", tableName, columnName, ColumnDefinition(column));
+            return string.Format("alter table {0} modify column {1} {2}{3}", 
+                tableName, columnName, ColumnDefinition(column)
+                , SqlCommandSeparator);
         }
 
         /// <summary>
@@ -146,7 +167,9 @@ namespace qshine.database
         /// <returns></returns>
         public virtual string ColumnAddSql(string tableName, string columnName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} add column {1} {2};", tableName, columnName, ColumnDefinition(column));
+            return string.Format("alter table {0} add column {1} {2}{3}", 
+                tableName, columnName, ColumnDefinition(column)
+                , SqlCommandSeparator);
         }
 
         /// <summary>
@@ -160,9 +183,15 @@ namespace qshine.database
         /// Transfer C# DbType to native database column type name.
         /// </summary>
         /// <param name="dbType">DbType name</param>
-        /// <param name="size">size of character</param>
+        /// <param name="size">size of character or number precision (total number of digits)</param>
+        /// <param name="scale">number scale (digits to the right of the decimal point)</param>
         /// <returns>Native database column type name.</returns>
-        public abstract string ToNativeDBType(string dbType, int size);
+        public abstract string ToNativeDBType(string dbType, int size, int scale);
+
+        public virtual string ToSqlCondition(string columnName, string op, object value)
+        {
+            return string.Format("{0} {1} {2}", columnName, op, ToNativeValue(value));
+        }
 
         /// <summary>
         /// Create a new table schema
@@ -193,15 +222,50 @@ namespace qshine.database
                     //It is a last column:
                 }
             }
-            builder.AppendLine(");");
+            builder.Append(TableCreateSqlAddition(table));//add aditional clause
+            builder.AppendFormat("){0}\n", SqlCommandSeparator);
 
             //Build index creation statements
             foreach (var index in table.Indexes)
             {
-                builder.AppendFormat(string.Format("create index {0} on {1} ({2});\n", index.Key, table.TableName, index.Value));
+                builder.AppendFormat(string.Format("{0}", CreateIndex(index.Key, table.TableName, index.Value)));
             }
+
+            //Build additional table creation statements
+            builder.Append(TableCreateSqlAfter(table));
             return builder.ToString();
         }
+
+        public virtual string CreateIndex(string indexName, string tableName, string indexValue)
+        {
+            return string.Format("create index {0} on {1} ({2}){3}\n", indexName, tableName, indexValue
+                ,SqlCommandSeparator);
+        }
+
+        /// <summary>
+        /// Add additional clause in end of table creation statement
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        /// <remarks>It is useful to add additional statements in end of table creation sql statement</remarks>
+        public virtual string TableCreateSqlAddition(SqlDDLTable table)
+        {
+            return "";
+        }
+
+        /// <summary>
+        /// Add additional sql statements after table creation statement
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// It is useful to create a trigger for oracle PK column auto_increment
+        /// </remarks>
+        public virtual string TableCreateSqlAfter(SqlDDLTable table)
+        {
+            return "";
+        }
+
 
         /// <summary>
         /// Get table update statement.
@@ -218,7 +282,7 @@ namespace qshine.database
                 {
                     if (column.PreviousColumn == null)
                     {
-                        var dbType = ToNativeDBType(column.DbType, column.Size);
+                        var dbType = ToNativeDBType(column.DbType, column.Size, column.Scale);
                         //add new column
                         builder.Append(ColumnAddSql(table.TableName, column.Name, column));
                     }
@@ -248,11 +312,12 @@ namespace qshine.database
         {
             StringBuilder builder = new StringBuilder();
 
-            builder.AppendFormat(" {0}", ToNativeDBType(column.DbType, column.Size));
+            builder.AppendFormat(" {0}", ToNativeDBType(column.DbType, column.Size, column.Scale));
 
-            if (column.IsPK)
+
+            if (column.DefaultValue != null && column.DefaultValue.ToString() != "")
             {
-                builder.Append(" primary key");
+                builder.AppendFormat(" {0}", ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
             }
 
             if (!column.AllowNull)
@@ -265,10 +330,11 @@ namespace qshine.database
                 builder.Append(" unique");
             }
 
-            if (column.DefaultValue != null && column.DefaultValue.ToString() != "")
+            if (column.IsPK)
             {
-                builder.AppendFormat(" {0}", ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
+                builder.Append(" primary key");
             }
+
 
             //Add constraint
             if (!string.IsNullOrEmpty(column.CheckConstraint))
@@ -295,15 +361,18 @@ namespace qshine.database
         }
 
 
+
+
         /// <summary>
         /// Transfer C# DbType to native database column type name.
         /// </summary>
         /// <param name="dbType">DbType name</param>
-        /// <param name="size">size of character</param>
+        /// <param name="size">size of character or number precision (total number of digits)</param>
+        /// <param name="scale">number scale (digits to the right of the decimal point)</param>
         /// <returns>Native database column type name.</returns>
-        string ToNativeDBType(System.Data.DbType dbType, int size)
+        string ToNativeDBType(System.Data.DbType dbType, int size, int scale)
         {
-            return ToNativeDBType(dbType.ToString(), size);
+            return ToNativeDBType(dbType.ToString(), size, scale);
         }
 
         /// <summary>

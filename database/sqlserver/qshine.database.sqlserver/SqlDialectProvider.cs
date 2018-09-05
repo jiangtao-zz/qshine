@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using qshine.Configuration;
-using MySql.Data.MySqlClient;
+using System.Text.RegularExpressions;
+using System.Data.SqlClient;
 
-namespace qshine.database.mysql
+namespace qshine.database.sqlserver
 {
     /// <summary>
-    /// Implement MySql DDL provider.
+    /// Implement SQL Server dialect provider.
     /// </summary>
     public class SqlDialectProvider : ISqlDialectProvider
     {
@@ -21,15 +22,15 @@ namespace qshine.database.mysql
     }
 
     /// <summary>
-    /// MySql DDL Database instance class
+    /// SQL Server Database dialect class
     /// </summary>
     public class SqlDialect : SqlDialectStandard
     {
         //ILogger _logger;
         string _dataSource;
         string _connectionString;
-        const string _sqlProviderName = "MySql.Data.MySqlClient";
-        MySqlConnectionStringBuilder _connectionBuilder;
+        const string _sqlProviderName = "SqlClient";
+        SqlConnectionStringBuilder _connectionBuilder;
 
 
         /// <summary>
@@ -37,12 +38,12 @@ namespace qshine.database.mysql
         /// </summary>
         /// <param name="connectionString"></param>
         public SqlDialect(string connectionString)
-            :base(connectionString)
+            : base(connectionString)
         {
             _connectionString = connectionString;
-            _connectionBuilder = new MySqlConnectionStringBuilder(connectionString);
+            _connectionBuilder = new SqlConnectionStringBuilder(connectionString);
 
-            _dataSource = _connectionBuilder.Database;
+            _dataSource = _connectionBuilder.DataSource;
         }
 
         /// <summary>
@@ -57,85 +58,38 @@ namespace qshine.database.mysql
             }
         }
 
-        /// <summary>
-        /// Get database server connection string without database instance.
-        /// </summary>
-        /// <returns></returns>
-        private string GetSystemDatabaseConnectionString()
-        {
-            return string.Format("Server={0};Uid={1};Port={2};Pwd={3};SslMode={4}",
-                _connectionBuilder.Server,
-                _connectionBuilder.UserID,
-                _connectionBuilder.Port,
-                _connectionBuilder.Password,
-                _connectionBuilder.SslMode);
-        }
 
         /// <summary>
         /// Check database instance exists.
+        /// SQL SERVER database need be created by DBA.
         /// </summary>
         /// <returns><c>true</c>, if database exists, <c>false</c> otherwise.</returns>
         public override bool DatabaseExists()
         {
+            //Just check the connection to valify the database exists.
             try
             {
-                using (var conn = new MySqlConnection(GetSystemDatabaseConnectionString()))
+                using (var conn = new SqlConnection(_connectionString))
                 {
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        conn.Open();
-                        cmd.CommandText = string.Format("select count(*) from information_schema.schemata where schema_name = '{0}'", _dataSource);
-                        var count = cmd.ExecuteScalar();
-                        if (count == null || Convert.ToInt32(count) == 0)
-                        {
-                            return false;
-                        }
-                    }
+                    conn.Open();
+                    return true;
                 }
-                return true;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                LastErrorMessage = String.Format("Failed to determine database instance {0}. Exception: {1}", _dataSource, ex.Message);
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Creates a database based on given connection string.
-        /// </summary>
-        /// <returns><c>true</c>, if database was created, <c>false</c> otherwise.</returns>
-        public override bool CreateDatabase()
-        {
-            try
-            {
-                using (var conn = new MySqlConnection(GetSystemDatabaseConnectionString()))
-                {
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        conn.Open();
-                        cmd.CommandText = string.Format("create database if not exists {0};", _dataSource);
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                LastErrorMessage = String.Format("Failed to create database {0}. Exception: {1}", _connectionString, ex.Message);
+                LastErrorMessage = String.Format("Failed to connect to database {0}. Exception: {1}", _dataSource, ex.Message);
                 return false;
             }
         }
 
         /// <summary>
         /// Gets a value indicating whether a database can be created.
-        /// Some database only can be created by DBA.
+        /// SQL SERVER database need be created by DBA.
         /// </summary>
         /// <value><c>true</c> if can create; otherwise, <c>false</c>.</value>
         public override bool CanCreate
         {
-            get { return true; }
+            get { return false; }
         }
 
 
@@ -166,7 +120,7 @@ namespace qshine.database.mysql
         /// </summary>
         public override string ColumnAutoIncrementKeyword
         {
-            get { return "auto_increment"; }
+            get { return "identity(1,1)"; }
         }
 
         /// <summary>
@@ -200,7 +154,18 @@ namespace qshine.database.mysql
         /// <returns></returns>
         public override string ColumnRenameSql(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} change column {1} {2} {3};", tableName, oldColumnName, newColumnName, ColumnDefinition(column));
+            return string.Format("exec sp_rename '{0}.{1}', '{2}' 'COLUMN';", tableName, oldColumnName, newColumnName);
+        }
+
+        /// <summary>
+        /// Get a sql statement to rename a table
+        /// </summary>
+        /// <param name="oldTableName">old table name</param>
+        /// <param name="newTableName">new table name</param>
+        /// <returns></returns>
+        public override string TableRenameSql(string oldTableName, string newTableName)
+        {
+            return string.Format("exec sp_rename '{0}', '{1}';", oldTableName, newTableName);
         }
 
         /// <summary>
@@ -210,10 +175,10 @@ namespace qshine.database.mysql
         /// <param name="columnName">column name</param>
         /// <param name="column">Column new definition</param>
         /// <returns></returns>
-        //public override string ColumnModifySql(string tableName, string columnName, SqlDDLColumn column)
-        //{
-        //    return string.Format("alter table {0} modify column {1} {2};", tableName, columnName, ColumnDefinition(column));
-        //}
+        public override string ColumnModifySql(string tableName, string columnName, SqlDDLColumn column)
+        {
+            return string.Format("alter table {0} alter column {1} {2};", tableName, columnName, ColumnDefinition(column));
+        }
 
         /// <summary>
         /// Get add new column statement
@@ -222,10 +187,10 @@ namespace qshine.database.mysql
         /// <param name="columnName"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        //public override string ColumnAddSql(string tableName, string columnName, SqlDDLColumn column)
-        //{
-        //    return string.Format("alter table {0} add column {1} {2};", tableName, columnName, ColumnDefinition(column));
-        //}
+        public override string ColumnAddSql(string tableName, string columnName, SqlDDLColumn column)
+        {
+            return string.Format("alter table {0} add column {1} {2};", tableName, columnName, ColumnDefinition(column));
+        }
 
         /// <summary>
         /// Convert an object value to database native literals.
@@ -244,7 +209,7 @@ namespace qshine.database.mysql
             if (value is DateTime)
             {
                 var datetime = (DateTime)value;
-                return string.Format("STR_TO_DATE('{0}-{1}-{2} {3}:{4}:{5}', '%c-%e-%Y %T')", datetime.Month, datetime.Day, datetime.Year, datetime.Hour, datetime.Minute, datetime.Second);
+                return string.Format("convert('{0,4}-{1,2}-{2,2} {3,2}:{4,2}:{5,2}', 120)", datetime.Year, datetime.Month, datetime.Day, datetime.Hour, datetime.Minute, datetime.Second);
             }
 
             var reservedWord = value as SqlReservedWord;
@@ -270,6 +235,8 @@ namespace qshine.database.mysql
             switch (dbType)
             {
                 case "StringFixedLength":
+                    return string.Format("NCHAR({0})", size);
+
                 case "AnsiStringFixedLength":
                     return string.Format("CHAR({0})", size);
 
@@ -281,62 +248,78 @@ namespace qshine.database.mysql
                     return "BIGINT";
 
                 case "UInt64":
-                    return "BIGINT UNSIGNED";
+                    return "BIGINT";
 
                 case "Int32":
-                    return "MEDIUMINT";
+                    return "INT";
 
                 case "UInt32":
-                    return "MEDIUMINT UNSIGNED";
+                    return "INT";
 
                 case "Int16":
                     return "SMALLINT";
 
                 case "UInt16":
-                    return "SMALLINT UNSIGNED";
+                    return "SMALLINT";
 
                 case "Boolean":
-                    return "BOOLEAN";
+                    return "BIT";
 
                 case "SByte":
                     return "TINYINT";
 
                 case "Single":
-                    return "FLOAT";
+                    return "REAL";
 
                 case "Byte":
-                    return "TINYINT UNSIGNED";
+                    return "TINYINT";
 
                 case "Binary":
+                    return string.Format("BINARY({0})", size);
+
                 case "Object":
-                    if (size > 0)
+                    if (size == 0)
                     {
-                        return string.Format("VARBINARY({0})", size);
+                        return "IMAGE";
                     }
-                    return "BLOB";
+                    return string.Format("VARBINARY({0})", size);
 
                 case "Guid":
-                    return "CHAR(36)";
+                    return "UNIQUEIDENTIFIER";
 
                 case "Double":
-                    return "DOUBLE";
+                    if (size == 0)
+                    {
+                        return "FLOAT";
+                    }
+                    else
+                    {
+                        return string.Format("FLOAT({0})", size);
+                    }
 
                 case "Decimal":
+                    return "DECIMAL";
+
                 case "Currency":
-                    return "NUMERIC";
+                    return "MONEY";
 
                 case "DateTime":
-                case "DateTimeOffset":
                     return "DATETIME";
 
+                case "DateTimeOffset":
+                    return "DATETIMEOFFSET";
+
                 case "DateTime2"://Timestamp
-                    return "TIMESTAMP";
+                    return "DATETIME2";
 
                 case "Time":
                     return "TIME";
 
                 case "Date":
                     return "DATE";
+
+                case "Xml":
+                    return "XML";
 
                 default:
                     throw new NotSupportedException(String.Format("Doesn't support DbType {0}", dbType));

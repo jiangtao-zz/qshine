@@ -11,10 +11,10 @@ namespace qshine.database.common
 			: base("cm_module", "COMMON", "Defines application business area.", "comData", "comIndex")
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
-				.AddColumn("code", System.Data.DbType.String, 50, false, comments: "Module unique code")
-				.AddColumn("name", System.Data.DbType.String, 150, false, comments: "Module name")
-				.AddColumn("description", System.Data.DbType.String, 250, true, comments: "Module description")
-				.AddColumn("version", System.Data.DbType.String, 20, true, comments: "Module version number")
+				.AddColumn("code", System.Data.DbType.String, 50, allowNull: false, comments: "Module unique code")
+				.AddColumn("name", System.Data.DbType.String, 150, allowNull: false, comments: "Module name")
+				.AddColumn("description", System.Data.DbType.String, 250, comments: "Module description")
+				.AddColumn("version", System.Data.DbType.String, 20, comments: "Module version number")
 			.AddAuditColumn();
 		}
 	}

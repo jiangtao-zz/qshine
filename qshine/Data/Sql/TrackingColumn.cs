@@ -12,7 +12,8 @@ namespace qshine.database
 		public string ColumnName { get; set; }
 		public string ColumnType { get; set; }
 		public int Size { get; set; }
-		public string DefaultValue { get; set; }
+        public int Scale { get; set; }
+        public string DefaultValue { get; set; }
 		public bool AllowNull { get; set; }
 		public string Reference { get; set; }
 		public bool IsUnique { get; set; }

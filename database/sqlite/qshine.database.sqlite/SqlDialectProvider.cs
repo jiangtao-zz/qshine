@@ -161,8 +161,15 @@ namespace qshine.database.sqlite
 			return string.Format("{0}",value);
 		}
 
-		public override string ToNativeDBType(string dbType, int size)
-		{
+        /// <summary>
+        /// Transfer C# DbType to native database column type name.
+        /// </summary>
+        /// <param name="dbType">DbType name</param>
+        /// <param name="size">size of character or number precision (total number of digits)</param>
+        /// <param name="scale">number scale (digits to the right of the decimal point)</param>
+        /// <returns>Native database column type name.</returns>
+        public override string ToNativeDBType(string dbType, int size, int scale)
+        {
 			switch (dbType)
 			{
 				case "AnsiString":

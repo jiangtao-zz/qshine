@@ -74,14 +74,36 @@ namespace qshine.database
         /// Transfer C# DbType string to native database column type name.
         /// </summary>
         /// <param name="dbType"></param>
-        /// <param name="size"></param>
+        /// <param name="size">size of character or number precision (total number of digits)</param>
+        /// <param name="scale">number scale (digits to the right of the decimal point)</param>
         /// <returns></returns>
-        string ToNativeDBType(string dbType, int size);
+        string ToNativeDBType(string dbType, int size, int scale);
+
+        /// <summary>
+        /// Get Sql condition 
+        /// </summary>
+        /// <param name="columnName"></param>
+        /// <param name="op"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        string ToSqlCondition(string columnName, string op, object value);
 
         /// <summary>
         /// Gets the last error message.
         /// </summary>
         /// <value>The last error message.</value>
         string LastErrorMessage { get; }
+
+        /// <summary>
+        /// Sql command separator
+        /// </summary>
+        string SqlCommandSeparator { get; }
+
+        /// <summary>
+        /// Get sql list from a batchSql separated by a sql command separator
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        List<string> ParseBatchSql(string batchSql);
     }
 }

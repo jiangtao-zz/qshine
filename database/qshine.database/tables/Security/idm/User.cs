@@ -13,11 +13,11 @@ namespace qshine.database.idm
 			: base("im_user", "IDM", "User table.", "idmData", "idmIndex")
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
-				.AddColumn("enterprise_id", System.Data.DbType.Int32, 0, false, defaultValue:0, comments: "Specifies an enterprise account id.")
-				.AddColumn("login_name", System.Data.DbType.String, 150, false, comments: "user login name", isUnique: true, isIndex: true)
-				.AddColumn("person_id", System.Data.DbType.Int64, 150, false, comments: "user detail person information", isIndex: true, reference:"cm_person:id")
-				.AddColumn("user_type", System.Data.DbType.String, 50, false, comments: "User type and category.")
-				.AddColumn("inactive_flag", System.Data.DbType.Boolean, 1, false, comments: "Indicates record inactive flag.")
+				.AddColumn("enterprise_id", System.Data.DbType.Int32, 0, allowNull: false, defaultValue:0, comments: "Specifies an enterprise account id.")
+				.AddColumn("login_name", System.Data.DbType.String, 150, allowNull: false, comments: "user login name", isUnique: true, isIndex: true)
+				.AddColumn("person_id", System.Data.DbType.Int64, 150, allowNull: false, comments: "user detail person information", isIndex: true, reference:"cm_person:id")
+				.AddColumn("user_type", System.Data.DbType.String, 50, allowNull: false, comments: "User type and category.")
+				.AddColumn("inactive_flag", System.Data.DbType.Boolean, 1, allowNull: false, comments: "Indicates record inactive flag.")
 				.AddAuditColumn();
 		}
 	}

@@ -8,11 +8,15 @@ namespace qshine.database
 	{
 		public SqlDDLColumn()
 		{
-		}
+            //set default values
+            Size = 0;//char size or number precision
+            Scale = 0; //number scale
+        }
 		public string Name { get; set; }
 		public DbType DbType { get; set; }
 		public int Size { get; set; }
-		public object DefaultValue { get; set; }
+        public int Scale { get; set; }
+        public object DefaultValue { get; set; }
 		public bool AllowNull { get; set; }
 		public string Comments { get; set; }
 		public string Reference { get; set; }

@@ -16,9 +16,9 @@ namespace qshine.database.idm
 			: base("sec_resource_type", "SECURITY", "Secure resource object type table.", "secData", "secIndex")
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
-				.AddColumn("type_name", System.Data.DbType.String, 150, false, comments: "resource type name. it is uniquely identifing a secuable resource.")
-				.AddColumn("description", System.Data.DbType.String, 500, true, comments: "resource type description.")
-				.AddColumn("category", System.Data.DbType.String, 150, true, comments: "resource category. It could be used to categorize a group of resource types.")
+				.AddColumn("type_name", System.Data.DbType.String, 150, allowNull: false, comments: "resource type name. it is uniquely identifing a secuable resource.")
+				.AddColumn("description", System.Data.DbType.String, 500, comments: "resource type description.")
+				.AddColumn("category", System.Data.DbType.String, 150, comments: "resource category. It could be used to categorize a group of resource types.")
 				.AddAuditColumn();
 		}
 	}

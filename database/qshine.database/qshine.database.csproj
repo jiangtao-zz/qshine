@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -7,9 +7,10 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>qshine.database</RootNamespace>
     <AssemblyName>qshine.database</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <ApplicationManifest>
     </ApplicationManifest>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -50,6 +51,8 @@
     <Compile Include="tables\Security\SecureResource.cs" />
     <Compile Include="tables\queue\DDL.sql">
       <DependentUpon>DDL.ttinclude</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="tables\Common\Person.cs" />
     <Compile Include="tables\Common\Location.cs" />
@@ -70,6 +73,9 @@
     <None Include="config\mysql\App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
+    </None>
+    <None Include="config\oracle\App.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="config\postgresql\App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -97,12 +103,17 @@
     <None Include="config\sqlite\bin\net45\x64\SQLite.Interop.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="config\sqlserver\App.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="tables\queue\idm.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>idm.sql</LastGenOutput>
     </None>
     <None Include="tables\queue\idm.sql">
       <DependentUpon>idm.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
     </None>
     <None Include="tables\queue\DDL.ttinclude">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -124,9 +135,19 @@
       <Project>{05162FC4-73A3-4190-A336-568E2289302C}</Project>
       <Name>qshine</Name>
     </ProjectReference>
+    <ProjectReference Include="..\oracle\qshine.database.oracle\qshine.database.oracle.csproj">
+      <Project>{ddfb91fb-2a90-4632-ab4e-8f9fd85e49a9}</Project>
+      <Name>qshine.database.oracle</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="config\mysql\bin\qshine.database.mysql.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\oracle\bin\Oracle.ManagedDataAccess.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\oracle\bin\qshine.database.oracle.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="config\postgresql\bin\net45\Npgsql.dll">
@@ -169,12 +190,20 @@
     <Content Include="config\postgresql\bin\qshine.database.postgresql.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="config\sqlserver\bin\qshine.database.sqlserver.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)qshine.database.sqlite.dll" "$(ProjectDir)config\sqlite\bin"
 xcopy  /F /R /Y /D "$(ProjectDir)..\mysql\qshine.database.mysql\$(OutDir)qshine.database.mysql.dll" "$(ProjectDir)config\mysql\bin"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)qshine.database.postgresql.dll" "$(ProjectDir)config\postgresql\bin"</PostBuildEvent>
+xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)qshine.database.postgresql.dll" "$(ProjectDir)config\postgresql\bin"
+xcopy  /F /R /Y /D "$(ProjectDir)..\sqlserver\qshine.database.sqlserver\$(OutDir)qshine.database.sqlserver.dll" "$(ProjectDir)config\sqlserver\bin"
+xcopy  /F /R /Y /D "$(ProjectDir)..\oracle\qshine.database.oracle\$(OutDir)qshine.database.oracle.dll" "$(ProjectDir)config\oracle\bin"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>if exist "$(TargetPath).locked" del "$(TargetPath).locked"

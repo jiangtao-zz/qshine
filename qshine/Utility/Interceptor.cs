@@ -124,13 +124,16 @@ namespace qshine
 		public T JoinPoint<T>(Func<T> method, object sender, string methodName, params object[] args)
 		{
 			T result = default(T);
-			var eventArgs = new InterceptorEventArgs(methodName, args);
-			if (OnEnter != null)
+			var eventArgs = new InterceptorEventArgs<T>(method, methodName, args);
+
+            if (OnEnter != null)
 			{
 				eventArgs.EnterTime = DateTime.Now;
 				OnEnter.Invoke(sender, eventArgs);
 				if (eventArgs.StopExecution){
-					if(eventArgs.Result==null) 
+                    //reset stop execution
+                    eventArgs.StopExecution = false;
+                    if (eventArgs.Result==null) 
 					{
 						return result;
 					}else{
@@ -184,7 +187,20 @@ namespace qshine
 		}
 	}
 
-	public class InterceptorEventArgs : EventArgs
+    public class InterceptorEventArgs<T> : InterceptorEventArgs
+    {
+
+        public InterceptorEventArgs(Func<T> internalMethod, string methodName, params object[] args)
+            :base(methodName,args)
+        {
+            InternalMethod = internalMethod;
+        }
+
+        public Func<T> InternalMethod { get; set; }
+    }
+
+
+    public class InterceptorEventArgs : EventArgs
 	{
 		public InterceptorEventArgs(string methodName, params object[] args)
 		{

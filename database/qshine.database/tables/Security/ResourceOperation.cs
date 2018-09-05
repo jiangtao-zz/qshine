@@ -11,10 +11,10 @@ namespace qshine.database.idm
 			: base("sec_resource_op", "SECURITY", "Securable resource operation table.", "secData", "secIndex")
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
-				.AddColumn("name", System.Data.DbType.String, 150, false, comments: "resource operation name")
-				.AddColumn("description", System.Data.DbType.String, 500, true, comments: "resource operation description")
-				.AddColumn("resource_type_id", System.Data.DbType.Int64, 0, false, comments: "Resource type", reference:"sec_resource_type:id")
-				.AddColumn("secure_mask", System.Data.DbType.Int64, 0, false, comments: "list a possible base operation using binary value. One bit indicates a single base operation.")
+				.AddColumn("name", System.Data.DbType.String, 150, allowNull: false, comments: "resource operation name")
+				.AddColumn("description", System.Data.DbType.String, 500, comments: "resource operation description")
+				.AddColumn("resource_type_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "Resource type", reference:"sec_resource_type:id")
+				.AddColumn("secure_mask", System.Data.DbType.Int64, 0, allowNull: false, comments: "list a possible base operation using binary value. One bit indicates a single base operation.")
 				.AddAuditColumn();
 		}
 	}

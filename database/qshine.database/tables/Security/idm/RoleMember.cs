@@ -12,9 +12,9 @@ namespace qshine.database.idm
 			: base("im_role_member", "IDM", "Role member table. Role member could be a user, a group or an role", "idmData", "idmIndex")
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
-				.AddColumn("enterprise_id", System.Data.DbType.Int32, 0, false, defaultValue:0, comments: "Specifies an enterprise account id.")
-				.AddColumn("role_id", System.Data.DbType.Int64, 0, false, comments: "role id", isIndex: true, reference:"im_role:id")
-				.AddColumn("principal_id", System.Data.DbType.Int64, 0, false, comments: "principal id", isIndex: true, reference:"im_principal:id")
+				.AddColumn("enterprise_id", System.Data.DbType.Int32, 0, allowNull: false, defaultValue:0, comments: "Specifies an enterprise account id.")
+				.AddColumn("role_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "role id", isIndex: true, reference:"im_role:id")
+				.AddColumn("principal_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "principal id", isIndex: true, reference:"im_principal:id")
 				.AddAuditColumn();
 		}
 	}
