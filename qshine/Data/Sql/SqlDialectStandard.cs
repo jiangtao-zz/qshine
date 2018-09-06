@@ -82,6 +82,11 @@ namespace qshine.database
         }
 
         /// <summary>
+        /// Indicates an unique index created automatically if the column has unique constraint
+        /// </summary>
+        public virtual bool AutoUniqueIndex { get { return false; } }
+
+        /// <summary>
         /// Get a SQL statement to check table exists.
         /// </summary>
         /// <param name="tableName">table name</param>
@@ -228,7 +233,19 @@ namespace qshine.database
             //Build index creation statements
             foreach (var index in table.Indexes)
             {
-                builder.AppendFormat(string.Format("{0}", CreateIndex(index.Key, table.TableName, index.Value)));
+                bool skipIndex = false;
+                if (AutoUniqueIndex)
+                {
+                    var column = table.Columns.SingleOrDefault(x=>x.Name==index.Key);
+                    if (column != null && column.IsUnique)
+                    {
+                        skipIndex = true;
+                    }
+                }
+                if(!skipIndex)
+                {
+                    builder.AppendFormat(string.Format("{0}", CreateIndex(index.Key, table.TableName, index.Value)));
+                }
             }
 
             //Build additional table creation statements

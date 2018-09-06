@@ -152,17 +152,47 @@ namespace qshine
 			parameter.Scale = p.Scale;
 			parameter.ParameterName = p.ParameterName;
 			parameter.Value = p.Value;
-		}
 
-		internal static void MapperTo(IDbDataParameter parameter, IDbDataParameter p)
+            //Some database do not support certain data type
+            //hack native data convert
+            if(p.DbType== DbType.Boolean)
+            {
+                if (IsOracle(parameter.GetType()))
+                {
+                    parameter.DbType = DbType.Int16;
+                    parameter.Value = Convert.ToInt16(p.Value);
+                }
+            }
+        }
+
+        static bool IsOracle(Type type)
+        {
+            return type.Name.ToLower().Contains("oracle");
+        }
+
+        internal static void MapperTo(IDbDataParameter parameter, IDbDataParameter p)
 		{
-			parameter.Direction = p.Direction;
-			parameter.DbType = p.DbType;
-			parameter.Size = p.Size;
-			parameter.Precision = p.Precision;
-			parameter.Scale = p.Scale;
-			parameter.ParameterName = p.ParameterName;
 			parameter.Value = p.Value;
-		}
+
+
+            //Some database do not support certain data type
+            //hack native data convert
+            if (parameter.DbType == DbType.Boolean)
+            {
+                if (IsOracle(p.GetType()))
+                {
+                    bool booleanValue = false;
+                    if (p.Value != null )
+                    {
+                        var value = p.Value.ToString().ToLower();
+                        if("1,y,t".Contains(value))
+                        {
+                            booleanValue = true;
+                        }
+                    }
+                    parameter.Value = booleanValue;
+                }
+            }
+        }
 	}
 }

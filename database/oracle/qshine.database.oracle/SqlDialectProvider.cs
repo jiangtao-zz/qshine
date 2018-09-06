@@ -133,7 +133,7 @@ namespace qshine.database.oracle
         /// <returns></returns>
         public override string TableExistSql(string tableName)
         {
-            return string.Format(@"select table_name from all_tables where table_name = '{0}'", tableName);
+            return string.Format(@"select table_name from all_tables where table_name = '{0}'", tableName.ToUpper());
         }
 
         /// <summary>

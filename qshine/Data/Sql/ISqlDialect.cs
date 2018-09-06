@@ -71,6 +71,11 @@ namespace qshine.database
         string ParameterPrefix { get; }
 
         /// <summary>
+        /// Indicates an unique index created automatically if the column has unique constraint
+        /// </summary>
+        bool AutoUniqueIndex { get; }
+
+        /// <summary>
         /// Transfer C# DbType string to native database column type name.
         /// </summary>
         /// <param name="dbType"></param>
