@@ -13,6 +13,8 @@ namespace qshine.Configuration
 	public class EnvironmentManager
 	{
 		static Interceptor _configureSectionInterceptor;
+
+        static string _defaultConfigureFile;
 		/// <summary>
 		/// Gets or sets the global interceptor.
 		/// </summary>
@@ -22,10 +24,11 @@ namespace qshine.Configuration
 			get { return _configureSectionInterceptor; }
 		}
 
-		public static void Boot()
+		public static void Boot(string rootConfigFile="")
 		{
-			//Auto load configure when call the static method
-			Init();
+            _defaultConfigureFile = rootConfigFile;
+            //Auto load configure when call the static method
+            Init();
 
 		}
 
@@ -218,7 +221,7 @@ namespace qshine.Configuration
 						_configureSectionInterceptor = new Interceptor(typeof(EnvironmentManager));
 
 						//Load configure setting
-						LoadConfig();
+						LoadConfig(_defaultConfigureFile);
 						//Load binary setting
 						LoadBinary();
 						//Set application assembly resolver

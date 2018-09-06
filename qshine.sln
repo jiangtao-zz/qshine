@@ -53,6 +53,71 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "oracle", "oracle", "{463742
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.oracle", "database\oracle\qshine.database.oracle\qshine.database.oracle.csproj", "{DDFB91FB-2A90-4632-AB4E-8F9FD85E49A9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{6E12E003-1C6F-4F04-8B81-77B1C5FB2D71}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testsqlite", "database\tests\testsqlite\testsqlite.csproj", "{F93AC11B-0034-4345-9F86-F1DDE72D6911}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{FA46BCB6-7D11-4E4D-8C9E-712C253E630C}"
+	ProjectSection(SolutionItems) = preProject
+		database\config\readme.txt = database\config\readme.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sqlite", "sqlite", "{1DBCCCC3-4388-4FF2-B85F-ED6FAEBBE626}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bin", "bin", "{DC11D8CE-B2DC-478E-AD4A-4B393FF1E2D3}"
+	ProjectSection(SolutionItems) = preProject
+		database\config\sqlite\bin\qshine.database.sqlite.dll = database\config\sqlite\bin\qshine.database.sqlite.dll
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "net45", "net45", "{C9FEDBAA-DACD-4251-A4BA-8E5E54FAC40A}"
+	ProjectSection(SolutionItems) = preProject
+		database\config\sqlite\bin\net45\System.Data.SQLite.dll = database\config\sqlite\bin\net45\System.Data.SQLite.dll
+		database\config\sqlite\bin\net45\System.Data.SQLite.EF6.dll = database\config\sqlite\bin\net45\System.Data.SQLite.EF6.dll
+		database\config\sqlite\bin\net45\System.Data.SQLite.Linq.dll = database\config\sqlite\bin\net45\System.Data.SQLite.Linq.dll
+		database\config\sqlite\bin\net45\System.Data.SQLite.xml = database\config\sqlite\bin\net45\System.Data.SQLite.xml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "x86", "x86", "{4A017706-7539-4022-BE73-1F6334B40177}"
+	ProjectSection(SolutionItems) = preProject
+		database\config\sqlite\bin\net45\x86\SQLite.Interop.dll = database\config\sqlite\bin\net45\x86\SQLite.Interop.dll
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "x64", "x64", "{6D15FAC6-DD5C-4215-9125-8324DADAACC7}"
+	ProjectSection(SolutionItems) = preProject
+		database\config\sqlite\bin\net45\x64\SQLite.Interop.dll = database\config\sqlite\bin\net45\x64\SQLite.Interop.dll
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "oracle", "oracle", "{4C50CC92-B5E0-4CFD-81F9-79EC980DAF9E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bin", "bin", "{2A557F32-7B49-4514-87C0-B00A85291198}"
+	ProjectSection(SolutionItems) = preProject
+		database\config\oracle\bin\Oracle.ManagedDataAccess.dll = database\config\oracle\bin\Oracle.ManagedDataAccess.dll
+		database\config\oracle\bin\qshine.database.oracle.dll = database\config\oracle\bin\qshine.database.oracle.dll
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "postgresql", "postgresql", "{433A48DA-6D75-4F50-A3ED-8346201BEB9F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bin", "bin", "{98AEE80F-0D42-4E6D-A81B-266C456534DC}"
+	ProjectSection(SolutionItems) = preProject
+		database\config\postgresql\bin\System.Net.NameResolution.dll = database\config\postgresql\bin\System.Net.NameResolution.dll
+		database\config\postgresql\bin\System.Net.Ping.dll = database\config\postgresql\bin\System.Net.Ping.dll
+		database\config\postgresql\bin\System.Net.Primitives.dll = database\config\postgresql\bin\System.Net.Primitives.dll
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "net45", "net45", "{9C888C66-CEF5-4390-A23E-DB66E881F309}"
+	ProjectSection(SolutionItems) = preProject
+		database\config\postgresql\bin\net45\Npgsql.dll = database\config\postgresql\bin\net45\Npgsql.dll
+		database\config\postgresql\bin\net45\System.Net.NameResolution.dll = database\config\postgresql\bin\net45\System.Net.NameResolution.dll
+		database\config\postgresql\bin\net45\System.Net.NetworkInformation.dll = database\config\postgresql\bin\net45\System.Net.NetworkInformation.dll
+		database\config\postgresql\bin\net45\System.Net.Ping.dll = database\config\postgresql\bin\net45\System.Net.Ping.dll
+		database\config\postgresql\bin\net45\System.Net.Primitives.dll = database\config\postgresql\bin\net45\System.Net.Primitives.dll
+		database\config\postgresql\bin\net45\System.Net.Requests.dll = database\config\postgresql\bin\net45\System.Net.Requests.dll
+		database\config\postgresql\bin\net45\System.Net.Security.dll = database\config\postgresql\bin\net45\System.Net.Security.dll
+		database\config\postgresql\bin\net45\System.Net.Sockets.dll = database\config\postgresql\bin\net45\System.Net.Sockets.dll
+		database\config\postgresql\bin\net45\System.Runtime.CompilerServices.Unsafe.dll = database\config\postgresql\bin\net45\System.Runtime.CompilerServices.Unsafe.dll
+		database\config\postgresql\bin\net45\System.Threading.Tasks.Extensions.dll = database\config\postgresql\bin\net45\System.Threading.Tasks.Extensions.dll
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -138,6 +203,12 @@ Global
 		{DDFB91FB-2A90-4632-AB4E-8F9FD85E49A9}.Default|Any CPU.Build.0 = Debug|Any CPU
 		{DDFB91FB-2A90-4632-AB4E-8F9FD85E49A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DDFB91FB-2A90-4632-AB4E-8F9FD85E49A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F93AC11B-0034-4345-9F86-F1DDE72D6911}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F93AC11B-0034-4345-9F86-F1DDE72D6911}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F93AC11B-0034-4345-9F86-F1DDE72D6911}.Default|Any CPU.ActiveCfg = Debug|Any CPU
+		{F93AC11B-0034-4345-9F86-F1DDE72D6911}.Default|Any CPU.Build.0 = Debug|Any CPU
+		{F93AC11B-0034-4345-9F86-F1DDE72D6911}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F93AC11B-0034-4345-9F86-F1DDE72D6911}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -161,6 +232,19 @@ Global
 		{DAC2DA88-01FD-4D40-B162-5CA1F3BE7F5D} = {7B5BB103-32F4-49C9-9825-993CD5923B48}
 		{46374253-6732-43FD-91C3-535E70FECCB0} = {52DF755E-9402-4382-A8F5-BB6E3819B321}
 		{DDFB91FB-2A90-4632-AB4E-8F9FD85E49A9} = {46374253-6732-43FD-91C3-535E70FECCB0}
+		{6E12E003-1C6F-4F04-8B81-77B1C5FB2D71} = {52DF755E-9402-4382-A8F5-BB6E3819B321}
+		{F93AC11B-0034-4345-9F86-F1DDE72D6911} = {6E12E003-1C6F-4F04-8B81-77B1C5FB2D71}
+		{FA46BCB6-7D11-4E4D-8C9E-712C253E630C} = {52DF755E-9402-4382-A8F5-BB6E3819B321}
+		{1DBCCCC3-4388-4FF2-B85F-ED6FAEBBE626} = {FA46BCB6-7D11-4E4D-8C9E-712C253E630C}
+		{DC11D8CE-B2DC-478E-AD4A-4B393FF1E2D3} = {1DBCCCC3-4388-4FF2-B85F-ED6FAEBBE626}
+		{C9FEDBAA-DACD-4251-A4BA-8E5E54FAC40A} = {DC11D8CE-B2DC-478E-AD4A-4B393FF1E2D3}
+		{4A017706-7539-4022-BE73-1F6334B40177} = {C9FEDBAA-DACD-4251-A4BA-8E5E54FAC40A}
+		{6D15FAC6-DD5C-4215-9125-8324DADAACC7} = {C9FEDBAA-DACD-4251-A4BA-8E5E54FAC40A}
+		{4C50CC92-B5E0-4CFD-81F9-79EC980DAF9E} = {FA46BCB6-7D11-4E4D-8C9E-712C253E630C}
+		{2A557F32-7B49-4514-87C0-B00A85291198} = {4C50CC92-B5E0-4CFD-81F9-79EC980DAF9E}
+		{433A48DA-6D75-4F50-A3ED-8346201BEB9F} = {FA46BCB6-7D11-4E4D-8C9E-712C253E630C}
+		{98AEE80F-0D42-4E6D-A81B-266C456534DC} = {433A48DA-6D75-4F50-A3ED-8346201BEB9F}
+		{9C888C66-CEF5-4390-A23E-DB66E881F309} = {98AEE80F-0D42-4E6D-A81B-266C456534DC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {68E665BD-64B6-4223-85AE-2936717945D7}

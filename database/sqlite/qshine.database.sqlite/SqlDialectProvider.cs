@@ -176,6 +176,7 @@ namespace qshine.database.sqlite
 				case "String":
 				case "StringFixedLength":
 				case "AnsiStringFixedLength":
+                case "Xml":
 					return "TEXT";
 				case "Int64":
 				case "Int32":
@@ -185,7 +186,6 @@ namespace qshine.database.sqlite
 				case "UInt16":
 				case "Boolean":
 				case "SByte":
-				case "Single":
 				case "Byte":
 					return "INTEGER";
 				case "Binary":
@@ -194,7 +194,9 @@ namespace qshine.database.sqlite
 				case "Guid":
 					return "GUID";
 				case "Double":
-					return "REAL";
+                case "VarNumeric":
+                case "Single":
+                    return "REAL";
 				case "Decimal":
 				case "Currency":
 					return "NUMERIC";

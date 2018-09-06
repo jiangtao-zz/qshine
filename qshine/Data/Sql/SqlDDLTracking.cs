@@ -233,23 +233,19 @@ from {0} t where t.object_type={1}", TrackingTableName, ParameterName("p1"));
 				bool columnChanged = false;
 				var trackingColumn = trackingTable.Columns.SingleOrDefault(x => x.ColumnName == column.Name);
 
-				if (trackingColumn != null && column.Version > trackingColumn.Version)
+				if (trackingColumn != null)
 				{
-					//column name changed
-					columnChanged = true;
+                    if (column.Version > trackingColumn.Version ||
+                        (column.ColumnNameHistory != null && column.ColumnNameHistory.Contains(trackingColumn.ColumnName)))
+                    {
+                        //column name changed
+                        columnChanged = true;
+                    }
 				}
-				else if (trackingColumn == null)
+				else
 				{
-					if (column.ColumnNameHistory != null && column.ColumnNameHistory.Contains(trackingColumn.ColumnName))
-					{
-						//column property changed
-						columnChanged = true;
-					}
-					else
-					{
-						//new column
-						AddNewTrackingColumn(trackingTable.Id, column);
-					}
+					//new column
+					AddNewTrackingColumn(trackingTable.Id, column);
 				}
 
 				if (columnChanged)
