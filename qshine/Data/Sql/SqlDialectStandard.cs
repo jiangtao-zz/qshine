@@ -234,22 +234,16 @@ namespace qshine.database
             foreach (var index in table.Indexes)
             {
                 bool skipIndex = false;
-                bool isUniqueIndex = false;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == index.Key);
-                if (column != null && column.IsUnique)
+                if (index.Value.IsUnique && AutoUniqueIndex)
                 {
-                    if (AutoUniqueIndex)
-                    {
                         skipIndex = true;
-                    }
-                    isUniqueIndex = true;
                 }
 
 
                 if(!skipIndex)
                 {
-                    builder.AppendFormat(string.Format("{0}", CreateIndexSql(index.Key, table.TableName, index.Value, isUniqueIndex)));
+                    builder.AppendFormat(string.Format("{0}", CreateIndexSql(index.Value)));
                 }
             }
 
@@ -266,15 +260,15 @@ namespace qshine.database
         /// <param name="indexValue"></param>
         /// <param name="isUnique"></param>
         /// <returns></returns>
-        public virtual string CreateIndexSql(string indexName, string tableName, string indexValue, bool isUnique=false)
+        public virtual string CreateIndexSql(SqlDDLIndex index)
         {
-            if (isUnique)
+            if (index.IsUnique)
             {
-                return string.Format("create unique index {0} on {1} ({2}){3}\n", indexName, tableName, indexValue
+                return string.Format("create unique index {0} on {1} ({2}){3}\n", index.IndexName, index.TableName, index.IndexColumns
                     , SqlCommandSeparator);
             }
-            return string.Format("create index {0} on {1} ({2}){3}\n", indexName, tableName, indexValue
-                ,SqlCommandSeparator);
+            return string.Format("create index {0} on {1} ({2}){3}\n", index.IndexName, index.TableName, index.IndexColumns
+                                , SqlCommandSeparator);
         }
 
         /// <summary>

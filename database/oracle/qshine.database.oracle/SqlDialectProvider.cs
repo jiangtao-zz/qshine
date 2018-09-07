@@ -178,10 +178,10 @@ namespace qshine.database.oracle
         //    return string.Format("references {0}({1})", referenceTable, referenceColumn);
         //}
 
-        public override string CreateIndexSql(string indexName, string tableName, string indexValue,bool isUnique=false)
-        {
-            return base.CreateIndexSql(indexName, tableName, indexValue, isUnique);
-        }
+        //public override string CreateIndexSql(SqlDDLIndex index)
+        //{
+        //    return base.CreateIndexSql(index);
+        //}
 
         /// <summary>
         /// Get a sql statement to rename a column and set new column definition

@@ -48,6 +48,7 @@
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\Sql\SqlDDLIndex.cs" />
     <Compile Include="Data\Sql\SqlDialectStandard.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IoC\IIocContainer.cs" />
