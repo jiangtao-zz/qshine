@@ -417,14 +417,7 @@ namespace qshine
 			{
 				return false;
 			}
-
-			var value = reader[index].ToString();
-			return value == "1"
-				|| value == "-1"
-				|| value == "t"
-				|| value == "T"
-				|| value == "Y"
-				|| value == "y";
+            return DbClient.ToBoolean(reader[index]);
 		}
 
 		/// <summary>

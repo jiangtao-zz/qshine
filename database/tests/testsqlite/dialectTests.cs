@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using qshine;
 using qshine.Configuration;
@@ -30,7 +31,10 @@ namespace testsqlite
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
 
             Assert.IsTrue(dialect.CanCreate);
-            Assert.IsTrue(dialect.CreateDatabase());
+            if (!dialect.DatabaseExists())
+            {
+                Assert.IsTrue(dialect.CreateDatabase());
+            }
             Assert.IsTrue(dialect.DatabaseExists());
         }
 
@@ -62,15 +66,15 @@ namespace testsqlite
             var table = new SqlDDLTable("table1", "test", "test table 1", "testspace1", "testindex1", 2, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100)
-                .AddColumn("T2", DbType.String, 10000,12,false,"ABC","TEST C2",isUnique:true,isIndex:true,version:2,oldColumnNames:"T21,T22".Split(','))
+                .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
-                .AddColumn("T3", DbType.Int16, 0,defaultValue:16)
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 .AddColumn("T6", DbType.Decimal, 0, defaultValue: 12.345678)
                 .AddColumn("T7", DbType.Double, 0, defaultValue: 22.345678)
                 .AddColumn("T8", DbType.SByte, 0, defaultValue: 8)
-                .AddColumn("T9", DbType.Single,0, defaultValue: 123.456)
+                .AddColumn("T9", DbType.Single, 0, defaultValue: 123.456)
                 .AddColumn("T10", DbType.StringFixedLength, 3, defaultValue: "ABC")
                 .AddColumn("T11", DbType.Time, 0, defaultValue: SqlReservedWord.SysDate)
                 .AddColumn("T12", DbType.UInt16, 0, defaultValue: 123)
@@ -80,7 +84,7 @@ namespace testsqlite
                 .AddColumn("T16", DbType.AnsiString, 100, defaultValue: "abcdefg")
                 .AddColumn("T17", DbType.AnsiStringFixedLength, 100, defaultValue: "abcdefgf")
                 .AddColumn("T18", DbType.Binary, 100)
-                .AddColumn("T19", DbType.Boolean, 0, defaultValue:true)
+                .AddColumn("T19", DbType.Boolean, 0, defaultValue: true)
                 .AddColumn("T20", DbType.Byte, 0, defaultValue: 1)
                 .AddColumn("T21", DbType.Currency, 0, defaultValue: 12.34)
                 .AddColumn("T22", DbType.Date, 0, defaultValue: SqlReservedWord.SysDate)
@@ -95,7 +99,7 @@ namespace testsqlite
             using (var dbclient = new DbClient(database))
             {
                 var result = dbclient.Sql(sql);
-                Assert.AreNotEqual(-1,result);
+                Assert.AreNotEqual(-1, result);
 
                 dbclient.Sql("insert into table1(T1) values(@p1)", DbParameters.New.Input("p1", "AAA"));
                 var data = dbclient.SqlDataTable("select * from table1 where T1='AAA'");
@@ -108,11 +112,151 @@ namespace testsqlite
                 Assert.AreEqual("22.345678", data.Rows[0]["T7"].ToString());
                 Assert.AreEqual("8", data.Rows[0]["T8"].ToString());
                 Assert.AreEqual("123.456", data.Rows[0]["T9"].ToString());
+                Assert.AreEqual("ABC", data.Rows[0]["T10"].ToString());
+                TimeSpan ticket = DateTime.Now - (DateTime)data.Rows[0]["T11"];
+                Assert.IsTrue(ticket.Seconds < 10);
+                Assert.AreEqual("123", data.Rows[0]["T12"].ToString());
+                Assert.AreEqual("1234", data.Rows[0]["T13"].ToString());
+                Assert.AreEqual("12345", data.Rows[0]["T14"].ToString());
+                Assert.AreEqual("12.123", data.Rows[0]["T15"].ToString());
+                Assert.AreEqual("abcdefg", data.Rows[0]["T16"].ToString());
+                Assert.AreEqual("abcdefgf", data.Rows[0]["T17"].ToString());
+                //Assert.AreEqual("123.456", data.Rows[0]["T18"].ToString());
+                Assert.AreEqual(true, DbClient.ToBoolean(data.Rows[0]["T19"]));
+                Assert.AreEqual("1", data.Rows[0]["T20"].ToString());
+                Assert.AreEqual("12.34", data.Rows[0]["T21"].ToString());
+                ticket = DateTime.Now.Date - (DateTime)data.Rows[0]["T22"];
+                Assert.IsTrue(ticket.Seconds < 60);
+                ticket = DateTime.Now - (DateTime)data.Rows[0]["T23"];
+                Assert.IsTrue(ticket.Seconds < 10);
+                ticket = DateTime.Now - (DateTime)data.Rows[0]["T24"];
+                Assert.IsTrue(ticket.Seconds < 10);
+                ticket = DateTime.Now - (DateTime)data.Rows[0]["T25"];
+                Assert.IsTrue(ticket.Seconds < 10);
+                //                Assert.AreEqual("123.456", data.Rows[0]["T26"].ToString());
+                //                Assert.AreEqual("123.456", data.Rows[0]["T27"].ToString());
 
                 dbclient.Sql("drop table table1;");
             }
         }
 
+        [TestMethod]
+        public void TableUpdate_Rename_column_add_new_column()
+        {
+            var database = new Database("testdb");
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
+            dialect.CreateDatabase(); //ensure database exists
+
+            var table = new SqlDDLTable("table2", "test", "test table 1", "testspace1", "testindex1", 2, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue:"A")
+                .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddAuditColumn()
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                ;
+
+            var sql = dialect.TableCreateSql(table);
+            using (var dbclient = new DbClient(database))
+            {
+                try { dbclient.Sql("drop table table2;"); } catch { }
+
+                var result = dbclient.Sql(sql);
+                Assert.AreNotEqual(-1, result);
+
+                dbclient.Sql("insert into table2(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
+
+            }
+            table.AddColumn("T6", DbType.Decimal, 0, defaultValue: 12.345678);
+
+            var column = table.Columns.SingleOrDefault(x => x.Name == "T6");
+            column.IsDirty = true;
+
+            column = table.Columns.SingleOrDefault(x => x.Name == "T1");
+            column.IsDirty = true;
+            column.PreviousColumn = new TrackingColumn
+            {
+                ColumnName = "T1",
+                ColumnType = DbType.String.ToString(),
+                Size = 100
+            };
+            column.Name = "T1x";
+            column.Size = 120;
+            column.DefaultValue = "X123";
+
+            sql = dialect.TableUpdateSql(table);
+            using (var dbclient = new DbClient(database))
+            {
+                var result = dbclient.Sql(sql);
+                Assert.AreNotEqual(-1, result);
+
+                var data = dbclient.SqlDataTable("select * from table2 where T2='AAA'");
+                Assert.AreEqual(1, data.Rows.Count);
+                Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
+                Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
+                Assert.AreEqual("1234567890", data.Rows[0]["T5"].ToString());
+                Assert.AreEqual("12.345678", data.Rows[0]["T6"].ToString());
+                Assert.AreEqual("A", data.Rows[0]["T1x"]);
+
+                dbclient.Sql("insert into table2(T2) values(@p1)", DbParameters.New.Input("p1", "BBB"));
+                data = dbclient.SqlDataTable("select * from table2 where T2='BBB'");
+                Assert.AreEqual(1, data.Rows.Count);
+                Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
+                Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
+                Assert.AreEqual("1234567890", data.Rows[0]["T5"].ToString());
+                Assert.AreEqual("12.345678", data.Rows[0]["T6"].ToString());
+                Assert.AreEqual("X123", data.Rows[0]["T1x"]);
+
+
+                dbclient.Sql("drop table table2;");
+            }
+
+        }
+
+        [TestMethod]
+        public void TableUpdate_Rename_table()
+        {
+            var database = new Database("testdb");
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
+            dialect.CreateDatabase(); //ensure database exists
+
+            var table = new SqlDDLTable("table3", "test", "test table 1", "testspace1", "testindex1", 2, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddAuditColumn()
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                ;
+
+            var sql = dialect.TableCreateSql(table);
+            using (var dbclient = new DbClient(database))
+            {
+                try { dbclient.Sql("drop table table3;"); } catch { }
+                try { dbclient.Sql("drop table table3_1;"); } catch { }
+
+                var result = dbclient.Sql(sql);
+                Assert.AreNotEqual(-1, result);
+
+                dbclient.Sql("insert into table3(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
+
+                sql = dialect.TableRenameSql(table.TableName, "table3_1");
+                dbclient.Sql(sql);
+
+                var data = dbclient.SqlDataTable("select * from table3_1 where T2='AAA'");
+                Assert.AreEqual(1, data.Rows.Count);
+                Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
+                Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
+                Assert.AreEqual("1234567890", data.Rows[0]["T5"].ToString());
+
+                dbclient.Sql("drop table table3_1;");
+            }
+
+        }
 
 
     }

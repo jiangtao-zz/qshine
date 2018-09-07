@@ -287,6 +287,16 @@ namespace qshine
             }, "Retrieve", commandString, parameters);
 		}
 
+        public static bool ToBoolean(object value)
+        {
+            if (value == null) return false;
+            var s = value.ToString().ToLower();
+            return s == "1"
+            || s == "-1"
+            || s == "t"
+            || s == "Y";
+        }
+
 
 
 		#region Private
