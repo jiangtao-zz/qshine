@@ -148,7 +148,7 @@ namespace testsqlite
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
-            var table = new SqlDDLTable("table2", "test", "test table 1", "testspace1", "testindex1", 2, "NewTest");
+            var table = new SqlDDLTable("table2", "test", "test table 2", "testspace1", "testindex1", 2, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue:"A")
                 .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
@@ -223,7 +223,7 @@ namespace testsqlite
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
-            var table = new SqlDDLTable("table3", "test", "test table 1", "testspace1", "testindex1", 2, "NewTest");
+            var table = new SqlDDLTable("table3", "test", "test table 3", "testspace1", "testindex1", 2, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                 .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
@@ -256,6 +256,657 @@ namespace testsqlite
                 dbclient.Sql("drop table table3_1;");
             }
 
+        }
+
+        [TestMethod]
+        public void TableUpdate_remove_default()
+        {
+            var database = new Database("testdb");
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
+            dialect.CreateDatabase(); //ensure database exists
+
+            var table = new SqlDDLTable("table4", "test", "test table 4", "testspace1", "testindex1", 2, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddAuditColumn()
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                ;
+
+            var sql = dialect.TableCreateSql(table);
+            using (var dbclient = new DbClient(database))
+            {
+                //drop table if exists
+                try { dbclient.Sql("drop table table4;"); } catch { }
+
+                //create a new table
+                var result = dbclient.Sql(sql);
+
+                //insert data for compare
+                dbclient.Sql("insert into table4(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
+
+                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
+                column.IsDirty = true;
+                column.PreviousColumn = new TrackingColumn
+                {
+                    ColumnName = "T3",
+                    ColumnType = DbType.Int16.ToString(),
+                    DefaultValue = "16",
+                };
+                column.DefaultValue = "";
+
+                sql = dialect.TableUpdateSql(table);
+                //update table remove the default
+                result = dbclient.Sql(sql);
+
+                dbclient.Sql("insert into table4(T2) values(@p1)", DbParameters.New.Input("p1", "BBB"));
+
+
+                var data = dbclient.SqlDataTable("select * from table4 where T2='AAA'");
+                Assert.AreEqual(1, data.Rows.Count);
+                Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
+                Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
+                Assert.AreEqual("1234567890", data.Rows[0]["T5"].ToString());
+
+                data = dbclient.SqlDataTable("select * from table4 where T2='BBB'");
+                Assert.AreEqual(1, data.Rows.Count);
+                Assert.AreEqual("", data.Rows[0]["T3"].ToString());
+                Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
+                Assert.AreEqual("1234567890", data.Rows[0]["T5"].ToString());
+
+
+                dbclient.Sql("drop table table4;");
+            }
+        }
+
+        [TestMethod]
+        public void TableUpdate_add_index_and_notnull()
+        {
+            var database = new Database("testdb");
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
+            dialect.CreateDatabase(); //ensure database exists
+
+            var table = new SqlDDLTable("table5", "test", "test table 5", "testspace1", "testindex1", 2, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddAuditColumn()
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                ;
+
+            var sql = dialect.TableCreateSql(table);
+            using (var dbclient = new DbClient(database))
+            {
+                //drop table if exists
+                try { dbclient.Sql("drop table table5;"); } catch { }
+
+                //create a new table
+                var result = dbclient.Sql(sql);
+
+                //insert data for compare
+                dbclient.Sql("insert into table5(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
+
+
+                table = new SqlDDLTable("table5", "test", "test table 5", "testspace1", "testindex1", 3, "NewTest");
+                table.AddPKColumn("PKC", DbType.UInt64)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                    .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddAuditColumn()
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16,isIndex:true,allowNull:false)
+                    .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                    .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                    ;
+
+                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
+                column.IsDirty = true;
+                column.PreviousColumn = new TrackingColumn
+                {
+                    ColumnName = "T3",
+                    ColumnType = DbType.Int16.ToString(),
+                    DefaultValue = "16",
+                    AllowNull=true,
+                    CheckConstraint="",
+                    IsIndex=false,
+                    IsUnique=false,
+                    IsPK=false
+                };
+
+                var count = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table5';");
+
+                sql = dialect.TableUpdateSql(table);
+                //update table remove the default
+                result = dbclient.Sql(sql);
+
+                var data = dbclient.SqlDataTable("select * from table5 where T2='AAA'");
+                Assert.AreEqual(1, data.Rows.Count);
+                Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
+                Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
+                Assert.AreEqual("1234567890", data.Rows[0]["T5"].ToString());
+
+                try
+                {
+                    dbclient.SqlDataTable("insert into table5(T3) values(NULL)");
+                    Assert.Fail("Not Null constraint failed.");
+                }
+                catch { }
+
+
+                //check for index
+                var count1 = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table5';");
+
+                Assert.AreEqual(int.Parse(count.ToString())+1, int.Parse(count1.ToString()));
+
+                dbclient.Sql("drop table table5;");
+            }
+        }
+
+        [TestMethod]
+        public void TableUpdate_add_checkConstraint()
+        {
+            var database = new Database("testdb");
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
+            dialect.CreateDatabase(); //ensure database exists
+
+            var table = new SqlDDLTable("table6", "test", "test table 6", "testspace1", "testindex1", 2, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddAuditColumn()
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                ;
+
+            var sql = dialect.TableCreateSql(table);
+            using (var dbclient = new DbClient(database))
+            {
+                //drop table if exists
+                try { dbclient.Sql("drop table table6;"); } catch { }
+
+                //create a new table
+                var result = dbclient.Sql(sql);
+
+                //insert data for compare
+                dbclient.Sql("insert into table6(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
+
+
+                table = new SqlDDLTable("table6", "test", "test table 6", "testspace1", "testindex1", 3, "NewTest");
+                table.AddPKColumn("PKC", DbType.UInt64)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                    .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddAuditColumn()
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint:"Check(T3>10)")
+                    .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                    .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                    ;
+
+                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
+                column.IsDirty = true;
+                column.PreviousColumn = new TrackingColumn
+                {
+                    ColumnName = "T3",
+                    ColumnType = DbType.Int16.ToString(),
+                    DefaultValue = "16",
+                    AllowNull = true,
+                    CheckConstraint = "",
+                    IsIndex = false,
+                    IsUnique = false,
+                    IsPK = false
+                };
+
+                sql = dialect.TableUpdateSql(table);
+                //update table remove the default
+                result = dbclient.Sql(sql);
+
+                try
+                {
+                    dbclient.SqlDataTable("insert into table6(T3) values(5)");
+                    Assert.Fail("Check constraint failed.");
+                }
+                catch (Exception ex)
+                {
+                    Assert.IsTrue(ex.Message.Contains("CHECK"));
+                }
+
+                dbclient.Sql("drop table table6;");
+            }
+        }
+
+        [TestMethod]
+        public void TableUpdate_remove_not_null()
+        {
+            var database = new Database("testdb");
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
+            dialect.CreateDatabase(); //ensure database exists
+
+            var table = new SqlDDLTable("table7", "test", "test table 7", "testspace1", "testindex1", 2, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddAuditColumn()
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16,allowNull:false)
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                ;
+
+            var sql = dialect.TableCreateSql(table);
+            using (var dbclient = new DbClient(database))
+            {
+                //drop table if exists
+                try { dbclient.Sql("drop table table7;"); } catch { }
+
+                //create a new table
+                var result = dbclient.Sql(sql);
+
+                //insert data for compare
+                dbclient.Sql("insert into table7(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
+
+                try
+                {
+                    dbclient.Sql("insert into table7(T2,T3) values(@p1,null)", DbParameters.New.Input("p1", "AAA2"));
+                    Assert.Fail("Not null constraint.");
+                }
+                catch (Exception ex)
+                {
+                    Assert.IsTrue(ex.Message.Contains("NOT NULL"));
+                }
+
+
+                table = new SqlDDLTable("table7", "test", "test table 7", "testspace1", "testindex1", 3, "NewTest");
+                table.AddPKColumn("PKC", DbType.UInt64)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                    .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddAuditColumn()
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                    .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                    .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                    ;
+
+                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
+                column.IsDirty = true;
+                column.PreviousColumn = new TrackingColumn
+                {
+                    ColumnName = "T3",
+                    ColumnType = DbType.Int16.ToString(),
+                    DefaultValue = "16",
+                    AllowNull = false,
+                    CheckConstraint = "",
+                    IsIndex = false,
+                    IsUnique = false,
+                    IsPK = false
+                };
+
+                sql = dialect.TableUpdateSql(table);
+                //update table remove the default
+                result = dbclient.Sql(sql);
+
+                var c = dbclient.Sql("insert into table7(T2, T3) values('BBB',null)");
+                Assert.AreEqual("1", c.ToString());
+
+                dbclient.Sql("drop table table7;");
+            }
+        }
+
+        [TestMethod]
+        public void TableUpdate_remove_CheckConstraint()
+        {
+            var database = new Database("testdb");
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
+            dialect.CreateDatabase(); //ensure database exists
+
+            var table = new SqlDDLTable("table8", "test", "test table 8", "testspace1", "testindex1", 2, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 1)
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16,checkConstraint:"Check(T3>10)")
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                ;
+
+            var sql = dialect.TableCreateSql(table);
+            using (var dbclient = new DbClient(database))
+            {
+                //drop table if exists
+                try { dbclient.Sql("drop table table8;"); } catch { }
+
+                //create a new table
+                var result = dbclient.Sql(sql);
+
+                //insert data for compare
+                dbclient.Sql("insert into table8(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
+
+                try
+                {
+                    dbclient.Sql("insert into table8(T2,T3) values(@p1,5)", DbParameters.New.Input("p1", "AAA2"));
+                    Assert.Fail("Not null constraint.");
+                }
+                catch (Exception ex)
+                {
+                    Assert.IsTrue(ex.Message.Contains("CHECK"));
+                }
+
+
+                table = new SqlDDLTable("table8", "test", "test table 8", "testspace1", "testindex1", 3, "NewTest");
+                table.AddPKColumn("PKC", DbType.UInt64)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                    .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                    .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                    .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                    ;
+
+                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
+                column.IsDirty = true;
+                column.PreviousColumn = new TrackingColumn
+                {
+                    ColumnName = "T3",
+                    ColumnType = DbType.Int16.ToString(),
+                    DefaultValue = "16",
+                    AllowNull = false,
+                    CheckConstraint = "Check(T3>10)",
+                    IsIndex = false,
+                    IsUnique = false,
+                    IsPK = false
+                };
+
+                sql = dialect.TableUpdateSql(table);
+                //update table remove the default
+                result = dbclient.Sql(sql);
+
+                var c = dbclient.Sql("insert into table8(T2, T3) values('BBB',5)");
+                Assert.AreEqual("1", c.ToString());
+
+                dbclient.Sql("drop table table8;");
+            }
+        }
+
+        [TestMethod]
+        public void TableUpdate_remove_index()
+        {
+            var database = new Database("testdb");
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
+            dialect.CreateDatabase(); //ensure database exists
+
+            var table = new SqlDDLTable("table9", "test", "test table 9", "testspace1", "testindex1", 1, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 1)
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: true)
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                ;
+
+            var sql = dialect.TableCreateSql(table);
+            using (var dbclient = new DbClient(database))
+            {
+                //drop table if exists
+                try { dbclient.Sql("drop table table9;"); } catch { }
+
+                //create a new table
+                var result = dbclient.Sql(sql);
+
+                //insert data for compare
+                dbclient.Sql("insert into table9(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
+
+
+                table = new SqlDDLTable("table9", "test", "test table 5", "testspace1", "testindex1", 3, "NewTest");
+                table.AddPKColumn("PKC", DbType.UInt64)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                    .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: false)
+                    .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                    .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                    ;
+
+                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
+                column.IsDirty = true;
+                column.PreviousColumn = new TrackingColumn
+                {
+                    ColumnName = "T3",
+                    ColumnType = DbType.Int16.ToString(),
+                    DefaultValue = "16",
+                    AllowNull = true,
+                    CheckConstraint = "",
+                    IsIndex = true,
+                    IsUnique = false,
+                    IsPK = false
+                };
+
+                var count = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table9';");
+
+                sql = dialect.TableUpdateSql(table);
+                //update table remove the default
+                result = dbclient.Sql(sql);
+
+                //check for index
+                var count1 = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table9';");
+
+                Assert.AreEqual(int.Parse(count.ToString()), int.Parse(count1.ToString())+1);
+
+                dbclient.Sql("drop table table9;");
+            }
+        }
+
+        [TestMethod]
+        public void TableUpdate_remove_unique_index()
+        {
+            var database = new Database("testdb");
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
+            dialect.CreateDatabase(); //ensure database exists
+
+            var table = new SqlDDLTable("table10", "test", "test table 10", "testspace1", "testindex1", 1, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 1)
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: true)
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                ;
+
+            var sql = dialect.TableCreateSql(table);
+            using (var dbclient = new DbClient(database))
+            {
+                //drop table if exists
+                try { dbclient.Sql("drop table table10;"); } catch { }
+
+                //create a new table
+                var result = dbclient.Sql(sql);
+
+                //insert data for compare
+                dbclient.Sql("insert into table10(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
+
+
+                table = new SqlDDLTable("table10", "test", "test table 10", "testspace1", "testindex1", 3, "NewTest");
+                table.AddPKColumn("PKC", DbType.UInt64)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                    .AddColumn("T2", DbType.String, 10000, 0, false, "ABC", "TEST C2", isUnique: true, isIndex: false, version: 2)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: true)
+                    .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                    .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                    ;
+
+                var column = table.Columns.SingleOrDefault(x => x.Name == "T2");
+                column.IsDirty = true;
+                column.PreviousColumn = new TrackingColumn
+                {
+                    ColumnName = "T2",
+                    ColumnType = DbType.String.ToString(),
+                    Size = 10000,
+                    Scale=0,
+                    AllowNull = false,
+                    DefaultValue = "ABC",
+                    CheckConstraint = "",
+                    IsIndex = true,
+                    IsUnique = true,
+                    IsPK = false
+                };
+
+                var count = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table10';");
+
+                sql = dialect.TableUpdateSql(table);
+                //update table remove the default
+                result = dbclient.Sql(sql);
+
+                //check for index
+                var count1 = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table10';");
+
+                Assert.AreEqual(int.Parse(count.ToString()), int.Parse(count1.ToString()) + 1);
+
+                dbclient.Sql("drop table table10;");
+            }
+        }
+
+        [TestMethod]
+        public void TableUpdate_add_unique()
+        {
+            var database = new Database("testdb");
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
+            dialect.CreateDatabase(); //ensure database exists
+
+            var table = new SqlDDLTable("table11", "test", "test table 11", "testspace1", "testindex1", 1, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                ;
+
+            var sql = dialect.TableCreateSql(table);
+            using (var dbclient = new DbClient(database))
+            {
+                //drop table if exists
+                try { dbclient.Sql("drop table table11;"); } catch { }
+
+                //create a new table
+                var result = dbclient.Sql(sql);
+
+                //insert data for compare
+                dbclient.Sql("insert into table11(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
+
+
+                table = new SqlDDLTable("table11", "test", "test table 11", "testspace1", "testindex1", 3, "NewTest");
+                table.AddPKColumn("PKC", DbType.UInt64)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                    .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: "", isUnique: true)
+                    .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                    .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                    ;
+
+                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
+                column.IsDirty = true;
+                column.PreviousColumn = new TrackingColumn
+                {
+                    ColumnName = "T3",
+                    ColumnType = DbType.Int16.ToString(),
+                    DefaultValue = "16",
+                    AllowNull = true,
+                    CheckConstraint = "",
+                    IsIndex = false,
+                    IsUnique = false,
+                    IsPK = false
+                };
+
+                sql = dialect.TableUpdateSql(table);
+                //update table remove the default
+                result = dbclient.Sql(sql);
+
+                try
+                {
+                    dbclient.SqlDataTable("insert into table11(T2, T3) values('BBB',16)");
+                    Assert.Fail("Unique constraint failed.");
+                }
+                catch(Exception ex)
+                {
+                    Assert.IsTrue(ex.Message.Contains("UNIQUE"));
+                }
+
+
+                dbclient.Sql("drop table table11;");
+            }
+        }
+
+        [TestMethod]
+        public void TableUpdate_add_default()
+        {
+            var database = new Database("testdb");
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
+            dialect.CreateDatabase(); //ensure database exists
+
+            var table = new SqlDDLTable("table12", "test", "test table 12", "testspace1", "testindex1", 1, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                .AddColumn("T3", DbType.Int16, 0)
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                ;
+
+            var sql = dialect.TableCreateSql(table);
+            using (var dbclient = new DbClient(database))
+            {
+                //drop table if exists
+                try { dbclient.Sql("drop table table12;"); } catch { }
+
+                //create a new table
+                var result = dbclient.Sql(sql);
+
+                //insert data for compare
+                dbclient.Sql("insert into table12(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
+
+
+                table = new SqlDDLTable("table12", "test", "test table 12", "testspace1", "testindex1", 3, "NewTest");
+                table.AddPKColumn("PKC", DbType.UInt64)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                    .AddColumn("T2", DbType.String, 10000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 12)
+                    .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                    .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                    ;
+
+                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
+                column.IsDirty = true;
+                column.PreviousColumn = new TrackingColumn
+                {
+                    ColumnName = "T3",
+                    ColumnType = DbType.Int16.ToString(),
+                    DefaultValue = "",
+                    AllowNull = true,
+                    CheckConstraint = "",
+                    IsIndex = false,
+                    IsUnique = false,
+                    IsPK = false
+                };
+
+                sql = dialect.TableUpdateSql(table);
+                //update table remove the default
+                result = dbclient.Sql(sql);
+
+                dbclient.Sql("insert into table12(T2) values('BBB')");
+
+                var v = dbclient.SqlSelect("select T3 from table12 where T2='AAA'");
+                Assert.AreEqual("",v.ToString());
+
+                v = dbclient.SqlSelect("select T3 from table12 where T2='BBB'");
+                Assert.AreEqual("12",v.ToString());
+
+
+                dbclient.Sql("drop table table12;");
+            }
         }
 
 

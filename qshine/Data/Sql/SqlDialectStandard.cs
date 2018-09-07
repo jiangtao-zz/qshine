@@ -234,17 +234,22 @@ namespace qshine.database
             foreach (var index in table.Indexes)
             {
                 bool skipIndex = false;
-                if (AutoUniqueIndex)
+                bool isUniqueIndex = false;
+
+                var column = table.Columns.SingleOrDefault(x => x.Name == index.Key);
+                if (column != null && column.IsUnique)
                 {
-                    var column = table.Columns.SingleOrDefault(x=>x.Name==index.Key);
-                    if (column != null && column.IsUnique)
+                    if (AutoUniqueIndex)
                     {
                         skipIndex = true;
                     }
+                    isUniqueIndex = true;
                 }
+
+
                 if(!skipIndex)
                 {
-                    builder.AppendFormat(string.Format("{0}", CreateIndex(index.Key, table.TableName, index.Value)));
+                    builder.AppendFormat(string.Format("{0}", CreateIndexSql(index.Key, table.TableName, index.Value, isUniqueIndex)));
                 }
             }
 
@@ -253,8 +258,21 @@ namespace qshine.database
             return builder.ToString();
         }
 
-        public virtual string CreateIndex(string indexName, string tableName, string indexValue)
+        /// <summary>
+        /// Get create index sql statement
+        /// </summary>
+        /// <param name="indexName"></param>
+        /// <param name="tableName"></param>
+        /// <param name="indexValue"></param>
+        /// <param name="isUnique"></param>
+        /// <returns></returns>
+        public virtual string CreateIndexSql(string indexName, string tableName, string indexValue, bool isUnique=false)
         {
+            if (isUnique)
+            {
+                return string.Format("create unique index {0} on {1} ({2}){3}\n", indexName, tableName, indexValue
+                    , SqlCommandSeparator);
+            }
             return string.Format("create index {0} on {1} ({2}){3}\n", indexName, tableName, indexValue
                 ,SqlCommandSeparator);
         }

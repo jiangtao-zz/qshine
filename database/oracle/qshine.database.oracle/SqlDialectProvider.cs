@@ -178,9 +178,9 @@ namespace qshine.database.oracle
         //    return string.Format("references {0}({1})", referenceTable, referenceColumn);
         //}
 
-        public override string CreateIndex(string indexName, string tableName, string indexValue)
+        public override string CreateIndexSql(string indexName, string tableName, string indexValue,bool isUnique=false)
         {
-            return base.CreateIndex(indexName, tableName, indexValue);
+            return base.CreateIndexSql(indexName, tableName, indexValue, isUnique);
         }
 
         /// <summary>
