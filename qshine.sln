@@ -119,6 +119,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "net45", "net45", "{9C888C66
 		database\config\postgresql\bin\net45\System.Threading.Tasks.Extensions.dll = database\config\postgresql\bin\net45\System.Threading.Tasks.Extensions.dll
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.oracle.Tests", "database\tests\qshine.database.oracle.Tests\qshine.database.oracle.Tests.csproj", "{FC8EDE17-435F-4336-BA8E-36B957F588E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -210,6 +212,12 @@ Global
 		{F93AC11B-0034-4345-9F86-F1DDE72D6911}.Default|Any CPU.Build.0 = Debug|Any CPU
 		{F93AC11B-0034-4345-9F86-F1DDE72D6911}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F93AC11B-0034-4345-9F86-F1DDE72D6911}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC8EDE17-435F-4336-BA8E-36B957F588E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC8EDE17-435F-4336-BA8E-36B957F588E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC8EDE17-435F-4336-BA8E-36B957F588E2}.Default|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC8EDE17-435F-4336-BA8E-36B957F588E2}.Default|Any CPU.Build.0 = Debug|Any CPU
+		{FC8EDE17-435F-4336-BA8E-36B957F588E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC8EDE17-435F-4336-BA8E-36B957F588E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -246,6 +254,7 @@ Global
 		{433A48DA-6D75-4F50-A3ED-8346201BEB9F} = {FA46BCB6-7D11-4E4D-8C9E-712C253E630C}
 		{98AEE80F-0D42-4E6D-A81B-266C456534DC} = {433A48DA-6D75-4F50-A3ED-8346201BEB9F}
 		{9C888C66-CEF5-4390-A23E-DB66E881F309} = {98AEE80F-0D42-4E6D-A81B-266C456534DC}
+		{FC8EDE17-435F-4336-BA8E-36B957F588E2} = {6E12E003-1C6F-4F04-8B81-77B1C5FB2D71}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {68E665BD-64B6-4223-85AE-2936717945D7}

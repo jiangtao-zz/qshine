@@ -34,19 +34,6 @@ namespace qshine.database.sqlite
         }
 
         /// <summary>
-        /// Gets the name of the provider.
-        /// </summary>
-        /// <value>The name of the provider.</value>
-        public override string ProviderName
-        {
-            get
-            {
-                return _sqliteProviderName;
-            }
-        }
-
-
-        /// <summary>
         /// Creates a new database instance.
         /// </summary>
         /// <returns><c>true</c>, if database was created, <c>false</c> otherwise.</returns>
@@ -105,7 +92,7 @@ namespace qshine.database.sqlite
         /// <param name="oldTableName">table name to be changed</param>
         /// <param name="newTableName">new table name</param>
         /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
-        public override string TableRenameSql(string oldTableName, string newTableName)
+        public override string TableRenameClause(string oldTableName, string newTableName)
         {
             return string.Format("alter table {0} rename to {1}", oldTableName, newTableName);
         }
@@ -240,14 +227,14 @@ namespace qshine.database.sqlite
 
         }
 
-        public override string TableUpdateSql(SqlDDLTable table)
+        public override List<string> TableUpdateSqls(SqlDDLTable table)
         {
-            var statement = base.TableUpdateSql(table);
-            if (string.IsNullOrEmpty(statement))
+            var statements = base.TableUpdateSqls(table);
+            if (statements.Count==0)
             {
-                return "";
+                return statements;
             }
-
+            statements = new List<string>();
             if (table.Columns.SingleOrDefault(x=>x.IsDirty && x.PreviousColumn!=null)!=null)
             {
 
@@ -265,7 +252,7 @@ namespace qshine.database.sqlite
                 BuildDropTableIndexes(builder, table.TableName);
 
                 //4. create a new table statement
-                builder.Append(base.TableCreateSql(table));
+                builder.Append(string.Join(";",base.TableCreateSqls(table)));
 
                 //var newColumns = String.Join(",", table.Columns.Select(x => x.Name));
                 //var prevColumns = String.Join(",", table.Columns.Select(x => x.PreviousColumn == null ? x.Name : x.PreviousColumn.ColumnName));
@@ -294,9 +281,9 @@ namespace qshine.database.sqlite
                 builder.Append("commit;");
                 builder.Append("PRAGMA foreign_keys = on;");
 
-                statement = builder.ToString();
+                statements.Add(builder.ToString());
             }
-            return statement;
+            return statements;
         }
 
         void GetMatchColumns(SqlDDLTable table, out string newColumns, out string prevColumns)

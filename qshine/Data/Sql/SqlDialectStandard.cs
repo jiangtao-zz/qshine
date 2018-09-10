@@ -17,19 +17,7 @@ namespace qshine.database
         /// Construct a database standard SQL dialect.
         /// Other database SQL dialect could inhert from this Dialect and override the non-standard SQL statements.
         /// </summary>
-        public SqlDialectStandard(string connectionString)
-        {
-        }
-
-        /// <summary>
-        /// Gets .NET ADO provider name.
-        /// </summary>
-        /// <value>The name of the provider.</value>
-        public abstract string ProviderName
-        {
-            get;
-        }
-
+        public SqlDialectStandard(string connectionString){}
 
         /// <summary>
         /// standard named parameter prefix symbol
@@ -94,18 +82,6 @@ namespace qshine.database
         public abstract string TableExistSql(string tableName);
 
         /// <summary>
-        /// Get a SQL statement to rename a table 
-        /// </summary>
-        /// <param name="oldTableName">table name to be changed</param>
-        /// <param name="newTableName">new table name</param>
-        /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
-        public virtual string TableRenameSql(string oldTableName, string newTableName)
-        {
-            return string.Format("rename table {0} to {1}{2}", 
-                oldTableName, newTableName, SqlCommandSeparator);
-        }
-
-        /// <summary>
         /// Get a keyword to set Auto-increment column
         /// </summary>
         public virtual string ColumnAutoIncrementKeyword
@@ -124,58 +100,256 @@ namespace qshine.database
         }
 
         /// <summary>
-        /// Get a keyword to set column Foreign key.
+        /// Get a keyword from column for Foreign key references.
         /// </summary>
-        /// <param name="referenceTable">foreign key table</param>
+        /// <param name="reference">format of column reference constraint.
+        /// The format could be:
+        ///     otherTableName:Column.
+        /// or 
+        ///     otherTableName(column)
+        /// or
+        ///     references otherTableName(column)
+        /// </param>
         /// <param name="referenceColumn">foreign key table column</param>
         /// <returns></returns>
-        public virtual string ColumnReferenceKeyword(string referenceTable, string referenceColumn)
+        public virtual string ColumnReferenceKeyword(string reference)
         {
-            return string.Format("references {0}({1})", referenceTable, referenceColumn);
+            var formattedReference = reference;
+            var foreignKeyReference = reference.Split(':');
+            if (foreignKeyReference.Length == 2)
+            {
+                formattedReference = string.Format("references {0}({1})", foreignKeyReference[0], foreignKeyReference[1]);
+            }
+            else if(reference.StartsWith("references",StringComparison.InvariantCultureIgnoreCase))
+            {
+                formattedReference = reference;
+            }
+            else
+            {
+                formattedReference = string.Format("references {0}", reference);
+            }
+
+
+            return formattedReference;
         }
 
         /// <summary>
-        /// Get a sql statement to rename a column and set new column definition
+        /// Get a SQL clause to rename a table 
+        /// </summary>
+        /// <param name="oldTableName">table name to be changed</param>
+        /// <param name="newTableName">new table name</param>
+        /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
+        public virtual string TableRenameClause(string oldTableName, string newTableName)
+        {
+            return FormatCommandSqlLine("rename table {0} to {1}",
+                oldTableName, newTableName);
+        }
+
+        /// <summary>
+        /// Get a sql clause to rename a column and set new column definition
         /// </summary>
         /// <param name="tableName">table name</param>
         /// <param name="oldColumnName">old column name</param>
         /// <param name="newColumnName">new column name</param>
         /// <param name="column">column definition</param>
         /// <returns></returns>
-        public virtual string ColumnRenameSql(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
+        public virtual string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} change column {1} {2} {3}{4}", 
-                tableName, oldColumnName, newColumnName, ColumnDefinition(column)
-                , SqlCommandSeparator);
+            return FormatCommandSqlLine("alter table {0} rename column {1} {2}", 
+                tableName, oldColumnName, newColumnName);
         }
 
         /// <summary>
-        /// Get a sql statement to reset column definition
-        /// </summary>
-        /// <param name="tableName">table name</param>
-        /// <param name="columnName">column name</param>
-        /// <param name="column">Column new definition</param>
-        /// <returns></returns>
-        public virtual string ColumnModifySql(string tableName, string columnName, SqlDDLColumn column)
-        {
-            return string.Format("alter table {0} modify column {1} {2}{3}", 
-                tableName, columnName, ColumnDefinition(column)
-                , SqlCommandSeparator);
-        }
-
-        /// <summary>
-        /// Get a sql statement to add a new column
+        /// Get a sql clause to add a new column
         /// </summary>
         /// <param name="tableName">table name</param>
         /// <param name="columnName">new column name</param>
         /// <param name="column">column definition</param>
         /// <returns></returns>
-        public virtual string ColumnAddSql(string tableName, string columnName, SqlDDLColumn column)
+        public virtual string ColumnAddClause(string tableName, string columnName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} add column {1} {2}{3}", 
-                tableName, columnName, ColumnDefinition(column)
-                , SqlCommandSeparator);
+            return FormatCommandSqlLine("alter table {0} add column {1} {2}", 
+                tableName, columnName, ColumnDefinition(column));
         }
+
+        /// <summary>
+        /// Get a sql clause to change column data type
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="columnName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public virtual string ColumnChangeTypeClause(string tableName, string columnName, SqlDDLColumn column)
+        {
+            return ColumnModifyClause(tableName, columnName, ToNativeDBType(column.DbType, column.Size, column.Scale));
+        }
+
+        public virtual string ColumnAddPKClause(string tableName, string name, SqlDDLColumn column)
+        {
+            return
+                FormatCommandSqlLine("alter table {0} add primary key ({1})",
+                tableName,
+                name
+                );
+        }
+
+        public virtual string ColumnRemovePKClause(string tableName, string name, SqlDDLColumn column)
+        {
+            return
+                FormatCommandSqlLine("alter table {0} drop primary key",
+                tableName
+                );
+        }
+
+        public virtual string ColumnAddUniqueClause(string tableName, string name, SqlDDLColumn column)
+        {
+            return
+                FormatCommandSqlLine("alter table {0} add unique({1})",
+                tableName,
+                name
+                );
+        }
+
+        public virtual string ColumnRemoveUniqueClause(string tableName, string name, SqlDDLColumn column)
+        {
+            return
+                FormatCommandSqlLine("alter table {0} drop unique({1})",
+                tableName,
+                name
+                );
+        }
+
+        public virtual string ColumnAddIndexClause(string tableName, string name, SqlDDLColumn column)
+        {
+            return CreateIndexClause(new SqlDDLIndex
+            {
+                IndexColumns = name,
+                IndexName = SqlDDLTable.GetIndexName(tableName, column),
+                IsUnique = column.IsUnique,
+                TableName = tableName
+            });
+        }
+
+        public virtual string ColumnRemoveIndexClause(string tableName, string name, SqlDDLColumn column)
+        {
+            var indexName = SqlDDLTable.GetIndexName(tableName, column);
+
+            return
+                FormatCommandSqlLine("drop index {0}",
+                indexName);
+        }
+
+        public virtual string ColumnModifyReferenceClause(string tableName, string name, SqlDDLColumn column)
+        {
+            var removeSql = ColumnRemoveReferenceClause(tableName, name, column);
+            var addSql = ColumnAddReferenceClause(tableName, name, column);
+
+            return removeSql + addSql;
+
+        }
+
+        public virtual string ColumnAddReferenceClause(string tableName, string name, SqlDDLColumn column)
+        {
+            var foreignKey = SqlDDLTable.GetforeignKeyName(tableName, column.InternalId);
+
+            return
+                FormatCommandSqlLine("alter table {0} add constraint {1} foreign key({2}) references {3}",
+                tableName, foreignKey, name, column.Reference);
+        }
+
+        public virtual string ColumnRemoveReferenceClause(string tableName, string name, SqlDDLColumn column)
+        {
+            var foreignKey = SqlDDLTable.GetforeignKeyName(tableName, column.InternalId);
+
+            return
+                FormatCommandSqlLine("alter table {0} drop constraint {1}",
+                tableName, foreignKey);
+        }
+
+        public virtual string ColumnModifyConstraintClause(string tableName, string name, SqlDDLColumn column)
+        {
+            var removeSql = ColumnRemoveConstraintClause(tableName, name, column);
+            var addSql = ColumnAddConstraintClause(tableName, name, column);
+
+            return removeSql + addSql;
+        }
+
+        public virtual string ColumnAddConstraintClause(string tableName, string name, SqlDDLColumn column)
+        {
+            var checkConstraintName = SqlDDLTable.GetCheckConstraintName(tableName, column.InternalId);
+
+            return
+                FormatCommandSqlLine("alter table {0} add constraint check({1})",
+                tableName, checkConstraintName, column.CheckConstraint);
+        }
+
+        public virtual string ColumnRemoveConstraintClause(string tableName, string name, SqlDDLColumn column)
+        {
+            var checkConstraintName = SqlDDLTable.GetCheckConstraintName(tableName, column.InternalId);
+
+            return
+                FormatCommandSqlLine("alter table {0} drop constraint {1}",
+                tableName, checkConstraintName);
+        }
+
+        public virtual string ColumnNotNullClause(string tableName, string name, SqlDDLColumn column)
+        {
+            return ColumnModifyClause(tableName, name, "not null");
+        }
+
+        public virtual string ColumnNullClause(string tableName, string name, SqlDDLColumn column)
+        {
+            return ColumnModifyClause(tableName, name, "null");
+        }
+
+        public virtual string ColumnModifyDefaultClause(string tableName, string name, SqlDDLColumn column)
+        {
+            return ColumnModifyClause(tableName, name, ColumnDefaultKeyword(column.DefaultValue.ToString()));
+        }
+
+        public virtual string ColumnAddDefaultClause(string tableName, string name, SqlDDLColumn column)
+        {
+            return ColumnModifyClause(tableName, name, ColumnDefaultKeyword(column.DefaultValue.ToString()));
+        }
+
+        public virtual string ColumnRemoveDefaultClause(string tableName, string name, SqlDDLColumn column)
+        {
+            return ColumnModifyClause(tableName, name, ColumnDefaultKeyword("null"));
+        }
+
+        public virtual string ColumnAddAutoIncrementClause(string tableName, string name, SqlDDLColumn column)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual string ColumnRemoveAutoIncrementClause(string tableName, string name, SqlDDLColumn column)
+        {
+            throw new NotImplementedException();
+        }
+
+        private string ColumnModifyClause(string tableName, string columnName, string columnProperties)
+        {
+            return FormatCommandSqlLine("alter table {0} modify ({1} {2})",
+                tableName, columnName, columnProperties);
+        }
+
+        /// <summary>
+        /// Get create index sql statement
+        /// </summary>
+        /// <param name="indexName"></param>
+        /// <param name="tableName"></param>
+        /// <param name="indexValue"></param>
+        /// <param name="isUnique"></param>
+        /// <returns></returns>
+        public virtual string CreateIndexClause(SqlDDLIndex index)
+        {
+            if (index.IsUnique)
+            {
+                return FormatCommandSqlLine("create unique index {0} on {1} ({2})", index.IndexName, index.TableName, index.IndexColumns);
+            }
+            return string.Format("create index {0} on {1} ({2})", index.IndexName, index.TableName, index.IndexColumns);
+        }
+
 
         /// <summary>
         /// Convert an object value to database native literals.
@@ -203,8 +377,10 @@ namespace qshine.database
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        public virtual string TableCreateSql(SqlDDLTable table)
+        public virtual List<string> TableCreateSqls(SqlDDLTable table)
         {
+            List<string> sqls = new List<string>();
+
             var builder = new StringBuilder();
 
             //Build creating table statement
@@ -228,7 +404,10 @@ namespace qshine.database
                 }
             }
             builder.Append(TableCreateSqlAddition(table));//add aditional clause
-            builder.AppendFormat("){0}\n", SqlCommandSeparator);
+            builder.Append(")");
+
+            sqls.Add(builder.ToString());
+            builder.Clear();
 
             //Build index creation statements
             foreach (var index in table.Indexes)
@@ -240,35 +419,19 @@ namespace qshine.database
                         skipIndex = true;
                 }
 
-
                 if(!skipIndex)
                 {
-                    builder.AppendFormat(string.Format("{0}", CreateIndexSql(index.Value)));
+                    sqls.Add(CreateIndexClause(index.Value));
                 }
             }
 
             //Build additional table creation statements
-            builder.Append(TableCreateSqlAfter(table));
-            return builder.ToString();
-        }
-
-        /// <summary>
-        /// Get create index sql statement
-        /// </summary>
-        /// <param name="indexName"></param>
-        /// <param name="tableName"></param>
-        /// <param name="indexValue"></param>
-        /// <param name="isUnique"></param>
-        /// <returns></returns>
-        public virtual string CreateIndexSql(SqlDDLIndex index)
-        {
-            if (index.IsUnique)
+            var sql = TableCreateSqlAfter(table);
+            if (!string.IsNullOrEmpty(sql))
             {
-                return string.Format("create unique index {0} on {1} ({2}){3}\n", index.IndexName, index.TableName, index.IndexColumns
-                    , SqlCommandSeparator);
+                sqls.Add(sql);
             }
-            return string.Format("create index {0} on {1} ({2}){3}\n", index.IndexName, index.TableName, index.IndexColumns
-                                , SqlCommandSeparator);
+            return sqls;
         }
 
         /// <summary>
@@ -296,41 +459,178 @@ namespace qshine.database
         }
 
 
+        string GetTempColumnName()
+        {
+            long n = new Random().Next(100000, 100000000);
+            return "TMP" + n;
+        }
+
         /// <summary>
         /// Get table update statement.
         /// </summary>
         /// <returns>table update statement</returns>
         /// <param name="table">Table.</param>
-        public virtual string TableUpdateSql(SqlDDLTable table)
+        public virtual List<string> TableUpdateSqls(SqlDDLTable table)
         {
-            var builder = new StringBuilder();
+            var sqls = new List<string>();
 
+            //Add new column first
             foreach (var column in table.Columns)
             {
                 if (column.IsDirty)
                 {
-                    if (column.PreviousColumn == null)
+                    if (column.IsNew)
                     {
                         var dbType = ToNativeDBType(column.DbType, column.Size, column.Scale);
                         //add new column
-                        builder.Append(ColumnAddSql(table.TableName, column.Name, column));
-                    }
-                    else if (column.Name == column.PreviousColumn.ColumnName)
-                    {
-                        //modify column
-                        builder.Append(ColumnModifySql(table.TableName, column.Name, column));
-                    }
-                    else
-                    {
-                        //rename
-                        builder.Append(ColumnRenameSql(table.TableName, column.PreviousColumn.ColumnName, column.Name, column));
+                        sqls.Add(ColumnAddClause(table.TableName, column.Name, column));
                     }
                 }
             }
 
-            return builder.ToString();
+            //var builder = new StringBuilder();
+            //Rename columns
+            //if there is column name conflict we need resolve it first before rename it back.
+            var renameColumns = table.Columns.Where(x => x.IsDirty && !x.IsNew && x.NeedRename);
+            if(renameColumns.Count()> 0)
+            {
+                foreach(var column in renameColumns)
+                {
+                    var conflictColumn = renameColumns.SingleOrDefault(x => x.PreviousColumn.ColumnName == column.Name);
+                    //If rename column already exists, rename it to temp name first
+                    if (conflictColumn != null)
+                    {
+                        var tempName = GetTempColumnName();
+                        column.TempColumnName = tempName;
+                        sqls.Add(ColumnRenameClause(table.TableName, column.PreviousColumn.ColumnName, tempName, column));
+                    }
+                    else
+                    {
+                        sqls.Add(ColumnRenameClause(table.TableName, column.PreviousColumn.ColumnName, column.Name, column));
+                    }
+                }
+
+                //If temp column name existing rename to actual column name
+                foreach (var column in renameColumns)
+                {
+                    if(!string.IsNullOrEmpty(column.TempColumnName))
+                    {
+                        sqls.Add(ColumnRenameClause(table.TableName, column.TempColumnName, column.Name, column));
+                    }
+                }
+            }
+
+            //Update attribute
+            foreach (var column in table.Columns)
+            {
+                if (column.IsDirty && !column.IsNew)
+                {
+                    if(column.NeedModifyType)
+                    {
+                        sqls.Add(ColumnChangeTypeClause(table.TableName, column.Name, column));
+                    }
+
+                    if(column.NeedRemoveAutoIncrease)
+                    {
+                        sqls.Add(ColumnRemoveAutoIncrementClause(table.TableName, column.Name, column));
+                    }
+                    else if (column.NeedAddAutoIncrease)
+                    {
+                        sqls.Add(ColumnAddAutoIncrementClause(table.TableName, column.Name, column));
+                    }
+
+                    if (column.NeedRemoveDefault)
+                    {
+                        sqls.Add(ColumnRemoveDefaultClause(table.TableName, column.Name, column));
+                    }
+                    else if (column.NeedAddDefault)
+                    {
+                        sqls.Add(ColumnAddDefaultClause(table.TableName, column.Name, column));
+                    }
+                    else if (column.NeedModifyDefault)
+                    {
+                        sqls.Add(ColumnModifyDefaultClause(table.TableName, column.Name, column));
+                    }
+
+
+                    if (column.NeedNull)
+                    {
+                        sqls.Add(ColumnNullClause(table.TableName, column.Name, column));
+                    }
+                    else if (column.NeedNotNull)
+                    {
+                        sqls.Add(ColumnNotNullClause(table.TableName, column.Name, column));
+                    }
+
+
+                    if (column.NeedRemoveConstraint)
+                    {
+                        sqls.Add(ColumnRemoveConstraintClause(table.TableName, column.Name, column));
+                    }
+                    else if (column.NeedAddConstraint)
+                    {
+                        sqls.Add(ColumnAddConstraintClause(table.TableName, column.Name, column));
+                    }
+                    else if (column.NeedModifyConstraint)
+                    {
+                        sqls.Add(ColumnModifyConstraintClause(table.TableName, column.Name, column));
+                    }
+
+                    if (column.NeedRemoveReference)
+                    {
+                        sqls.Add(ColumnRemoveReferenceClause(table.TableName, column.Name, column));
+                    }
+                    else if (column.NeedAddReference)
+                    {
+                        sqls.Add(ColumnAddReferenceClause(table.TableName, column.Name, column));
+                    }
+                    else if (column.NeedModifyReference)
+                    {
+                        sqls.Add(ColumnModifyReferenceClause(table.TableName, column.Name, column));
+                    }
+
+                    if (column.NeedRemoveIndex)
+                    {
+                        sqls.Add(ColumnRemoveIndexClause(table.TableName, column.Name, column));
+                    }
+                    else if (column.NeedAddIndex)
+                    {
+                        sqls.Add(ColumnAddIndexClause(table.TableName, column.Name, column));
+                    }
+
+                    if (column.NeedRemoveUnique && !column.IsPK)
+                    {
+                        sqls.Add(ColumnRemoveUniqueClause(table.TableName, column.Name, column));
+                    }
+                    else if (column.NeedAddUnique && !column.IsPK)
+                    {
+                        sqls.Add(ColumnAddUniqueClause(table.TableName, column.Name, column));
+                    }
+
+                    if (column.NeedRemovePK)
+                    {
+                        sqls.Add(ColumnRemovePKClause(table.TableName, column.Name, column));
+                    }
+                    else if (column.NeedAddPK)
+                    {
+                        sqls.Add(ColumnAddPKClause(table.TableName, column.Name, column));
+                    }
+
+                }
+            }
+
+            return sqls;
         }
 
+        public virtual string GetPKConstraintName(string tableName, string columnName)
+        {
+            return string.Format("{0}_PK", tableName);
+        }
+
+        public string FormatCommandSqlLine(string format, params object[] parameters)
+        {
+            return string.Format(format, parameters);
+        }
 
         /// <summary>
         /// Build column definition statement
@@ -364,7 +664,6 @@ namespace qshine.database
                 builder.Append(" primary key");
             }
 
-
             //Add constraint
             if (!string.IsNullOrEmpty(column.CheckConstraint))
             {
@@ -379,12 +678,7 @@ namespace qshine.database
 
             if (!string.IsNullOrEmpty(column.Reference))
             {
-                var foreignKeyReference = column.Reference.Split(':');
-                if (foreignKeyReference.Length != 2)
-                {
-                    throw new FormatException(string.Format("Invalid foreign key reference {0} for column {1}", column.Reference, column.Name));
-                }
-                builder.AppendFormat(" {0}", ColumnReferenceKeyword(foreignKeyReference[0], foreignKeyReference[1]));
+                builder.AppendFormat(" {0}", ColumnReferenceKeyword(column.Reference));
             }
             return builder.ToString();
         }
@@ -410,6 +704,212 @@ namespace qshine.database
         public string LastErrorMessage
         {
             get; set;
+        }
+
+        /// <summary>
+        /// Analyse the table structure and get table and column modified information
+        /// </summary>
+        /// <returns>true, if the table structure changed</returns>
+        /// <param name="table">Table structure.</param>
+        /// <param name="trackingTable">Tracking table information.</param>
+        public virtual bool AnalyseTableChange(SqlDDLTable table, TrackingTable trackingTable)
+        {
+            if (trackingTable == null || trackingTable.Columns == null)
+            {
+                //indicates no tracking information found
+                return false;
+            }
+
+            List<SqlDDLColumn> newColumns = new List<SqlDDLColumn>();
+            Dictionary<string, string> mapColumns = new Dictionary<string, string>();
+
+            bool isTableChanged = false;
+
+            foreach (var column in table.Columns)
+            {
+                var trackingColumn = trackingTable.Columns.SingleOrDefault(x => x.ColumnName == column.Name);
+                if (trackingColumn == null)
+                {
+                    if (column.ColumnNameHistory == null || column.ColumnNameHistory.Count == 0)
+                    {
+                        //add new column, most case
+                        column.IsDirty = true;
+                        column.IsNew = true;
+                        isTableChanged = true;
+                    }
+                    else //rename
+                    {
+                        //found previous column from tracking table.
+                        //Note: The rename statement need resolve column name conflict in later process
+                        var previousColumn = trackingTable.Columns.SingleOrDefault(x => column.ColumnNameHistory.Contains(x.ColumnName));
+                        if (previousColumn != null)
+                        {
+                            trackingColumn = previousColumn;
+                            column.IsDirty = true;
+                            column.NeedRename = true;
+                            isTableChanged = true;
+                            column.PreviousColumn = trackingColumn;
+                        }
+                        else
+                        {
+                            //unexpected, previous column is not in tracking list
+                            throw new Exception(String.Format("Rename column name {0}-{1} is not in column tracking table", column.Name, column.ColumnNameHistory));
+                        }
+                    }
+                }
+                if (trackingColumn != null)
+                {
+                    if (AnalyseColumn(column, trackingColumn))
+                    {
+                        isTableChanged = true;
+                        column.PreviousColumn = trackingColumn;
+                    }
+                }
+            }
+            return isTableChanged;
+        }
+
+        bool AnalyseColumn(SqlDDLColumn column, TrackingColumn trackingColumn)
+        {
+            if (column.Version > trackingColumn.Version)
+            {
+                if (column.AutoIncrease != trackingColumn.AutoIncrease)
+                {
+                    if (column.AutoIncrease)
+                    {
+                        column.NeedAddAutoIncrease = true;
+                    }
+                    else
+                    {
+                        column.NeedRemoveAutoIncrease = true;
+                    }
+                    column.IsDirty = true;
+                }
+
+                if(column.AllowNull != trackingColumn.AllowNull)
+                {
+                    if (column.AllowNull)
+                    {
+                        column.NeedNull = true;
+                    }
+                    else
+                    {
+                        column.NeedNotNull = true;
+                    }
+                    column.IsDirty = true;
+
+                }
+
+                if (column.CheckConstraint != trackingColumn.CheckConstraint)
+                {
+                    if(string.IsNullOrEmpty(column.CheckConstraint))
+                    {
+                        column.NeedRemoveConstraint = true;
+                    }
+                    else if (string.IsNullOrEmpty(trackingColumn.CheckConstraint))
+                    {
+                        column.NeedAddConstraint = true;
+                    }
+                    else
+                    {
+                        column.NeedModifyConstraint = true;
+                    }
+                    column.IsDirty = true;
+
+                }
+
+                if (column.Reference != trackingColumn.Reference)
+                {
+                    if (string.IsNullOrEmpty(column.Reference))
+                    {
+                        column.NeedRemoveReference = true;
+                    }
+                    else if (string.IsNullOrEmpty(trackingColumn.Reference))
+                    {
+                        column.NeedAddReference = true;
+                    }
+                    else
+                    {
+                        column.NeedModifyReference = true;
+                    }
+                    column.IsDirty = true;
+
+                }
+
+                if (column.IsIndex != trackingColumn.IsIndex)
+                {
+                    if (column.IsIndex)
+                    {
+                        column.NeedAddIndex = true;
+                    }
+                    else
+                    {
+                        column.NeedRemoveIndex = true;
+                    }
+                    column.IsDirty = true;
+                }
+
+                if (column.IsUnique != trackingColumn.IsUnique)
+                {
+                    if (column.IsUnique)
+                    {
+                        column.NeedAddUnique = true;
+                    }
+                    else
+                    {
+                        column.NeedRemoveUnique = true;
+                    }
+                    column.IsDirty = true;
+                }
+
+                if (column.IsPK != trackingColumn.IsPK)
+                {
+                    if (column.IsPK)
+                    {
+                        //change column to PK. Only single column can be PK.
+                        //It should only add PK to the table which doesn't have PK original
+                        column.NeedAddPK = true;
+                        //The primary key always be a unique key
+                        column.NeedAddUnique = false;
+                        column.NeedRemoveUnique = false;
+                    }
+                    else
+                    {
+                        //Remove PK constaint
+                        //Take caution to remove PK. PK constaint will automatically create unique index.
+                        //Remove PK will not remove index automatically.
+                        column.NeedRemovePK = true;
+                    }
+                    column.IsDirty = true;
+                }
+
+                string stringValue = Convert.ToString(column.DefaultValue);
+                if (!stringValue.AreEqual(trackingColumn.DefaultValue))
+                {
+                    if (string.IsNullOrEmpty(stringValue))
+                    {
+                        column.NeedRemoveDefault = true;
+                    }
+                    else if (string.IsNullOrEmpty(trackingColumn.DefaultValue))
+                    {
+                        column.NeedAddDefault = true;
+                    }
+                    else
+                    {
+                        column.NeedModifyDefault = true;
+                    }
+                    column.IsDirty = true;
+                }
+
+                if (ToNativeDBType(column.DbType.ToString(), column.Size, column.Scale) != ToNativeDBType(trackingColumn.ColumnType, column.Size, column.Scale))
+                {
+                    column.NeedModifyType = true;
+                    column.IsDirty = true;
+                }
+
+                return column.IsDirty;
+            }
+            return false;
         }
 
     }

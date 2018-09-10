@@ -29,7 +29,6 @@ namespace qshine.database.sqlserver
         //ILogger _logger;
         string _dataSource;
         string _connectionString;
-        const string _sqlProviderName = "SqlClient";
         SqlConnectionStringBuilder _connectionBuilder;
 
 
@@ -45,19 +44,6 @@ namespace qshine.database.sqlserver
 
             _dataSource = _connectionBuilder.DataSource;
         }
-
-        /// <summary>
-        /// Gets the name of the provider.
-        /// </summary>
-        /// <value>The name of the provider.</value>
-        public override string ProviderName
-        {
-            get
-            {
-                return _sqlProviderName;
-            }
-        }
-
 
         /// <summary>
         /// Check database instance exists.
@@ -109,7 +95,7 @@ namespace qshine.database.sqlserver
         /// <param name="oldTableName">table name to be changed</param>
         /// <param name="newTableName">new table name</param>
         /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
-        //public override string TableRenameSql(string oldTableName, string newTableName)
+        //public override string TableRenameClause(string oldTableName, string newTableName)
         //{
         //    return string.Format("rename table {0} to {1}", oldTableName, newTableName);
         //}
@@ -152,7 +138,7 @@ namespace qshine.database.sqlserver
         /// <param name="newColumnName">new column name</param>
         /// <param name="column">column definition</param>
         /// <returns></returns>
-        public override string ColumnRenameSql(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
+        public override string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
             return string.Format("exec sp_rename '{0}.{1}', '{2}' 'COLUMN';", tableName, oldColumnName, newColumnName);
         }
@@ -163,21 +149,9 @@ namespace qshine.database.sqlserver
         /// <param name="oldTableName">old table name</param>
         /// <param name="newTableName">new table name</param>
         /// <returns></returns>
-        public override string TableRenameSql(string oldTableName, string newTableName)
+        public override string TableRenameClause(string oldTableName, string newTableName)
         {
             return string.Format("exec sp_rename '{0}', '{1}';", oldTableName, newTableName);
-        }
-
-        /// <summary>
-        /// Get a sql statement to reset column definition
-        /// </summary>
-        /// <param name="tableName">table name</param>
-        /// <param name="columnName">column name</param>
-        /// <param name="column">Column new definition</param>
-        /// <returns></returns>
-        public override string ColumnModifySql(string tableName, string columnName, SqlDDLColumn column)
-        {
-            return string.Format("alter table {0} alter column {1} {2};", tableName, columnName, ColumnDefinition(column));
         }
 
         /// <summary>
@@ -187,7 +161,7 @@ namespace qshine.database.sqlserver
         /// <param name="columnName"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        public override string ColumnAddSql(string tableName, string columnName, SqlDDLColumn column)
+        public override string ColumnAddClause(string tableName, string columnName, SqlDDLColumn column)
         {
             return string.Format("alter table {0} add column {1} {2};", tableName, columnName, ColumnDefinition(column));
         }

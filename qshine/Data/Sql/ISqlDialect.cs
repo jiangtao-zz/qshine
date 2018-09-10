@@ -3,12 +3,6 @@ namespace qshine.database
 {
 	public interface ISqlDialect
     {
-		/// <summary>
-		/// Gets .NET ADO provider name.
-		/// </summary>
-		/// <value>The name of the provider.</value>
-		string ProviderName { get; }
-
         /// <summary>
         /// Check database instance exists.
         /// </summary>
@@ -34,10 +28,11 @@ namespace qshine.database
         /// <param name="oldTableName">table name to be changed</param>
         /// <param name="newTableName">new table name</param>
         /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
-        string TableRenameSql(string oldTableName, string newTableName);
+        string TableRenameClause(string oldTableName, string newTableName);
 
         /// <summary>
         /// Get Sql statements to create a new table.
+        /// It is a collection of sql commands
         /// </summary>
         /// <returns>Get table creation statement</returns>
         /// <param name="table">Table.</param>
@@ -48,14 +43,26 @@ namespace qshine.database
         /// };
         /// ...
         /// </example>
-        string TableCreateSql(SqlDDLTable table);
+        List<string> TableCreateSqls(SqlDDLTable table);
 
         /// <summary>
-        /// Get Sql statements to update table structure.
+        /// Analyse the table structure and get table and column modified information.
+        /// The TableUpdateSql is based on analysis result.
+        /// </summary>
+        /// <returns>true, if the table structure changed</returns>
+        /// <param name="table">Table structure.</param>
+        /// <param name="trackingTable">Tracking table information.</param>
+        /// <remarks>This method will update the SqlDDLTable "table" status.</remarks>
+        bool AnalyseTableChange(SqlDDLTable table, TrackingTable trackingTable);
+
+        /// <summary>
+        /// Get Sql statements for table structure update.
+        /// Sql statement is based on table change analysis result. 
+        /// Call AnalyseTableChange() before perform TableUpdateSql.
         /// </summary>
         /// <returns>table update statement</returns>
         /// <param name="table">Table.</param>
-        string TableUpdateSql(SqlDDLTable table);
+        List<string> TableUpdateSqls(SqlDDLTable table);
 
 		/// <summary>
 		/// Gets a value indicating whether a database can be created.

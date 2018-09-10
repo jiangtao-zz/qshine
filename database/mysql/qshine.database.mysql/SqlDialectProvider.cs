@@ -28,7 +28,7 @@ namespace qshine.database.mysql
         //ILogger _logger;
         string _dataSource;
         string _connectionString;
-        const string _sqlProviderName = "MySql.Data.MySqlClient";
+        //const string _sqlProviderName = "MySql.Data.MySqlClient";
         MySqlConnectionStringBuilder _connectionBuilder;
 
 
@@ -43,18 +43,6 @@ namespace qshine.database.mysql
             _connectionBuilder = new MySqlConnectionStringBuilder(connectionString);
 
             _dataSource = _connectionBuilder.Database;
-        }
-
-        /// <summary>
-        /// Gets the name of the provider.
-        /// </summary>
-        /// <value>The name of the provider.</value>
-        public override string ProviderName
-        {
-            get
-            {
-                return _sqlProviderName;
-            }
         }
 
         /// <summary>
@@ -155,7 +143,7 @@ namespace qshine.database.mysql
         /// <param name="oldTableName">table name to be changed</param>
         /// <param name="newTableName">new table name</param>
         /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
-        //public override string TableRenameSql(string oldTableName, string newTableName)
+        //public override string TableRenameClause(string oldTableName, string newTableName)
         //{
         //    return string.Format("rename table {0} to {1}", oldTableName, newTableName);
         //}
@@ -198,7 +186,7 @@ namespace qshine.database.mysql
         /// <param name="newColumnName">new column name</param>
         /// <param name="column">column definition</param>
         /// <returns></returns>
-        public override string ColumnRenameSql(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
+        public override string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
             return string.Format("alter table {0} change column {1} {2} {3};", tableName, oldColumnName, newColumnName, ColumnDefinition(column));
         }
@@ -222,7 +210,7 @@ namespace qshine.database.mysql
         /// <param name="columnName"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        //public override string ColumnAddSql(string tableName, string columnName, SqlDDLColumn column)
+        //public override string ColumnAddClause(string tableName, string columnName, SqlDDLColumn column)
         //{
         //    return string.Format("alter table {0} add column {1} {2};", tableName, columnName, ColumnDefinition(column));
         //}

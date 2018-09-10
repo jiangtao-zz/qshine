@@ -24,7 +24,7 @@ namespace qshine.database.oracle
         //ILogger _logger;
         //string _dataSource;
         string _connectionString;
-        const string _sqlProviderName = "Oracle.ManagedDataAccess.Client";
+        //const string _sqlProviderName = "Oracle.ManagedDataAccess.Client";
         OracleConnectionStringBuilder _connectionBuilder;
 
         /// <summary>
@@ -57,6 +57,10 @@ namespace qshine.database.oracle
                 return "\x6";
             }
         }
+        /// <summary>
+        /// Do not create index if the column is unique column
+        /// </summary>
+        public override bool AutoUniqueIndex { get { return true; } }
 
         /// <summary>
         /// Oracle execute command one by one
@@ -78,19 +82,6 @@ namespace qshine.database.oracle
             return result; ;
         }
         
-
-        /// <summary>
-        /// Gets the name of the provider.
-        /// </summary>
-        /// <value>The name of the provider.</value>
-        public override string ProviderName
-        {
-            get
-            {
-                return _sqlProviderName;
-            }
-        }
-
 
         /// <summary>
         /// Check database instance exists.
@@ -142,7 +133,7 @@ namespace qshine.database.oracle
         /// <param name="oldTableName">table name to be changed</param>
         /// <param name="newTableName">new table name</param>
         /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
-        //public override string TableRenameSql(string oldTableName, string newTableName)
+        //public override string TableRenameClause(string oldTableName, string newTableName)
         //{
         //    return string.Format("rename table {0} to {1}", oldTableName, newTableName);
         //}
@@ -178,9 +169,9 @@ namespace qshine.database.oracle
         //    return string.Format("references {0}({1})", referenceTable, referenceColumn);
         //}
 
-        //public override string CreateIndexSql(SqlDDLIndex index)
+        //public override string CreateIndexClause(SqlDDLIndex index)
         //{
-        //    return base.CreateIndexSql(index);
+        //    return base.CreateIndexClause(index);
         //}
 
         /// <summary>
@@ -191,7 +182,7 @@ namespace qshine.database.oracle
         /// <param name="newColumnName">new column name</param>
         /// <param name="column">column definition</param>
         /// <returns></returns>
-        public override string ColumnRenameSql(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
+        public override string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
             return string.Format("alter table {0} rename column {1} to {2}{3}", tableName, oldColumnName, newColumnName
                 , SqlCommandSeparator);
@@ -203,7 +194,7 @@ namespace qshine.database.oracle
         /// <param name="oldTableName">old table name</param>
         /// <param name="newTableName">new table name</param>
         /// <returns></returns>
-        public override string TableRenameSql(string oldTableName, string newTableName)
+        public override string TableRenameClause(string oldTableName, string newTableName)
         {
             return string.Format("alter table {0} rename to {1}{2}", oldTableName, newTableName
                 , SqlCommandSeparator);
@@ -211,28 +202,15 @@ namespace qshine.database.oracle
 
         
         /// <summary>
-        /// Get a sql statement to reset column definition
-        /// </summary>
-        /// <param name="tableName">table name</param>
-        /// <param name="columnName">column name</param>
-        /// <param name="column">Column new definition</param>
-        /// <returns></returns>
-        public override string ColumnModifySql(string tableName, string columnName, SqlDDLColumn column)
-        {
-            return string.Format("alter table {0} alter column {1} {2}{3}", tableName, columnName, ColumnDefinition(column)
-                , SqlCommandSeparator);
-        }
-
-        /// <summary>
         /// Get add new column statement
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="columnName"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        public override string ColumnAddSql(string tableName, string columnName, SqlDDLColumn column)
+        public override string ColumnAddClause(string tableName, string columnName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} add column {1} {2}{3}", tableName, columnName, ColumnDefinition(column)
+            return string.Format("alter table {0} add {1} {2}{3}", tableName, columnName, ColumnDefinition(column)
                 , SqlCommandSeparator);
         }
 
@@ -336,6 +314,11 @@ end;{4}", tableName, tableName, columnName, sequenceName
                     return "SYSDATE";
                 }
             }
+
+            if(value is bool)
+            {
+                return ((bool)value) ? "1" : "0";
+            }
             return string.Format("{0}", value);
         }
 
@@ -407,11 +390,7 @@ end;{4}", tableName, tableName, columnName, sequenceName
 
                 case "Binary":
                 case "Object":
-                    if (size == 0)
-                    {
-                        return "BLOB";
-                    }
-                    return string.Format("VARBINARY({0})", size);
+                    return "BLOB";
 
                 case "Guid":
                     return "RAW(32)";
@@ -427,6 +406,7 @@ end;{4}", tableName, tableName, columnName, sequenceName
                     }
 
                 case "Decimal":
+                case "VarNumeric":
                     if (size == 0)
                     {
                         return "NUMBER";

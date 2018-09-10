@@ -7,6 +7,7 @@ using System.Security;
 using System.Linq;
 using qshine.Configuration;
 using System.Configuration;
+using qshine.Utility;
 
 namespace qshine.Configuration
 {
@@ -139,7 +140,7 @@ namespace qshine.Configuration
 		/// Gets the assembly maps.
 		/// </summary>
 		/// <value>The assembly maps.</value>
-		public static IDictionary<string, PlugableAssembly> AssemblyMaps
+		public static SafeDictionary<string, PlugableAssembly> AssemblyMaps
 		{
 			get
 			{
@@ -147,7 +148,7 @@ namespace qshine.Configuration
 			}
 		}
 
-		static readonly Dictionary<string, Type> _commonNamedType = new Dictionary<string, Type>();
+		static readonly SafeDictionary<string, Type> _commonNamedType = new SafeDictionary<string, Type>();
 		static readonly object lockObject = new object();
 		/// <summary>
 		/// Gets the type by type name. The type name could be a qualified type name accessible by the environment.
@@ -187,9 +188,9 @@ namespace qshine.Configuration
 
 		static ILogger _sysLogger;
 		static EnvironmentConfigure _environmentConfigure;
-		static IDictionary<string, PlugableAssembly> _assemblyMaps;
-		static IDictionary<string, string> _configFiles;
-		static IDictionary<string, IModuleLoader> _modules;
+		static SafeDictionary<string, PlugableAssembly> _assemblyMaps;
+		static SafeDictionary<string, string> _configFiles;
+		static SafeDictionary<string, IModuleLoader> _modules;
 
 		static bool isInit;
 		static object lockEnvironment = new object();
@@ -208,9 +209,9 @@ namespace qshine.Configuration
 
 						//Initial variables
 						_environmentConfigure = new EnvironmentConfigure();
-						_assemblyMaps = new Dictionary<string, PlugableAssembly>();
-						_configFiles = new Dictionary<string, string>();
-						_modules = new Dictionary<string, IModuleLoader>();
+						_assemblyMaps = new SafeDictionary<string, PlugableAssembly>();
+						_configFiles = new SafeDictionary<string, string>();
+						_modules = new SafeDictionary<string, IModuleLoader>();
 						_sysLogger = Log.SysLogger;
 
 						//Load all domain user dlls
@@ -220,12 +221,15 @@ namespace qshine.Configuration
 
 						_configureSectionInterceptor = new Interceptor(typeof(EnvironmentManager));
 
-						//Load configure setting
-						LoadConfig(_defaultConfigureFile);
+                        //Set application assembly resolver
+                        SetAssemblyResolve();
+
+
+                        //Load configure setting
+                        LoadConfig(_defaultConfigureFile);
 						//Load binary setting
 						LoadBinary();
-						//Set application assembly resolver
-						SetAssemblyResolve();
+
 						//Load type from binary assembly
 						LoadComponents();
 						//Load modules
@@ -241,7 +245,7 @@ namespace qshine.Configuration
 			}
 		}
 
-		static Dictionary<Type, object> _interceptHandlers = new Dictionary<Type, object>();
+		static SafeDictionary<Type, object> _interceptHandlers = new SafeDictionary<Type, object>();
 		static void LoadInterceptHandlers()
 		{
 			var types = SafeGetInterfacedTypes(typeof(IInterceptorHandler));
@@ -389,10 +393,14 @@ namespace qshine.Configuration
 			{
 
 				//Try to load assembly from different configured folders
-				if (_assemblyMaps.ContainsKey(assemblyName))
-				{
-					//Assembly already loaded 
-					if (_assemblyMaps[assemblyName].Assembly != null)
+				if (!_assemblyMaps.ContainsKey(assemblyName))
+                {
+                    LoadBinary();
+                }
+                if (_assemblyMaps.ContainsKey(assemblyName))
+                {
+                    //Assembly already loaded 
+                    if (_assemblyMaps[assemblyName].Assembly != null)
 					{
 						return _assemblyMaps[assemblyName].Assembly;
 					}
@@ -401,8 +409,8 @@ namespace qshine.Configuration
 					_assemblyMaps[assemblyName].Assembly = assembly;
 				}
 				else {
-					//Couldn't find assembly
-					_sysLogger.Warn("Couldn't find assembly {0}", assemblyName);
+                    //Couldn't find assembly
+                    _sysLogger.Warn("Couldn't find assembly {0}", assemblyName);
 				}
 			}
 

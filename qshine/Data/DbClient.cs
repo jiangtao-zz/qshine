@@ -208,15 +208,43 @@ namespace qshine
 			return ExecuteNonQuery(CommandType.Text, commandString, parameters);
 		}
 
-		/// <summary>
-		/// Execute a stored procedure
-		/// </summary>
-		/// <param name="storedProcedure">Stored procedure name</param>
-		/// <param name="parameters">input and output parameters for stored procedure </param>
-		/// <remarks>
-		/// Using output parameter object to retrieve data from a stored procedure
-		/// </remarks>
-		public void StoredProcedure(string storedProcedure, DbParameters parameters=null)
+        /// <summary>
+        /// Execute a list of sqls and return true if no any error
+        /// </summary>
+        /// <param name="batchCommands"></param>
+        /// <param name="parameters"></param>
+        public bool Sql(bool ignoreError, List<string> batchCommands, DbParameters parameters = null)
+        {
+            bool result = true;
+            foreach (var c in batchCommands)
+            {
+                if (ignoreError)
+                {
+                    try
+                    {
+                        ExecuteNonQuery(CommandType.Text, c, parameters);
+                    }
+                    catch {
+                        result = false;
+                    }
+                }
+                else
+                {
+                    ExecuteNonQuery(CommandType.Text, c, parameters);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Execute a stored procedure
+        /// </summary>
+        /// <param name="storedProcedure">Stored procedure name</param>
+        /// <param name="parameters">input and output parameters for stored procedure </param>
+        /// <remarks>
+        /// Using output parameter object to retrieve data from a stored procedure
+        /// </remarks>
+        public void StoredProcedure(string storedProcedure, DbParameters parameters=null)
 		{
 			ExecuteNonQuery(CommandType.StoredProcedure, storedProcedure, parameters);
 		}

@@ -1,6 +1,8 @@
-﻿using System;
+﻿using System.Linq;
 using System.Collections.Generic;
 using System.Data;
+using System;
+
 namespace qshine.database
 {
 	/// <summary>
@@ -17,7 +19,7 @@ namespace qshine.database
 		List<SqlDDLColumn> _columns;
 		SqlDDLColumn _pkColumn;
 		Dictionary<string, SqlDDLIndex> _indexes;
-		int _indexSequence = 1;
+		int _internalIdSequence = 1;
 		int _version;
 		public SqlDDLTable(string tableName, string category, string comments, string tableSpace="",string indexTableSpace="", int version=1, string schemaName="")
 		{
@@ -42,34 +44,58 @@ namespace qshine.database
 		/// <param name="allowNull">If set to <c>true</c> allow null.</param>
 		/// <param name="autoIncrease">Auto increase number. -1 means not auto increase</param>
 		/// <returns></returns>
-		public SqlDDLTable AddPKColumn(string columnName, DbType dbType, int size=1, bool allowNull = false, string defaultValue="", bool autoIncrease=true, int version=1, 
-		                               params string[] oldColumnNames)
-		{
-			_pkColumn = new SqlDDLColumn
-			{
-				Name = columnName,
-				DbType = dbType,
-				Size = size,
-				DefaultValue = defaultValue,
-				IsPK = true,
-				AllowNull = allowNull,
-				AutoIncrease = autoIncrease,
-				Comments = "PK",
-				Version = version
-			};
-			foreach (var oldColumn in oldColumnNames)
-			{
-				_pkColumn.ColumnNameHistory.Add(oldColumn);
-			}
-			_columns.Add(_pkColumn);
-			return this;
+		public SqlDDLTable AddPKColumn(string columnName, DbType dbType, int size=1, bool allowNull = false, 
+            string defaultValue="", bool autoIncrease=true, int version=1, 
+            params string[] oldColumnNames)
+        {
+            return AddPKColumn(0, columnName, dbType, size, allowNull, defaultValue, autoIncrease, version, oldColumnNames);
+        }
+
+        public SqlDDLTable AddPKColumn(int internalId, string columnName, DbType dbType, int size = 1, bool allowNull = false,
+            string defaultValue = "", bool autoIncrease = true, int version = 1,
+            params string[] oldColumnNames)
+        {
+            return AddColumn(0, columnName, dbType, size, 0, allowNull, defaultValue, "PK", 
+                                     version:version, isPK: true, oldColumnNames:oldColumnNames);
 		}
 
 		public SqlDDLTable AddColumn(string columnName, DbType dbType, int size, int scale=0, bool allowNull = true, object defaultValue = null, string comments = "",
 		                             string checkConstraint = "", bool isUnique = false, string reference = "", bool isIndex = false, int version=1,
-		                             params string[] oldColumnNames)
-		{
-			var column = new SqlDDLColumn
+                                     bool isPK=false, params string[] oldColumnNames)
+        {
+            return AddColumn(0, columnName, dbType, size, scale, allowNull, defaultValue, comments,
+                                     checkConstraint, isUnique, reference, isIndex, version, isPK, oldColumnNames);
+        }
+
+
+        public SqlDDLTable AddColumn(int internalId, string columnName, DbType dbType, int size, int scale = 0, bool allowNull = true, object defaultValue = null, string comments = "",
+                                     string checkConstraint = "", bool isUnique = false, string reference = "", bool isIndex = false, int version = 1, bool isPK=false,
+                                     params string[] oldColumnNames)
+        {
+            if (internalId == 0)
+            {
+                internalId = _internalIdSequence;
+                _internalIdSequence++;
+            }
+
+            var c = _columns.SingleOrDefault(x => x.InternalId == internalId);
+            if (c != null)
+            {
+                throw new InvalidExpressionException(string.Format(
+                    "Defined internal id conflicts with the id of an existing column [{0}].", c.Name));
+            }
+
+            if (size > 4000)
+            {
+                throw new InvalidConstraintException("Cannot define a big size column as a unique or primary key column.");
+            }
+
+            if (_columns.Any(x => x.IsPK))
+            {
+                throw new InvalidExpressionException("Only one PRIMARY key column is allow in the table.");
+            }
+
+            var column = new SqlDDLColumn
 			{
 				Name = columnName,
 				DbType = dbType,
@@ -85,17 +111,28 @@ namespace qshine.database
 				IsIndex = isIndex,
 				Version = version
 			};
-			foreach (var oldColumn in oldColumnNames)
+
+            foreach (var oldColumn in oldColumnNames)
 			{
 				_pkColumn.ColumnNameHistory.Add(oldColumn);
 			}
 
 			_columns.Add(column);
-			if (column.IsIndex)
-			{
-				AddIndex(columnName,"",isUnique);
-			}
-			return this;			
+
+            if (isPK)
+            {
+                _pkColumn = column;
+                //No not create index for PK column. It should created automatically by the database system.
+            }
+            else
+            {
+                if (column.IsIndex)
+                {
+                    AddIndex(columnName, GetIndexName(_tableName, column) ,isUnique);
+                }
+            }
+
+            return this;			
 		}
 
 		/// <summary>
@@ -108,10 +145,10 @@ namespace qshine.database
 			AddColumn("created_on", DbType.DateTime, 0,0,false, SqlReservedWord.SysDate);
             AddColumn("updated_by", DbType.String, 100);
 			AddColumn("updated_on", DbType.DateTime, 0,0, false, SqlReservedWord.SysDate);
-			AddIndex("created_by", GetName("ixa", 1));
-			AddIndex("updated_by", GetName("ixa", 2));
-            AddIndex("created_on", GetName("ixa", 3));
-			AddIndex("updated_on", GetName("ixa", 4));
+			AddIndex("created_by", GetName("ixa", _tableName, 1));
+			AddIndex("updated_by", GetName("ixa", _tableName, 2));
+            AddIndex("created_on", GetName("ixa", _tableName, 3));
+			AddIndex("updated_on", GetName("ixa", _tableName, 4));
 
 			return this;
 		}
@@ -123,19 +160,16 @@ namespace qshine.database
         /// <param name="indexName">index name. default index name generated by system based on the column order</param>
         /// <param name="isUnique">Indicates a unique index</param>
         /// <returns></returns>
-		public SqlDDLTable AddIndex(string columnNames, string indexName = "", bool isUnique=false)
+		public SqlDDLTable AddIndex(string columnNames, string indexName, bool isUnique=false)
 		{
-			string name = indexName;
-			if (string.IsNullOrEmpty(name))
+            Check.IsNotEmpty(indexName, "indexName");
+
+			if (!_indexes.ContainsKey(indexName))
 			{
-				name = AutoIndex("inx");
-			}
-			if (!_indexes.ContainsKey(name))
-			{
-                _indexes.Add(name, new SqlDDLIndex
+                _indexes.Add(indexName, new SqlDDLIndex
                 {
                     TableName = _tableName,
-                    IndexName = name,
+                    IndexName = indexName,
                     IndexColumns = columnNames,
                     IsUnique = isUnique
                 });
@@ -172,7 +206,29 @@ namespace qshine.database
 			return this;
 		}
 
-		public void Create()
+        /// <summary>
+        /// Get possible index name
+        /// </summary>
+        /// <param name="column">column</param>
+        /// <returns>Return a column potential index name.</returns>
+        public static string GetIndexName(string tableName, SqlDDLColumn column)
+        {
+            return GetName("inx", tableName, column.InternalId);
+        }
+
+        public static string GetforeignKeyName(string tableName, int internalId)
+        {
+            return GetName("fk", tableName, internalId); ;
+        }
+
+        public static string GetCheckConstraintName(string tableName, int internalId)
+        {
+            return GetName("chk", tableName, internalId); ;
+        }
+
+
+
+        public void Create()
 		{
 		}
 
@@ -240,23 +296,18 @@ namespace qshine.database
 			}
 		}
 
-		private string AutoIndex(string suffix)
-		{
-			return GetName(suffix, _indexSequence++);
-		}
 
-
-		private string GetName(string suffix, int sequence)
+		private static string GetName(string suffix, string tableName, int sequence)
 		{
-			var name = string.Format("{0}_{1}{2}",_tableName,suffix,sequence);
-			if (name.Length > 20)
+			var name = string.Format("{0}_{1}{2}", tableName, suffix,sequence);
+			if (name.Length > 29)
 			{
 				var end = string.Format("_{0}{1}", suffix,sequence);
-				int n = 20 - end.Length;
+				int n = 29 - end.Length;
 				name = name.Substring(0, n);
 			}
 			return name;
 		}
 
-	}
+    }
 }

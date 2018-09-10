@@ -158,13 +158,9 @@ namespace qshine.database
             return true;
         }
 
-        public void BatchSql(string sql)
+        public void BatchSql(List<string> sqls)
         {
-            var sqls = _sqlDialect.ParseBatchSql(sql);
-            foreach (var sqlText in sqls)
-            {
-                DBClient.Sql(sqlText);
-            }
+            DBClient.Sql(true, sqls);
         }
 
 
@@ -224,7 +220,7 @@ namespace qshine.database
             {
                 //_logger.Debug("Rename table {0} to {1}.", oldTableName, newTableName);
 
-                BatchSql(_sqlDialect.TableRenameSql(oldTableName, newTableName));
+                DBClient.Sql(_sqlDialect.TableRenameClause(oldTableName, newTableName));
 
                 //_logger.Debug("Rename table completed.");
 
@@ -247,7 +243,7 @@ namespace qshine.database
             try
             {
                 //_logger.Debug("Create a table {0}.", table.TableName);
-                var statement = _sqlDialect.TableCreateSql(table);
+                var statement = _sqlDialect.TableCreateSqls(table);
 
                 //comments are not support
                 BatchSql(statement);
@@ -273,14 +269,14 @@ namespace qshine.database
         {
             try
             {
-                if (AnalyseTable(table, trackingTable))
+                if (_sqlDialect.AnalyseTableChange(table, trackingTable))
                 {
-                    var sql = _sqlDialect.TableUpdateSql(table);
-                    if (!string.IsNullOrEmpty(sql))
+                    var sqls = _sqlDialect.TableUpdateSqls(table);
+                    if (sqls!=null && sqls.Count>0)
                     {
                         //_logger.Debug("Update table {0}.", table.TableName);
 
-                        BatchSql(sql);
+                        BatchSql(sqls);
 
                         //_logger.Debug("Table {0} updated.", table.TableName);
                         return true;
@@ -294,95 +290,6 @@ namespace qshine.database
                 return false;
             }
         }
-
-
-        /// <summary>
-        /// Analyse the table structure and get table and column modified information
-        /// </summary>
-        /// <returns>true, if the table structure changed</returns>
-        /// <param name="table">Table structure.</param>
-        /// <param name="trackingTable">Tracking table information.</param>
-        public bool AnalyseTable(SqlDDLTable table, TrackingTable trackingTable)
-        {
-            if (trackingTable == null || trackingTable.Columns == null)
-            {
-                //indicates no tracking information found
-                return false;
-            }
-
-            List<SqlDDLColumn> newColumns = new List<SqlDDLColumn>();
-            Dictionary<string, string> mapColumns = new Dictionary<string, string>();
-
-            bool isTableChanged = false;
-
-            foreach (var column in table.Columns)
-            {
-                var trackingColumn = trackingTable.Columns.SingleOrDefault(x => x.ColumnName == column.Name);
-                if (trackingColumn == null)
-                {
-                    if (column.ColumnNameHistory == null || column.ColumnNameHistory.Count == 0)
-                    {
-                        //add new column, most case
-                        column.IsDirty = true;
-                        isTableChanged = true;
-                    }
-                    else //rename
-                    {
-                        var previousColumn = trackingTable.Columns.SingleOrDefault(x => column.ColumnNameHistory.Contains(x.ColumnName));
-                        if (previousColumn != null)
-                        {
-                            column.IsDirty = true;
-                            isTableChanged = true;
-                            column.PreviousColumn = previousColumn;
-                        }
-                        else
-                        {
-                            //unexpected, previous column is not in tracking list
-                            throw new Exception(String.Format("Rename column name {0}-{1} is not in column tracking table", column.Name, column.ColumnNameHistory));
-                        }
-                    }
-                }
-                else
-                {
-                    if (IsColumnPropertyChanged(column, trackingColumn))
-                    {
-                        column.IsDirty = true;
-                        isTableChanged = true;
-                        column.PreviousColumn = trackingColumn;
-                    }
-                }
-            }
-            return isTableChanged;
-        }
-
-        bool IsColumnPropertyChanged(SqlDDLColumn column, TrackingColumn trackingColumn)
-        {
-            if (column.Version > trackingColumn.Version)
-            {
-                if (column.AllowNull != trackingColumn.AllowNull ||
-                   column.AutoIncrease != trackingColumn.AutoIncrease ||
-                   column.CheckConstraint != trackingColumn.CheckConstraint ||
-                   column.IsIndex != trackingColumn.IsIndex ||
-                   column.IsPK != trackingColumn.IsPK ||
-                   column.IsUnique != trackingColumn.IsUnique ||
-                    column.Reference != trackingColumn.Reference)
-                {
-                    return true;
-                }
-                string stringValue = Convert.ToString(column.DefaultValue);
-                if (!stringValue.AreEqual(trackingColumn.DefaultValue))
-                {
-                    return true;
-                }
-
-                if (_sqlDialect.ToNativeDBType(column.DbType.ToString(), column.Size, column.Scale) != _sqlDialect.ToNativeDBType(trackingColumn.ColumnType, column.Size, column.Scale))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
 
 
         /// <summary>

@@ -153,6 +153,7 @@
     <Compile Include="Data\Sql\TrackingObjectType.cs" />
     <Compile Include="Data\Sql\TrackingTable.cs" />
     <Compile Include="Messaging\CommandBus.cs" />
+    <Compile Include="Utility\SafeDictionary.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
