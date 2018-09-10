@@ -730,7 +730,10 @@ namespace qshine.database
                 var trackingColumn = trackingTable.Columns.SingleOrDefault(x => x.ColumnName == column.Name);
                 if (trackingColumn == null)
                 {
-                    if (column.ColumnNameHistory == null || column.ColumnNameHistory.Count == 0)
+                    //try to find previous column from tracking table by Id
+                    var previousColumn = trackingTable.Columns.SingleOrDefault(x => x.InternalId == column.InternalId);
+
+                    if (previousColumn==null && (column.ColumnNameHistory == null || column.ColumnNameHistory.Count == 0))
                     {
                         //add new column, most case
                         column.IsDirty = true;
@@ -741,7 +744,12 @@ namespace qshine.database
                     {
                         //found previous column from tracking table.
                         //Note: The rename statement need resolve column name conflict in later process
-                        var previousColumn = trackingTable.Columns.SingleOrDefault(x => column.ColumnNameHistory.Contains(x.ColumnName));
+                        //try to find the column from column history name list explictly by user.
+                        var previousColumnFromHistory = trackingTable.Columns.SingleOrDefault(x => column.ColumnNameHistory.Contains(x.ColumnName));
+                        if (previousColumnFromHistory != null)
+                        {
+                            previousColumn = previousColumnFromHistory;
+                        }
                         if (previousColumn != null)
                         {
                             trackingColumn = previousColumn;

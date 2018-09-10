@@ -83,6 +83,15 @@ namespace qshine
 			return connection;
 		}
 
+        /// <summary>
+        /// Create a data adapter
+        /// </summary>
+        /// <returns></returns>
+        public DbDataAdapter CreateAdapter()
+        {
+            return DbProviderFactory.CreateDataAdapter();
+        }
+
 		/// <summary>
 		/// Get data source name
 		/// </summary>

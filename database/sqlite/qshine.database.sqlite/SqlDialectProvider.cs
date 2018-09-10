@@ -230,13 +230,9 @@ namespace qshine.database.sqlite
         public override List<string> TableUpdateSqls(SqlDDLTable table)
         {
             var statements = base.TableUpdateSqls(table);
-            if (statements.Count==0)
+            if (statements.Count>0)
             {
-                return statements;
-            }
-            statements = new List<string>();
-            if (table.Columns.SingleOrDefault(x=>x.IsDirty && x.PreviousColumn!=null)!=null)
-            {
+                statements = new List<string>();
 
                 //found column attribute change, we have to rebuild the table and copy the data from previous table
                 var builder = new StringBuilder();
@@ -275,7 +271,7 @@ namespace qshine.database.sqlite
                 }
 
                 //5. copy data
-                builder.AppendFormat("insert into {0} ({1}) select {2} from {3};", table.TableName, newColumns, preColumns, tempTable);
+                builder.AppendFormat(";insert into {0} ({1}) select {2} from {3};", table.TableName, newColumns, preColumns, tempTable);
 
                 builder.AppendFormat("drop table {0};", tempTable);
                 builder.Append("commit;");

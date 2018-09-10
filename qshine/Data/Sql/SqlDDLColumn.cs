@@ -84,8 +84,12 @@ namespace qshine.database
         /// Assign a unique unmber explictly if you need remove column or re-order the column in table structure.
         /// </summary>
         public int InternalId { get; set; }
+        /// <summary>
+        /// A hash code to identify column data
+        /// </summary>
+        public long HashCode { get; set; }
 
-		List<string> _columnNameHistory;
+        List<string> _columnNameHistory;
 		public List<string> ColumnNameHistory
 		{
 			get

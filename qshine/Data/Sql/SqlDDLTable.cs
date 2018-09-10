@@ -56,21 +56,21 @@ namespace qshine.database
             params string[] oldColumnNames)
         {
             return AddColumn(0, columnName, dbType, size, 0, allowNull, defaultValue, "PK", 
-                                     version:version, isPK: true, oldColumnNames:oldColumnNames);
+                                     version:version, isPK: true, autoIncrease: autoIncrease, oldColumnNames:oldColumnNames);
 		}
 
 		public SqlDDLTable AddColumn(string columnName, DbType dbType, int size, int scale=0, bool allowNull = true, object defaultValue = null, string comments = "",
 		                             string checkConstraint = "", bool isUnique = false, string reference = "", bool isIndex = false, int version=1,
-                                     bool isPK=false, params string[] oldColumnNames)
+                                     bool isPK=false, bool autoIncrease = false, params string[] oldColumnNames)
         {
             return AddColumn(0, columnName, dbType, size, scale, allowNull, defaultValue, comments,
-                                     checkConstraint, isUnique, reference, isIndex, version, isPK, oldColumnNames);
+                                     checkConstraint, isUnique, reference, isIndex, version, isPK, autoIncrease, oldColumnNames);
         }
 
 
         public SqlDDLTable AddColumn(int internalId, string columnName, DbType dbType, int size, int scale = 0, bool allowNull = true, object defaultValue = null, string comments = "",
-                                     string checkConstraint = "", bool isUnique = false, string reference = "", bool isIndex = false, int version = 1, bool isPK=false,
-                                     params string[] oldColumnNames)
+                                     string checkConstraint = "", bool isUnique = false, string reference = "", bool isIndex = false, int version = 1, 
+                                     bool isPK=false, bool autoIncrease=false, params string[] oldColumnNames)
         {
             if (internalId == 0)
             {
@@ -90,7 +90,7 @@ namespace qshine.database
                 throw new InvalidConstraintException("Cannot define a big size column as a unique or primary key column.");
             }
 
-            if (_columns.Any(x => x.IsPK))
+            if (isPK && _columns.Any(x => x.IsPK))
             {
                 throw new InvalidExpressionException("Only one PRIMARY key column is allow in the table.");
             }
@@ -104,7 +104,8 @@ namespace qshine.database
 				DefaultValue = defaultValue,
 				IsUnique = isUnique,
 				AllowNull = allowNull,
-				AutoIncrease = false,
+                IsPK = isPK,
+				AutoIncrease = autoIncrease,
 				Comments = comments,
 				CheckConstraint = checkConstraint,
 				Reference = reference,
@@ -266,7 +267,7 @@ namespace qshine.database
 
 		public int Version
 		{
-			get
+            get
 			{
 				return _version;
 			}

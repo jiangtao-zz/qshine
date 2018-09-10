@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Common;
 namespace qshine
 {
 	/// <summary>
@@ -216,6 +217,7 @@ namespace qshine
         public bool Sql(bool ignoreError, List<string> batchCommands, DbParameters parameters = null)
         {
             bool result = true;
+            string lastErrorMessage;
             foreach (var c in batchCommands)
             {
                 if (ignoreError)
@@ -224,7 +226,9 @@ namespace qshine
                     {
                         ExecuteNonQuery(CommandType.Text, c, parameters);
                     }
-                    catch {
+                    catch (Exception ex)
+                    {
+                        lastErrorMessage = ex.Message;
                         result = false;
                     }
                 }
@@ -281,12 +285,29 @@ namespace qshine
 		{
 			return _interceptor.JoinPoint(() =>
 			 {
-                 var dataTable = new DataTable();
-                 SqlReader((reader) =>
-                {
-                    dataTable.Load(reader);
-                }, commandString, parameters);
-                return dataTable;
+                 DataSet ds = new DataSet();
+                 using (var adapter = Context.Database.CreateAdapter())
+                 {
+                     using (var command = ActiveConnection.CreateCommand())
+                     {
+                         command.CommandType = CommandType.Text;
+                         command.CommandText = commandString;
+                         if (parameters != null)
+                         {
+                             AddCommandParameters(command, parameters.Params);
+                         }
+                         adapter.SelectCommand = command as DbCommand;
+                         adapter.Fill(ds);
+                         if (ds.Tables.Count > 0)
+                         {
+                             return ds.Tables[0];
+                         }
+                         else
+                         {
+                             return new DataTable();
+                         }
+                     }
+                 }
 			 }, this, "SqlDataTable", commandString, parameters);
 		}
 

@@ -150,7 +150,7 @@ namespace testsqlite
 
             var table = new SqlDDLTable("table2", "test", "test table 2", "testspace1", "testindex1", 2, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
-                .AddColumn("T1", DbType.String, 100, defaultValue:"A")
+                .AddColumn("T1", DbType.String, 100, defaultValue:"A", version:2)
                 .AddColumn("T2", DbType.String, 2000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
@@ -158,38 +158,41 @@ namespace testsqlite
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 ;
 
+            var trackingTable = new TrackingTable(table);
+
+
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(database))
             {
                 try { dbclient.Sql("drop table table2;"); } catch { }
-
+                //Create a new table
                 dbclient.Sql(true, sqls);
 
-
+                //insert a new record
                 dbclient.Sql("insert into table2(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
 
             }
+            //Update the table structure by adding a new column
             table.AddColumn("T6", DbType.Decimal, 0, defaultValue: 12.345678);
 
-            var column = table.Columns.SingleOrDefault(x => x.Name == "T6");
-            column.IsDirty = true;
-
-            column = table.Columns.SingleOrDefault(x => x.Name == "T1");
-            column.IsDirty = true;
-            column.PreviousColumn = new TrackingColumn
-            {
-                ColumnName = "T1",
-                ColumnType = DbType.String.ToString(),
-                Size = 100
-            };
+            //Update the table structure by rename an existing column and also update the size and default value.
+            var column = table.Columns.SingleOrDefault(x => x.Name == "T1");
             column.Name = "T1x";
             column.Size = 120;
             column.DefaultValue = "X123";
 
+            trackingTable.Version--;//produce a version change case.
+            var trackingT1Column = trackingTable.Columns.SingleOrDefault(x => x.ColumnName == "T1");
+            trackingT1Column.Version--;
+
+            //Analyse the table change
+            dialect.AnalyseTableChange(table, trackingTable);
+
+            //Get table structure update SQLs
             sqls = dialect.TableUpdateSqls(table);
             using (var dbclient = new DbClient(database))
             {
-                var result = dbclient.Sql(true, sqls);
+                var result = dbclient.Sql(false, sqls);
 
                 var data = dbclient.SqlDataTable("select * from table2 where T2='AAA'");
                 Assert.AreEqual(1, data.Rows.Count);

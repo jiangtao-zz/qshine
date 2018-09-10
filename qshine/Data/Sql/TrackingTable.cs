@@ -1,15 +1,48 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace qshine.database
 {
 	public class TrackingTable
 	{
-		/// <summary>
-		/// Gets or sets the identifier.
-		/// </summary>
-		/// <value>The identifier.</value>
-		public long Id { get; set; }
+        public TrackingTable() { }
+        public TrackingTable(SqlDDLTable table) {
+            SchemaName = table.SchemaName;
+            ObjectType =  TrackingObjectType.Table;
+            ObjectName = table.TableName;
+            HashCode = table.GetHashCode();
+            Version = table.Version;
+            Comments = table.Comments;
+            Category = table.Category;
+            Columns = table.Columns.Select(x =>
+                new TrackingColumn
+                {
+                    TableName = table.TableName,
+                    InternalId = x.InternalId,
+                    Comments = x.Comments,
+                    ColumnName = x.Name,
+                    ColumnType = x.DbType.ToString(),
+                    Size = x.Size,
+                    Scale = x.Scale,
+                    DefaultValue = Convert.ToString(x.DefaultValue),
+                    AllowNull = x.AllowNull,
+                    Reference = x.Reference,
+                    IsUnique = x.IsUnique,
+                    IsPK = x.IsPK,
+                    CheckConstraint = x.CheckConstraint,
+                    AutoIncrease = x.AutoIncrease,
+                    IsIndex = x.IsIndex,
+                    Version = x.Version,
+                }).ToList();
+
+        }
+
+        /// <summary>
+        /// Gets or sets the identifier.
+        /// </summary>
+        /// <value>The identifier.</value>
+        public long Id { get; set; }
 		/// <summary>
 		/// Gets or sets the name of the schema.
 		/// </summary>

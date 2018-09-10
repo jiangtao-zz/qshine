@@ -76,7 +76,8 @@ namespace qshine.database
 					_ddlTrackingColumnTable
 						.AddPKColumn("id", DbType.Int64)
 						.AddColumn("table_id", DbType.Int64,0, reference:TrackingTableName+":id")
-						.AddColumn("column_name", DbType.String, 100)
+                        .AddColumn("internal_id", DbType.Int64, 0)
+                        .AddColumn("column_name", DbType.String, 100)
 						.AddColumn("comments", DbType.String, 1000)
 						.AddColumn("column_type", DbType.String, 100)
 						.AddColumn("column_size", DbType.Int32, 0)
@@ -90,7 +91,8 @@ namespace qshine.database
 						.AddColumn("auto_increase", DbType.Boolean, 0)
 						.AddColumn("is_index", DbType.Boolean, 0)
 						.AddColumn("version", DbType.Int32, 0, defaultValue: 1)
-						.AddColumn("created_on", DbType.DateTime, 0, defaultValue: SqlReservedWord.SysDate)
+                        .AddColumn("hash_code", DbType.Int32, 0)
+                        .AddColumn("created_on", DbType.DateTime, 0, defaultValue: SqlReservedWord.SysDate)
 						.AddColumn("updated_on", DbType.DateTime, 0, defaultValue: SqlReservedWord.SysDate);
 				}
 				return _ddlTrackingColumnTable;
@@ -109,7 +111,8 @@ namespace qshine.database
 		{
 			var sql = string.Format(
 @"select c.id, t.object_name, c.column_name, c.column_type, c.column_size, c.scale, c.default_value, c.allow_null,
-c.reference, c.is_unique, c.is_pk, c.constraint_value, c.auto_increase, c.is_index, c.version, c.created_on, c.updated_on, c.comments 
+c.reference, c.is_unique, c.is_pk, c.constraint_value, c.auto_increase, c.is_index, c.version, c.created_on, c.updated_on, c.comments,
+c.internal_id, c.hash_code
 from {0} c inner join {1} t on c.table_id=t.id
 and t.object_type={2}", TrackingColumnTableName, TrackingTableName, ParameterName("p1"));
 
@@ -136,7 +139,9 @@ and t.object_type={2}", TrackingColumnTableName, TrackingTableName, ParameterNam
 					CreatedOn = x.ReadDateTime(15),
 					UpdatedOn = x.ReadDateTime(16),
 					Comments = x.ReadString(17),
-				};
+                    InternalId = x.ReadInt32(18),
+                    HashCode = x.ReadInt32(19)
+                };
 			}, sql, DbParameters.New.Input("p1", (int)TrackingObjectType.Table, DbType.Int32));
 
 
@@ -253,8 +258,8 @@ from {0} t where t.object_type={1}", TrackingTableName, ParameterName("p1"));
 					//Column attribute changed
 					sql = string.Format(@"update {0} set column_name={1}, column_type={2}, column_size={3}, scale={4}, default_value={5}, allow_null={6}, 
 reference={7}, is_unique={8}, is_pk={9}, constraint_value={10}, auto_increase={11}, is_index={12},
-version={13}, updated_on={14}, comments={15}
-where id={16}", 
+version={13}, updated_on={14}, comments={15}, internal_id = {16}, hash_code={17}
+where id={18}", 
                         TrackingColumnTableName,
                         ParameterName("p1"),
                         ParameterName("p2"),
@@ -271,7 +276,9 @@ where id={16}",
                         ParameterName("p13"),
                         ParameterName("p14"),
                         ParameterName("p15"),
-                        ParameterName("p16")
+                        ParameterName("p16"),
+                        ParameterName("p17"),
+                        ParameterName("p18")
                         );
 
                     _dbClient.Sql(sql, DbParameters.New
@@ -290,8 +297,10 @@ where id={16}",
 						.Input("p13", column.Version)
 						.Input("p14", DateTime.Now)
 						.Input("p15", column.Comments)
-						.Input("p16", trackingColumn.Id)
-					);
+						.Input("p16", column.InternalId)
+                        .Input("p17", column.HashCode)
+                        .Input("p18", trackingColumn.Id)
+                    );
 				}
 			}
 		}
@@ -335,8 +344,9 @@ where id={16}",
 		void AddNewTrackingColumn(long tableId, SqlDDLColumn column)
 		{
 
-			var sql = string.Format(@"insert into {0} (table_id, column_name, column_type, column_size, scale, default_value, allow_null, reference, is_unique, is_pk, constraint_value, auto_increase, is_index, version, comments)
-values({1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15})",
+			var sql = string.Format(@"insert into {0} (table_id, column_name, column_type, column_size, scale, default_value, allow_null, reference, is_unique, is_pk, constraint_value, auto_increase, is_index, version, comments,
+internal_id, hash_code)
+values({1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17})",
                 TrackingColumnTableName,
                 ParameterName("p1"),
                 ParameterName("p2"),
@@ -352,7 +362,9 @@ values({1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15})",
                 ParameterName("p12"),
                 ParameterName("p13"),
                 ParameterName("p14"),
-                ParameterName("p15")
+                ParameterName("p15"),
+                ParameterName("p16"),
+                ParameterName("p17")
                 );
 
             _dbClient.Sql(sql, DbParameters.New
@@ -371,6 +383,8 @@ values({1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15})",
 				.Input("p13", column.IsIndex)
 				.Input("p14", column.Version)
 				.Input("p15", column.Comments)
+                .Input("p16", column.InternalId)
+                .Input("p17", column.HashCode)
                 );
         }
 
