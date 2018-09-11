@@ -278,6 +278,8 @@ namespace testsqlite
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 ;
 
+            var trackingTable = new TrackingTable(table);
+
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(database))
             {
@@ -291,15 +293,20 @@ namespace testsqlite
                 //insert data for compare
                 dbclient.Sql("insert into table4(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                };
-                column.DefaultValue = "";
+                table = new SqlDDLTable("table4", "test", "test table 4", "testspace1", "testindex1", 3, "NewTest");
+                table.AddPKColumn("PKC", DbType.UInt64)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                    .AddColumn("T2", DbType.String, 2000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddAuditColumn()
+                    .AddColumn("T3", DbType.Int16, 0, version:2)
+                    .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                    .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                    ;
+
+
+                //Analyse the table change
+                dialect.AnalyseTableChange(table, trackingTable);
+
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -344,6 +351,8 @@ namespace testsqlite
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 ;
 
+            var trackingTable = new TrackingTable(table);
+
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(database))
             {
@@ -363,24 +372,13 @@ namespace testsqlite
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 2000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16,isIndex:true,allowNull:false)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16,isIndex:true,allowNull:false, version:2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                    AllowNull=true,
-                    CheckConstraint="",
-                    IsIndex=false,
-                    IsUnique=false,
-                    IsPK=false
-                };
+                dialect.AnalyseTableChange(table, trackingTable);
+
 
                 var count = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table5';");
 
@@ -430,6 +428,8 @@ namespace testsqlite
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 ;
 
+            var trackingTable = new TrackingTable(table);
+
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(database))
             {
@@ -442,30 +442,17 @@ namespace testsqlite
                 //insert data for compare
                 dbclient.Sql("insert into table6(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
 
-
                 table = new SqlDDLTable("table6", "test", "test table 6", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 2000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint:"Check(T3>10)")
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint:"T3>10", version:2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                    AllowNull = true,
-                    CheckConstraint = "",
-                    IsIndex = false,
-                    IsUnique = false,
-                    IsPK = false
-                };
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -503,6 +490,8 @@ namespace testsqlite
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 ;
 
+            var trackingTable = new TrackingTable(table);
+
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(database))
             {
@@ -531,24 +520,12 @@ namespace testsqlite
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 2000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, version:3)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                    AllowNull = false,
-                    CheckConstraint = "",
-                    IsIndex = false,
-                    IsUnique = false,
-                    IsPK = false
-                };
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -573,10 +550,12 @@ namespace testsqlite
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                 .AddColumn("T2", DbType.String, 2000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 1)
-                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16,checkConstraint:"Check(T3>10)")
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16,checkConstraint:"T3>10")
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 ;
+
+            var trackingTable = new TrackingTable(table);
 
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(database))
@@ -605,24 +584,12 @@ namespace testsqlite
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 2000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, version:2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                    AllowNull = false,
-                    CheckConstraint = "Check(T3>10)",
-                    IsIndex = false,
-                    IsUnique = false,
-                    IsPK = false
-                };
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -652,6 +619,8 @@ namespace testsqlite
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 ;
 
+            var trackingTable = new TrackingTable(table);
+
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(database))
             {
@@ -664,31 +633,19 @@ namespace testsqlite
                 //insert data for compare
                 dbclient.Sql("insert into table9(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
 
+                var count = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table9';");
+
 
                 table = new SqlDDLTable("table9", "test", "test table 5", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 2000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: false)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: false, version:3)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                    AllowNull = true,
-                    CheckConstraint = "",
-                    IsIndex = true,
-                    IsUnique = false,
-                    IsPK = false
-                };
-
-                var count = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table9';");
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -720,6 +677,8 @@ namespace testsqlite
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 ;
 
+            var trackingTable = new TrackingTable(table);
+
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(database))
             {
@@ -732,6 +691,7 @@ namespace testsqlite
                 //insert data for compare
                 dbclient.Sql("insert into table10(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
 
+                var count = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table10';");
 
                 table = new SqlDDLTable("table10", "test", "test table 10", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
@@ -742,23 +702,7 @@ namespace testsqlite
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T2");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T2",
-                    ColumnType = DbType.String.ToString(),
-                    Size = 2000,
-                    Scale=0,
-                    AllowNull = false,
-                    DefaultValue = "ABC",
-                    CheckConstraint = "",
-                    IsIndex = true,
-                    IsUnique = true,
-                    IsPK = false
-                };
-
-                var count = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table10';");
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -790,6 +734,8 @@ namespace testsqlite
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 ;
 
+            var trackingTable = new TrackingTable(table);
+
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(database))
             {
@@ -807,24 +753,12 @@ namespace testsqlite
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 2000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: "", isUnique: true)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: "", isUnique: true, version:2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                    AllowNull = true,
-                    CheckConstraint = "",
-                    IsIndex = false,
-                    IsUnique = false,
-                    IsPK = false
-                };
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -862,6 +796,8 @@ namespace testsqlite
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 ;
 
+            var trackingTable = new TrackingTable(table);
+
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(database))
             {
@@ -879,24 +815,12 @@ namespace testsqlite
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 2000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 12)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 12, version:2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "",
-                    AllowNull = true,
-                    CheckConstraint = "",
-                    IsIndex = false,
-                    IsUnique = false,
-                    IsPK = false
-                };
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default

@@ -30,19 +30,6 @@ namespace qshine.database
             }
         }
 
-        public virtual string SqlCommandSeparator
-        {
-            get
-            {
-                return ";";
-            }
-        }
-
-        public virtual List<string> ParseBatchSql(string sql)
-        {
-            return new List<string>() { sql };
-        }
-
         /// <summary>
         /// Creates a database based on given connection string.
         /// </summary>
@@ -73,6 +60,12 @@ namespace qshine.database
         /// Indicates an unique index created automatically if the column has unique constraint
         /// </summary>
         public virtual bool AutoUniqueIndex { get { return false; } }
+
+        /// <summary>
+        /// Indicates using outline constraints instead of inline column constraint 
+        /// </summary>
+        public virtual bool EnableOutlineCheckConstraint { get { return false; } }
+
 
         /// <summary>
         /// Get a SQL statement to check table exists.
@@ -155,7 +148,7 @@ namespace qshine.database
         /// <returns></returns>
         public virtual string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
-            return FormatCommandSqlLine("alter table {0} rename column {1} {2}", 
+            return FormatCommandSqlLine("alter table {0} rename column {1} to {2}", 
                 tableName, oldColumnName, newColumnName);
         }
 
@@ -239,15 +232,6 @@ namespace qshine.database
                 indexName);
         }
 
-        public virtual string ColumnModifyReferenceClause(string tableName, string name, SqlDDLColumn column)
-        {
-            var removeSql = ColumnRemoveReferenceClause(tableName, name, column);
-            var addSql = ColumnAddReferenceClause(tableName, name, column);
-
-            return removeSql + addSql;
-
-        }
-
         public virtual string ColumnAddReferenceClause(string tableName, string name, SqlDDLColumn column)
         {
             var foreignKey = SqlDDLTable.GetforeignKeyName(tableName, column.InternalId);
@@ -266,20 +250,13 @@ namespace qshine.database
                 tableName, foreignKey);
         }
 
-        public virtual string ColumnModifyConstraintClause(string tableName, string name, SqlDDLColumn column)
-        {
-            var removeSql = ColumnRemoveConstraintClause(tableName, name, column);
-            var addSql = ColumnAddConstraintClause(tableName, name, column);
-
-            return removeSql + addSql;
-        }
 
         public virtual string ColumnAddConstraintClause(string tableName, string name, SqlDDLColumn column)
         {
             var checkConstraintName = SqlDDLTable.GetCheckConstraintName(tableName, column.InternalId);
 
             return
-                FormatCommandSqlLine("alter table {0} add constraint check({1})",
+                FormatCommandSqlLine("alter table {0} add constraint {1} check({2})",
                 tableName, checkConstraintName, column.CheckConstraint);
         }
 
@@ -304,12 +281,12 @@ namespace qshine.database
 
         public virtual string ColumnModifyDefaultClause(string tableName, string name, SqlDDLColumn column)
         {
-            return ColumnModifyClause(tableName, name, ColumnDefaultKeyword(column.DefaultValue.ToString()));
+            return ColumnModifyClause(tableName, name, ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
         }
 
         public virtual string ColumnAddDefaultClause(string tableName, string name, SqlDDLColumn column)
         {
-            return ColumnModifyClause(tableName, name, ColumnDefaultKeyword(column.DefaultValue.ToString()));
+            return ColumnModifyClause(tableName, name, ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
         }
 
         public virtual string ColumnRemoveDefaultClause(string tableName, string name, SqlDDLColumn column)
@@ -403,11 +380,23 @@ namespace qshine.database
                     //It is a last column:
                 }
             }
-            builder.Append(TableCreateSqlAddition(table));//add aditional clause
+            builder.Append(TableInlineConstraintClause(table));//add table inline constraint clauses
             builder.Append(")");
 
             sqls.Add(builder.ToString());
             builder.Clear();
+            //Build outline constraints
+
+            for (int i = 0; i < totalCount; i++)
+            {
+                var column = table.Columns[i];
+
+                if (!string.IsNullOrEmpty(column.CheckConstraint))
+                {
+                    sqls.Add(ColumnAddConstraintClause(table.TableName, column.Name, column));
+                }
+            }
+
 
             //Build index creation statements
             foreach (var index in table.Indexes)
@@ -426,21 +415,18 @@ namespace qshine.database
             }
 
             //Build additional table creation statements
-            var sql = TableCreateSqlAfter(table);
-            if (!string.IsNullOrEmpty(sql))
-            {
-                sqls.Add(sql);
-            }
+            TableCreateSqlAfter(sqls, table);
+
             return sqls;
         }
 
         /// <summary>
-        /// Add additional clause in end of table creation statement
+        /// Add table creation inline constraint clauses in the end of table creation section
         /// </summary>
         /// <param name="table"></param>
-        /// <returns></returns>
+        /// <returns>inline constraints </returns>
         /// <remarks>It is useful to add additional statements in end of table creation sql statement</remarks>
-        public virtual string TableCreateSqlAddition(SqlDDLTable table)
+        public virtual string TableInlineConstraintClause(SqlDDLTable table)
         {
             return "";
         }
@@ -448,14 +434,14 @@ namespace qshine.database
         /// <summary>
         /// Add additional sql statements after table creation statement
         /// </summary>
+        /// <param name="sqlCommands">Store additional sql commands</param>
         /// <param name="table"></param>
         /// <returns></returns>
         /// <remarks>
         /// It is useful to create a trigger for oracle PK column auto_increment
         /// </remarks>
-        public virtual string TableCreateSqlAfter(SqlDDLTable table)
+        public virtual void TableCreateSqlAfter(List<string> sqlCommands, SqlDDLTable table)
         {
-            return "";
         }
 
 
@@ -484,6 +470,14 @@ namespace qshine.database
                         var dbType = ToNativeDBType(column.DbType, column.Size, column.Scale);
                         //add new column
                         sqls.Add(ColumnAddClause(table.TableName, column.Name, column));
+                        if (EnableOutlineCheckConstraint)
+                        {
+                            //Add constraint
+                            if (!string.IsNullOrEmpty(column.CheckConstraint))
+                            {
+                                sqls.Add(ColumnAddConstraintClause(table.TableName, column.Name, column));
+                            }
+                        }
                     }
                 }
             }
@@ -573,7 +567,8 @@ namespace qshine.database
                     }
                     else if (column.NeedModifyConstraint)
                     {
-                        sqls.Add(ColumnModifyConstraintClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnRemoveConstraintClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnAddConstraintClause(table.TableName, column.Name, column));
                     }
 
                     if (column.NeedRemoveReference)
@@ -586,7 +581,8 @@ namespace qshine.database
                     }
                     else if (column.NeedModifyReference)
                     {
-                        sqls.Add(ColumnModifyReferenceClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnRemoveReferenceClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnAddReferenceClause(table.TableName, column.Name, column));
                     }
 
                     if (column.NeedRemoveIndex)
@@ -664,14 +660,16 @@ namespace qshine.database
                 builder.Append(" primary key");
             }
 
-            //Add constraint
-            if (!string.IsNullOrEmpty(column.CheckConstraint))
+            if (!EnableOutlineCheckConstraint)
             {
-                builder.Append(" ");
-                builder.Append(column.CheckConstraint);
+                //Add constraint
+                if (!string.IsNullOrEmpty(column.CheckConstraint))
+                {
+                    builder.AppendFormat(" check({0})", column.CheckConstraint);
+                }
             }
 
-            if (column.AutoIncrease)
+            if (column.AutoIncrease && !string.IsNullOrEmpty(ColumnAutoIncrementKeyword))
             {
                 builder.AppendFormat(" {0}", ColumnAutoIncrementKeyword);
             }

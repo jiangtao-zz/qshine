@@ -83,6 +83,11 @@ namespace qshine.database
         bool AutoUniqueIndex { get; }
 
         /// <summary>
+        /// Indicates using outline constraints instead of inline column constraint 
+        /// </summary>
+        bool EnableOutlineCheckConstraint { get; }
+
+        /// <summary>
         /// Transfer C# DbType string to native database column type name.
         /// </summary>
         /// <param name="dbType"></param>
@@ -105,17 +110,5 @@ namespace qshine.database
         /// </summary>
         /// <value>The last error message.</value>
         string LastErrorMessage { get; }
-
-        /// <summary>
-        /// Sql command separator
-        /// </summary>
-        string SqlCommandSeparator { get; }
-
-        /// <summary>
-        /// Get sql list from a batchSql separated by a sql command separator
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <returns></returns>
-        List<string> ParseBatchSql(string batchSql);
     }
 }

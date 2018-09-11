@@ -85,7 +85,7 @@ namespace qshine.database
                     "Defined internal id conflicts with the id of an existing column [{0}].", c.Name));
             }
 
-            if (size > 4000)
+            if ((isPK||isUnique) && size > 4000)
             {
                 throw new InvalidConstraintException("Cannot define a big size column as a unique or primary key column.");
             }
@@ -110,7 +110,8 @@ namespace qshine.database
 				CheckConstraint = checkConstraint,
 				Reference = reference,
 				IsIndex = isIndex,
-				Version = version
+				Version = version,
+                InternalId = internalId
 			};
 
             foreach (var oldColumn in oldColumnNames)

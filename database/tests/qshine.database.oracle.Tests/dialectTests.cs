@@ -137,7 +137,7 @@ namespace qshine.database.oracle.Tests
             {
                 DropTable(testTable);
 
-                var result = dbclient.Sql(true, sql);
+                var result = dbclient.Sql(false, sql);
                 Assert.IsTrue(result);
 
                 dbclient.Sql(string.Format("insert into {0}(T1) values(:p1)",testTable), DbParameters.New.Input("p1", "AAA"));
@@ -202,36 +202,37 @@ namespace qshine.database.oracle.Tests
 
             var sqls = dialect.TableCreateSqls(table);
             DropTable(testTable);
+
             using (var dbclient = new DbClient(_testDb))
             {
 
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
                 dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable,dialect.ParameterPrefix),
                     DbParameters.New.Input("p1", "AAA"));
 
             }
-            table.AddColumn("T6", DbType.Decimal, 0, defaultValue: 12.345678);
 
-            var column = table.Columns.SingleOrDefault(x => x.Name == "T6");
-            column.IsDirty = true;
+            var trackingTable = new TrackingTable(table);
 
-            column = table.Columns.SingleOrDefault(x => x.Name == "T1");
-            column.IsDirty = true;
-            column.PreviousColumn = new TrackingColumn
-            {
-                ColumnName = "T1",
-                ColumnType = DbType.String.ToString(),
-                Size = 100
-            };
-            column.Name = "T1x";
-            column.Size = 120;
-            column.DefaultValue = "X123";
+            table = new SqlDDLTable(testTable, "test", "test table 2", "testspace1", "testindex1", 3, "NewTest");
+
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1x", DbType.String, 120, defaultValue: "X123", version:2)
+                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddAuditColumn()
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                .AddColumn("T6", DbType.Decimal, 0, defaultValue: 12.345678);
+
+            //Analyse the table change
+            dialect.AnalyseTableChange(table, trackingTable);
 
             sqls = dialect.TableUpdateSqls(table);
             using (var dbclient = new DbClient(_testDb))
             {
-                var result = dbclient.Sql(true, sqls);
+                var result = dbclient.Sql(false, sqls);
                 Assert.IsTrue(result);
 
 
@@ -305,7 +306,7 @@ namespace qshine.database.oracle.Tests
         }
 
         [TestMethod]
-        public void TableUpdate_remove_default()
+        public void TableUpdate_default_remove()
         {
             var testTable = "table4";
             var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
@@ -323,6 +324,9 @@ namespace qshine.database.oracle.Tests
 
             DropTable(testTable);
 
+            var trackingTable = new TrackingTable(table);
+
+
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(_testDb))
             {
@@ -336,15 +340,18 @@ namespace qshine.database.oracle.Tests
                     "insert into {0}(T2) values({1}p1)",testTable,dialect.ParameterPrefix),
                     DbParameters.New.Input("p1", "AAA"));
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                };
-                column.DefaultValue = "";
+                table = new SqlDDLTable(testTable, "test", "test table 4", "testspace1", "testindex1", 3, "NewTest");
+                table.AddPKColumn("PKC", DbType.UInt64)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddAuditColumn()
+                    .AddColumn("T3", DbType.Int16, 0, version:2)
+                    .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                    .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                    ;
+
+                //Analyse the table change
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -374,7 +381,7 @@ namespace qshine.database.oracle.Tests
         }
 
         [TestMethod]
-        public void TableUpdate_add_index_and_notnull()
+        public void TableUpdate_index_add_and_notnull()
         {
             var testTable = "table5";
             var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
@@ -391,6 +398,8 @@ namespace qshine.database.oracle.Tests
                 ;
 
             DropTable(testTable);
+
+            var trackingTable = new TrackingTable(table);
 
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(_testDb))
@@ -409,27 +418,16 @@ namespace qshine.database.oracle.Tests
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: true, allowNull: false)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: true, allowNull: false, version:3)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                    AllowNull = true,
-                    CheckConstraint = "",
-                    IsIndex = false,
-                    IsUnique = false,
-                    IsPK = false
-                };
-
                 var count = dbclient.SqlSelect(string.Format(
-                    "select count(*) from sqlite_master  where type = 'index' and tbl_name = '{0}'", testTable));
+                    "select count(*) from all_indexes  where table_name = '{0}'", testTable.ToUpper()));
+
+                //Analyse the table change
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -452,7 +450,7 @@ namespace qshine.database.oracle.Tests
 
                 //check for index
                 var count1 = dbclient.SqlSelect(string.Format(
-                    "select count(*) from sqlite_master  where type = 'index' and tbl_name = '{0}'", testTable));
+                    "select count(*) from all_indexes  where table_name = '{0}'", testTable.ToUpper()));
 
                 Assert.AreEqual(int.Parse(count.ToString()) + 1, int.Parse(count1.ToString()));
 
@@ -462,7 +460,7 @@ namespace qshine.database.oracle.Tests
         }
 
         [TestMethod]
-        public void TableUpdate_add_checkConstraint()
+        public void TableUpdate_CheckConstraint_add()
         {
             var testTable = "table6";
             var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
@@ -480,7 +478,10 @@ namespace qshine.database.oracle.Tests
 
             DropTable(testTable);
 
+            var trackingTable = new TrackingTable(table);
+
             var sqls = dialect.TableCreateSqls(table);
+
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
@@ -497,28 +498,17 @@ namespace qshine.database.oracle.Tests
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint: "Check(T3>10)")
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint: "T3>10", version:2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                    AllowNull = true,
-                    CheckConstraint = "",
-                    IsIndex = false,
-                    IsUnique = false,
-                    IsPK = false
-                };
+                //Analyse the table change
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 try
@@ -528,7 +518,7 @@ namespace qshine.database.oracle.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("CHECK"));
+                    Assert.IsTrue(ex.Message.Contains("ORA-02290: check constraint"));
                 }
 
             }
@@ -537,7 +527,7 @@ namespace qshine.database.oracle.Tests
         }
 
         [TestMethod]
-        public void TableUpdate_remove_not_null()
+        public void TableUpdate_not_null_remove()
         {
             var testTable = "table7";
             var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
@@ -554,6 +544,9 @@ namespace qshine.database.oracle.Tests
                 ;
 
             DropTable(testTable);
+
+            var trackingTable = new TrackingTable(table);
+
 
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(_testDb))
@@ -574,7 +567,7 @@ namespace qshine.database.oracle.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("NOT NULL"));
+                    Assert.IsTrue(ex.Message.Contains("ORA-01400: cannot insert NULL"));
                 }
 
 
@@ -583,24 +576,13 @@ namespace qshine.database.oracle.Tests
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, version:2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                    AllowNull = false,
-                    CheckConstraint = "",
-                    IsIndex = false,
-                    IsUnique = false,
-                    IsPK = false
-                };
+                //Analyse the table change
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -615,7 +597,7 @@ namespace qshine.database.oracle.Tests
         }
 
         [TestMethod]
-        public void TableUpdate_remove_CheckConstraint()
+        public void TableUpdate_CheckConstraint_remove()
         {
             var testTable = "table8";
             var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
@@ -625,12 +607,15 @@ namespace qshine.database.oracle.Tests
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                 .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 1)
-                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint: "Check(T3>10)")
+                .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint: "T3>10")
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 ;
 
             DropTable(testTable);
+
+            var trackingTable = new TrackingTable(table);
+
 
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(_testDb))
@@ -649,11 +634,11 @@ namespace qshine.database.oracle.Tests
                     dbclient.Sql(string.Format(
                         "insert into {0}(T2,T3) values({1}p1,5)", testTable,dialect.ParameterPrefix)
                         , DbParameters.New.Input("p1", "AAA2"));
-                    Assert.Fail("Not null constraint.");
+                    Assert.Fail("Failed Check constraint.");
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("CHECK"));
+                    Assert.IsTrue(ex.Message.Contains("ORA-02290: check constraint"));
                 }
 
 
@@ -661,28 +646,17 @@ namespace qshine.database.oracle.Tests
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, version:2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                    AllowNull = false,
-                    CheckConstraint = "Check(T3>10)",
-                    IsIndex = false,
-                    IsUnique = false,
-                    IsPK = false
-                };
+                //Analyse the table change
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 var c = dbclient.Sql(string.Format("insert into {0}(T2, T3) values('BBB',5)", testTable));
@@ -693,7 +667,7 @@ namespace qshine.database.oracle.Tests
         }
 
         [TestMethod]
-        public void TableUpdate_remove_index()
+        public void TableUpdate_index_remove()
         {
             var testTable = "table9";
             var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
@@ -709,6 +683,9 @@ namespace qshine.database.oracle.Tests
                 ;
 
             DropTable(testTable);
+
+            var trackingTable = new TrackingTable(table);
+
 
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(_testDb))
@@ -727,27 +704,16 @@ namespace qshine.database.oracle.Tests
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: false)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: false, version:2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                    AllowNull = true,
-                    CheckConstraint = "",
-                    IsIndex = true,
-                    IsUnique = false,
-                    IsPK = false
-                };
+                //Analyse the table change
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 var count = dbclient.SqlSelect(string.Format(
-                    "select count(*) from sqlite_master  where type = 'index' and tbl_name = '{0}'", testTable));
+                    "select count(*) from all_indexes  where table_name = '{0}'", testTable.ToUpper()));
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -756,7 +722,7 @@ namespace qshine.database.oracle.Tests
 
                 //check for index
                 var count1 = dbclient.SqlSelect(string.Format(
-                    "select count(*) from sqlite_master  where type = 'index' and tbl_name = '{0}'", testTable));
+                    "select count(*) from all_indexes  where table_name = '{0}'", testTable.ToUpper()));
 
                 Assert.AreEqual(int.Parse(count.ToString()), int.Parse(count1.ToString()) + 1);
             }
@@ -765,7 +731,7 @@ namespace qshine.database.oracle.Tests
         }
 
         [TestMethod]
-        public void TableUpdate_remove_unique_index()
+        public void TableUpdate_unique_index_remove()
         {
             var testTable = "table10";
             var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
@@ -782,6 +748,9 @@ namespace qshine.database.oracle.Tests
 
             DropTable(testTable);
 
+            var trackingTable = new TrackingTable(table);
+
+
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(_testDb))
             {
@@ -797,39 +766,26 @@ namespace qshine.database.oracle.Tests
                 table = new SqlDDLTable(testTable, "test", "test table 10", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 0, false, "ABC", "TEST C2", isUnique: true, isIndex: false, version: 2)
+                    .AddColumn("T2", DbType.String, 1000, 0, false, "ABC", "TEST C2", isUnique: false, isIndex: false, version: 2)
                     .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: true)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T2");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T2",
-                    ColumnType = DbType.String.ToString(),
-                    Size = 1000,
-                    Scale = 0,
-                    AllowNull = false,
-                    DefaultValue = "ABC",
-                    CheckConstraint = "",
-                    IsIndex = true,
-                    IsUnique = true,
-                    IsPK = false
-                };
+                //Analyse the table change
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 var count = dbclient.SqlSelect(string.Format(
-                    "select count(*) from sqlite_master  where type = 'index' and tbl_name = '{0}'", testTable));
+                    "select count(*) from all_indexes  where table_name = '{0}'", testTable.ToUpper()));
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
                 dbclient.Sql(true, sqls);
 
 
-                //check for index
+                //check for index (Oracle unique constraint create unique index automatically. we need remove unique constraint to remove the index.
                 var count1 = dbclient.SqlSelect(string.Format(
-                    "select count(*) from sqlite_master  where type = 'index' and tbl_name = '{0}'", testTable));
+                    "select count(*) from all_indexes  where table_name = '{0}'", testTable.ToUpper()));
 
                 Assert.AreEqual(int.Parse(count.ToString()), int.Parse(count1.ToString()) + 1);
             }
@@ -838,7 +794,7 @@ namespace qshine.database.oracle.Tests
         }
 
         [TestMethod]
-        public void TableUpdate_add_unique()
+        public void TableUpdate_unique_add()
         {
             var testTable = "table11";
 
@@ -855,6 +811,9 @@ namespace qshine.database.oracle.Tests
                 ;
 
             DropTable(testTable);
+
+            var trackingTable = new TrackingTable(table);
+
 
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(_testDb))
@@ -873,24 +832,13 @@ namespace qshine.database.oracle.Tests
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: "", isUnique: true)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: "", isUnique: true, version:2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "16",
-                    AllowNull = true,
-                    CheckConstraint = "",
-                    IsIndex = false,
-                    IsUnique = false,
-                    IsPK = false
-                };
+                //Analyse the table change
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -904,7 +852,7 @@ namespace qshine.database.oracle.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("UNIQUE"));
+                    Assert.IsTrue(ex.Message.Contains("ORA-00001: unique constraint"));
                 }
             }
             DropTable(testTable);
@@ -912,7 +860,7 @@ namespace qshine.database.oracle.Tests
         }
 
         [TestMethod]
-        public void TableUpdate_add_default()
+        public void TableUpdate_default_add()
         {
             var testTable = "table12";
 
@@ -930,6 +878,9 @@ namespace qshine.database.oracle.Tests
 
             DropTable(testTable);
 
+            var trackingTable = new TrackingTable(table);
+
+
             var sqls = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(_testDb))
             {
@@ -938,7 +889,7 @@ namespace qshine.database.oracle.Tests
 
 
                 //insert data for compare
-                dbclient.Sql(string.Format("insert into {0}(T2) values({0}p1)", testTable,dialect.ParameterPrefix)
+                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable,dialect.ParameterPrefix)
                     , DbParameters.New.Input("p1", "AAA"));
 
 
@@ -946,24 +897,13 @@ namespace qshine.database.oracle.Tests
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 12)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 12, version:2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
 
-                var column = table.Columns.SingleOrDefault(x => x.Name == "T3");
-                column.IsDirty = true;
-                column.PreviousColumn = new TrackingColumn
-                {
-                    ColumnName = "T3",
-                    ColumnType = DbType.Int16.ToString(),
-                    DefaultValue = "",
-                    AllowNull = true,
-                    CheckConstraint = "",
-                    IsIndex = false,
-                    IsUnique = false,
-                    IsPK = false
-                };
+                //Analyse the table change
+                dialect.AnalyseTableChange(table, trackingTable);
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -977,6 +917,148 @@ namespace qshine.database.oracle.Tests
 
                 v = dbclient.SqlSelect(string.Format("select T3 from {0} where T2='BBB'", testTable));
                 Assert.AreEqual("12", v.ToString());
+            }
+            DropTable(testTable);
+
+        }
+
+        [TestMethod]
+        public void TableUpdate_CheckConstraint_modify()
+        {
+            var testTable = "table13";
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
+
+            var table = new SqlDDLTable(testTable, "test", "test table 13", "testspace1", "testindex1", 2, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddAuditColumn()
+                .AddColumn("T3", DbType.Int16, 0, checkConstraint:"T3>10 and T3<20")
+                .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                ;
+
+            DropTable(testTable);
+
+            var trackingTable = new TrackingTable(table);
+
+            var sqls = dialect.TableCreateSqls(table);
+
+            using (var dbclient = new DbClient(_testDb))
+            {
+                //create a new table
+                dbclient.Sql(true, sqls);
+
+                //insert data for compare
+                dbclient.Sql(string.Format("insert into {0}(T2,T3) values({1}p1,15)", testTable, dialect.ParameterPrefix)
+                    , DbParameters.New.Input("p1", "AAA"));
+
+                try
+                {
+                    //insert data for compare
+                    dbclient.Sql(string.Format("insert into {0}(T2,T3) values({1}p1,-1)", testTable, dialect.ParameterPrefix)
+                        , DbParameters.New.Input("p1", "AAA"));
+                    Assert.Fail("Check constraint failed.");
+                }
+                catch (Exception ex)
+                {
+                    Assert.IsTrue(ex.Message.Contains("ORA-02290: check constraint"));
+                }
+
+                table = new SqlDDLTable(testTable, "test", "test table 6", "testspace1", "testindex1", 3, "NewTest");
+                table.AddPKColumn("PKC", DbType.UInt64)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddAuditColumn()
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint: "T3<1", version: 2)
+                    .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
+                    .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
+                    ;
+
+                //clean data before change the constraint.
+                dbclient.Sql(string.Format("delete from {0}", testTable));
+
+                //Analyse the table change
+                dialect.AnalyseTableChange(table, trackingTable);
+
+                sqls = dialect.TableUpdateSqls(table);
+                //update table remove the default
+                dbclient.Sql(false, sqls);
+
+
+                //insert data for compare
+                dbclient.Sql(string.Format("insert into {0}(T2,T3) values({1}p1,-1)", testTable, dialect.ParameterPrefix)
+                    , DbParameters.New.Input("p1", "AAA"));
+
+                try
+                {
+                    //insert data for compare
+                    dbclient.Sql(string.Format("insert into {0}(T2,T3) values({1}p1,15)", testTable, dialect.ParameterPrefix)
+                        , DbParameters.New.Input("p1", "AAA"));
+                    Assert.Fail("Check constraint failed.");
+                }
+                catch (Exception ex)
+                {
+                    Assert.IsTrue(ex.Message.Contains("ORA-02290: check constraint"));
+                }
+
+            }
+            DropTable(testTable);
+
+        }
+
+        [TestMethod]
+        public void TableUpdate_default_modify()
+        {
+            var testTable = "table14";
+
+            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
+
+            var table = new SqlDDLTable(testTable, "test", "test table 14", "testspace1", "testindex1", 1, "NewTest");
+            table.AddPKColumn("PKC", DbType.UInt64)
+                .AddColumn("T1", DbType.String, 100, defaultValue: "A")
+                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC")
+                ;
+
+            DropTable(testTable);
+
+            var trackingTable = new TrackingTable(table);
+
+
+            var sqls = dialect.TableCreateSqls(table);
+            using (var dbclient = new DbClient(_testDb))
+            {
+                //create a new table
+                dbclient.Sql(true, sqls);
+
+                //insert data for compare
+                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix)
+                    , DbParameters.New.Input("p1", "AAA"));
+
+
+                table = new SqlDDLTable(testTable, "test", "test table 12", "testspace1", "testindex1", 3, "NewTest");
+                table.AddPKColumn("PKC", DbType.UInt64)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "B",version:2)
+                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC")
+                    ;
+
+                //Analyse the table change
+                dialect.AnalyseTableChange(table, trackingTable);
+
+                sqls = dialect.TableUpdateSqls(table);
+                //update table remove the default
+                dbclient.Sql(true, sqls);
+
+
+                dbclient.Sql(string.Format("insert into {0}(T2) values('BBB')", testTable));
+
+                var v = dbclient.SqlSelect(string.Format("select T1 from {0} where T2='AAA'", testTable));
+                Assert.AreEqual("A", v.ToString());
+
+                v = dbclient.SqlSelect(string.Format("select T1 from {0} where T2='BBB'", testTable));
+                Assert.AreEqual("B", v.ToString());
             }
             DropTable(testTable);
 

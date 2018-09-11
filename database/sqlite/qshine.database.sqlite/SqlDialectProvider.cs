@@ -22,7 +22,7 @@ namespace qshine.database.sqlite
     {
 		string _dataSource;
         string _connectionString;
-		const string _sqliteProviderName = "System.Data.SQLite";
+		//const string _sqliteProviderName = "System.Data.SQLite";
 
 		public SqlDialect(string connectionString)
             :base(connectionString)

@@ -48,40 +48,14 @@ namespace qshine.database.oracle
         }
 
         /// <summary>
-        /// Using control char as a line separator and parse the command through ParseBatchSql
-        /// </summary>
-        public override string SqlCommandSeparator
-        {
-            get
-            {
-                return "\x6";
-            }
-        }
-        /// <summary>
         /// Do not create index if the column is unique column
         /// </summary>
         public override bool AutoUniqueIndex { get { return true; } }
 
         /// <summary>
-        /// Oracle execute command one by one
+        /// Using outline check constraint
         /// </summary>
-        /// <param name="sql"></param>
-        /// <returns></returns>
-        public override List<string> ParseBatchSql(string sql)
-        {
-            var batchCommands = sql.Split(this.SqlCommandSeparator[0]);
-            List<string> result = new List<string>();
-            foreach (var cmd in batchCommands)
-            {
-                if (!string.IsNullOrWhiteSpace(cmd))
-                {
-                    result.Add(cmd);
-                }
-            }
-
-            return result; ;
-        }
-        
+        public override bool EnableOutlineCheckConstraint { get { return true; } }
 
         /// <summary>
         /// Check database instance exists.
@@ -133,10 +107,10 @@ namespace qshine.database.oracle
         /// <param name="oldTableName">table name to be changed</param>
         /// <param name="newTableName">new table name</param>
         /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
-        //public override string TableRenameClause(string oldTableName, string newTableName)
-        //{
-        //    return string.Format("rename table {0} to {1}", oldTableName, newTableName);
-        //}
+        public override string TableRenameClause(string oldTableName, string newTableName)
+        {
+            return string.Format("alter table {0} rename to {1}", oldTableName, newTableName);
+        }
 
 
         /// <summary>
@@ -148,15 +122,15 @@ namespace qshine.database.oracle
             get { return ""; }
         }
 
-        /// <summary>
-        /// Get column default value keyword
-        /// </summary>
-        /// <param name="defaultValue"></param>
-        /// <returns></returns>
-        public override string ColumnDefaultKeyword(string defaultValue)
-        {
-            return string.Format("default {0}", defaultValue);
-        }
+        ///// <summary>
+        ///// Get column default value keyword
+        ///// </summary>
+        ///// <param name="defaultValue"></param>
+        ///// <returns></returns>
+        //public override string ColumnDefaultKeyword(string defaultValue)
+        //{
+        //    return string.Format("default {0}", defaultValue);
+        //}
 
         /// <summary>
         /// Get a keyword to set column Foreign key.
@@ -182,25 +156,25 @@ namespace qshine.database.oracle
         /// <param name="newColumnName">new column name</param>
         /// <param name="column">column definition</param>
         /// <returns></returns>
-        public override string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
-        {
-            return string.Format("alter table {0} rename column {1} to {2}{3}", tableName, oldColumnName, newColumnName
-                , SqlCommandSeparator);
-        }
+        //public override string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
+        //{
+        //    return string.Format("alter table {0} rename column {1} to {2}{3}", tableName, oldColumnName, newColumnName
+        //        , SqlCommandSeparator);
+        //}
 
-        /// <summary>
-        /// Get a sql statement to rename a table
-        /// </summary>
-        /// <param name="oldTableName">old table name</param>
-        /// <param name="newTableName">new table name</param>
-        /// <returns></returns>
-        public override string TableRenameClause(string oldTableName, string newTableName)
-        {
-            return string.Format("alter table {0} rename to {1}{2}", oldTableName, newTableName
-                , SqlCommandSeparator);
-        }
+        ///// <summary>
+        ///// Get a sql statement to rename a table
+        ///// </summary>
+        ///// <param name="oldTableName">old table name</param>
+        ///// <param name="newTableName">new table name</param>
+        ///// <returns></returns>
+        //public override string TableRenameClause(string oldTableName, string newTableName)
+        //{
+        //    return string.Format("alter table {0} rename to {1}{2}", oldTableName, newTableName
+        //        , SqlCommandSeparator);
+        //}
 
-        
+
         /// <summary>
         /// Get add new column statement
         /// </summary>
@@ -210,25 +184,24 @@ namespace qshine.database.oracle
         /// <returns></returns>
         public override string ColumnAddClause(string tableName, string columnName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} add {1} {2}{3}", tableName, columnName, ColumnDefinition(column)
-                , SqlCommandSeparator);
+            return string.Format("alter table {0} add {1} {2}", tableName, columnName, ColumnDefinition(column));
         }
 
-        /// <summary>
-        /// Add additional clause in end of table creation statement
-        /// </summary>
-        /// <param name="table"></param>
-        /// <returns></returns>
-        /// <remarks>It is useful to add additional statements in end of table creation sql statement</remarks>
-        public override string TableCreateSqlAddition(SqlDDLTable table)
-        {
-            var additionalClause = base.TableCreateSqlAddition(table);
-            if (table.PkColumn != null)
-            {
-               // additionalClause+=string.Format(",constraint {0} primary key({1})", GetConstraintPkName(table.TableName), table.PkColumn.Name);
-            }
-            return additionalClause;
-        }
+        ///// <summary>
+        ///// Add additional clause in end of table creation statement
+        ///// </summary>
+        ///// <param name="table"></param>
+        ///// <returns></returns>
+        ///// <remarks>It is useful to add additional statements in end of table creation sql statement</remarks>
+        //public override string TableCreateSqlAddition(SqlDDLTable table)
+        //{
+        //    var additionalClause = base.TableCreateSqlAddition(table);
+        //    if (table.PkColumn != null)
+        //    {
+        //       // additionalClause+=string.Format(",constraint {0} primary key({1})", GetConstraintPkName(table.TableName), table.PkColumn.Name);
+        //    }
+        //    return additionalClause;
+        //}
 
         /// <summary>
         /// Get table PK constraint name
@@ -242,8 +215,7 @@ namespace qshine.database.oracle
 
         string CreateSequenceSql(string sequenceName, long startValue)
         {
-            return string.Format("create sequence {0} start with {1}{2}", sequenceName, startValue
-                , SqlCommandSeparator);
+            return string.Format("create sequence {0} start with {1}", sequenceName, startValue);
         }
 
         string CreateAutoIncrementTriggerSql(string tableName, string columnName, string sequenceName)
@@ -256,29 +228,20 @@ begin
     if :new.{2} is null then
         select {3}.nextval into :new.{2} from dual;
     end if;
-end;{4}", tableName, tableName, columnName, sequenceName
-, SqlCommandSeparator);
+end;", tableName, tableName, columnName, sequenceName);
         }
 
-        /// <summary>
-        /// Add additional sql statements after table creation statement
-        /// </summary>
-        /// <param name="table"></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// It is useful to create a trigger for oracle PK column auto_increment
-        /// </remarks>
-        public override string TableCreateSqlAfter(SqlDDLTable table)
+        public override void TableCreateSqlAfter(List<string> sqlCommands, SqlDDLTable table)
         {
-            var additionalSql = base.TableCreateSqlAfter(table);
+            base.TableCreateSqlAfter(sqlCommands, table);
+
             if (table.PkColumn != null && table.PkColumn.AutoIncrease)
             {
                 var sequenceName = string.Format("{0}_seq", table.TableName);
 
-               additionalSql += CreateSequenceSql(sequenceName,1000);
-               additionalSql += CreateAutoIncrementTriggerSql(table.TableName,table.PkColumn.Name,sequenceName);
+                sqlCommands.Add(CreateSequenceSql(sequenceName,1000));
+                sqlCommands.Add(CreateAutoIncrementTriggerSql(table.TableName,table.PkColumn.Name,sequenceName));
             }
-            return additionalSql;
         }
 
 
