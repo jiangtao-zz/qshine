@@ -1,4 +1,5 @@
-﻿using System;
+﻿using qshine.Utility;
+using System;
 using System.Collections.Generic;
 using System.Data;
 
@@ -87,7 +88,15 @@ namespace qshine.database
         /// <summary>
         /// A hash code to identify column data
         /// </summary>
-        public long HashCode { get; set; }
+        public long HashCode {
+            get
+            {
+                return FastHash.GetHashCode(
+                    Name, DbType, Size, Scale, DefaultValue, AllowNull, Reference, IsUnique, IsPK, CheckConstraint, AutoIncrease, IsIndex, Version
+                    , InternalId
+                    );
+            }
+        }
 
         List<string> _columnNameHistory;
 		public List<string> ColumnNameHistory

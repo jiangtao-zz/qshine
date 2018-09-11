@@ -143,7 +143,6 @@ namespace qshine.database
         /// </summary>
         /// <param name="tableName">table name</param>
         /// <param name="oldColumnName">old column name</param>
-        /// <param name="newColumnName">new column name</param>
         /// <param name="column">column definition</param>
         /// <returns></returns>
         public virtual string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
@@ -156,37 +155,35 @@ namespace qshine.database
         /// Get a sql clause to add a new column
         /// </summary>
         /// <param name="tableName">table name</param>
-        /// <param name="columnName">new column name</param>
         /// <param name="column">column definition</param>
         /// <returns></returns>
-        public virtual string ColumnAddClause(string tableName, string columnName, SqlDDLColumn column)
+        public virtual string ColumnAddClause(string tableName, SqlDDLColumn column)
         {
             return FormatCommandSqlLine("alter table {0} add column {1} {2}", 
-                tableName, columnName, ColumnDefinition(column));
+                tableName, column.Name, ColumnDefinition(column));
         }
 
         /// <summary>
         /// Get a sql clause to change column data type
         /// </summary>
         /// <param name="tableName"></param>
-        /// <param name="columnName"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        public virtual string ColumnChangeTypeClause(string tableName, string columnName, SqlDDLColumn column)
+        public virtual string ColumnChangeTypeClause(string tableName, SqlDDLColumn column)
         {
-            return ColumnModifyClause(tableName, columnName, ToNativeDBType(column.DbType, column.Size, column.Scale));
+            return ColumnModifyClause(tableName, column.Name, ToNativeDBType(column.DbType, column.Size, column.Scale));
         }
 
-        public virtual string ColumnAddPKClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnAddPKClause(string tableName, SqlDDLColumn column)
         {
             return
                 FormatCommandSqlLine("alter table {0} add primary key ({1})",
                 tableName,
-                name
+                column.Name
                 );
         }
 
-        public virtual string ColumnRemovePKClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnRemovePKClause(string tableName, SqlDDLColumn column)
         {
             return
                 FormatCommandSqlLine("alter table {0} drop primary key",
@@ -194,36 +191,36 @@ namespace qshine.database
                 );
         }
 
-        public virtual string ColumnAddUniqueClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnAddUniqueClause(string tableName,  SqlDDLColumn column)
         {
             return
                 FormatCommandSqlLine("alter table {0} add unique({1})",
                 tableName,
-                name
+                column.Name
                 );
         }
 
-        public virtual string ColumnRemoveUniqueClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnRemoveUniqueClause(string tableName, SqlDDLColumn column)
         {
             return
                 FormatCommandSqlLine("alter table {0} drop unique({1})",
                 tableName,
-                name
+                column.Name
                 );
         }
 
-        public virtual string ColumnAddIndexClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnAddIndexClause(string tableName, SqlDDLColumn column)
         {
             return CreateIndexClause(new SqlDDLIndex
             {
-                IndexColumns = name,
+                IndexColumns = column.Name,
                 IndexName = SqlDDLTable.GetIndexName(tableName, column),
                 IsUnique = column.IsUnique,
                 TableName = tableName
             });
         }
 
-        public virtual string ColumnRemoveIndexClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnRemoveIndexClause(string tableName, SqlDDLColumn column)
         {
             var indexName = SqlDDLTable.GetIndexName(tableName, column);
 
@@ -232,18 +229,18 @@ namespace qshine.database
                 indexName);
         }
 
-        public virtual string ColumnAddReferenceClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnAddReferenceClause(string tableName, SqlDDLColumn column)
         {
-            var foreignKey = SqlDDLTable.GetforeignKeyName(tableName, column.InternalId);
+            var foreignKey = SqlDDLTable.GetforeignKeyName(column.Name, column.InternalId);
 
             return
-                FormatCommandSqlLine("alter table {0} add constraint {1} foreign key({2}) references {3}",
-                tableName, foreignKey, name, column.Reference);
+                FormatCommandSqlLine("alter table {0} add constraint {1} foreign key({2}) {3}",
+                tableName, foreignKey, column.Name, ColumnReferenceKeyword(column.Reference));
         }
 
-        public virtual string ColumnRemoveReferenceClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnRemoveReferenceClause(string tableName, SqlDDLColumn column)
         {
-            var foreignKey = SqlDDLTable.GetforeignKeyName(tableName, column.InternalId);
+            var foreignKey = SqlDDLTable.GetforeignKeyName(column.Name, column.InternalId);
 
             return
                 FormatCommandSqlLine("alter table {0} drop constraint {1}",
@@ -251,7 +248,7 @@ namespace qshine.database
         }
 
 
-        public virtual string ColumnAddConstraintClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnAddConstraintClause(string tableName, SqlDDLColumn column)
         {
             var checkConstraintName = SqlDDLTable.GetCheckConstraintName(tableName, column.InternalId);
 
@@ -260,7 +257,7 @@ namespace qshine.database
                 tableName, checkConstraintName, column.CheckConstraint);
         }
 
-        public virtual string ColumnRemoveConstraintClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnRemoveConstraintClause(string tableName, SqlDDLColumn column)
         {
             var checkConstraintName = SqlDDLTable.GetCheckConstraintName(tableName, column.InternalId);
 
@@ -269,37 +266,37 @@ namespace qshine.database
                 tableName, checkConstraintName);
         }
 
-        public virtual string ColumnNotNullClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnNotNullClause(string tableName, SqlDDLColumn column)
         {
-            return ColumnModifyClause(tableName, name, "not null");
+            return ColumnModifyClause(tableName, column.Name, "not null");
         }
 
-        public virtual string ColumnNullClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnNullClause(string tableName, SqlDDLColumn column)
         {
-            return ColumnModifyClause(tableName, name, "null");
+            return ColumnModifyClause(tableName, column.Name, "null");
         }
 
-        public virtual string ColumnModifyDefaultClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnModifyDefaultClause(string tableName, SqlDDLColumn column)
         {
-            return ColumnModifyClause(tableName, name, ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
+            return ColumnModifyClause(tableName, column.Name, ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
         }
 
-        public virtual string ColumnAddDefaultClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnAddDefaultClause(string tableName,  SqlDDLColumn column)
         {
-            return ColumnModifyClause(tableName, name, ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
+            return ColumnModifyClause(tableName, column.Name, ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
         }
 
-        public virtual string ColumnRemoveDefaultClause(string tableName, string name, SqlDDLColumn column)
+        public virtual string ColumnRemoveDefaultClause(string tableName, SqlDDLColumn column)
         {
-            return ColumnModifyClause(tableName, name, ColumnDefaultKeyword("null"));
+            return ColumnModifyClause(tableName, column.Name, ColumnDefaultKeyword("null"));
         }
 
-        public virtual string ColumnAddAutoIncrementClause(string tableName, string name, SqlDDLColumn column)
+        public virtual List<string> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
             throw new NotImplementedException();
         }
 
-        public virtual string ColumnRemoveAutoIncrementClause(string tableName, string name, SqlDDLColumn column)
+        public virtual List<string> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
             throw new NotImplementedException();
         }
@@ -393,7 +390,7 @@ namespace qshine.database
 
                 if (!string.IsNullOrEmpty(column.CheckConstraint))
                 {
-                    sqls.Add(ColumnAddConstraintClause(table.TableName, column.Name, column));
+                    sqls.Add(ColumnAddConstraintClause(table.TableName, column));
                 }
             }
 
@@ -469,13 +466,13 @@ namespace qshine.database
                     {
                         var dbType = ToNativeDBType(column.DbType, column.Size, column.Scale);
                         //add new column
-                        sqls.Add(ColumnAddClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnAddClause(table.TableName, column));
                         if (EnableOutlineCheckConstraint)
                         {
                             //Add constraint
                             if (!string.IsNullOrEmpty(column.CheckConstraint))
                             {
-                                sqls.Add(ColumnAddConstraintClause(table.TableName, column.Name, column));
+                                sqls.Add(ColumnAddConstraintClause(table.TableName, column));
                             }
                         }
                     }
@@ -521,95 +518,103 @@ namespace qshine.database
                 {
                     if(column.NeedModifyType)
                     {
-                        sqls.Add(ColumnChangeTypeClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnChangeTypeClause(table.TableName, column));
                     }
 
                     if(column.NeedRemoveAutoIncrease)
                     {
-                        sqls.Add(ColumnRemoveAutoIncrementClause(table.TableName, column.Name, column));
+                        var cmds = ColumnRemoveAutoIncrementClauses(table.TableName, column);
+                        if (cmds != null)
+                        {
+                            sqls.AddRange(cmds);
+                        }
                     }
                     else if (column.NeedAddAutoIncrease)
                     {
-                        sqls.Add(ColumnAddAutoIncrementClause(table.TableName, column.Name, column));
+                        var cmds = ColumnAddAutoIncrementClauses(table.TableName, column);
+                        if (cmds != null)
+                        {
+                            sqls.AddRange(cmds);
+                        }
                     }
 
                     if (column.NeedRemoveDefault)
                     {
-                        sqls.Add(ColumnRemoveDefaultClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnRemoveDefaultClause(table.TableName, column));
                     }
                     else if (column.NeedAddDefault)
                     {
-                        sqls.Add(ColumnAddDefaultClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnAddDefaultClause(table.TableName, column));
                     }
                     else if (column.NeedModifyDefault)
                     {
-                        sqls.Add(ColumnModifyDefaultClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnModifyDefaultClause(table.TableName, column));
                     }
 
 
                     if (column.NeedNull)
                     {
-                        sqls.Add(ColumnNullClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnNullClause(table.TableName, column));
                     }
                     else if (column.NeedNotNull)
                     {
-                        sqls.Add(ColumnNotNullClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnNotNullClause(table.TableName, column));
                     }
 
 
                     if (column.NeedRemoveConstraint)
                     {
-                        sqls.Add(ColumnRemoveConstraintClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnRemoveConstraintClause(table.TableName, column));
                     }
                     else if (column.NeedAddConstraint)
                     {
-                        sqls.Add(ColumnAddConstraintClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnAddConstraintClause(table.TableName, column));
                     }
                     else if (column.NeedModifyConstraint)
                     {
-                        sqls.Add(ColumnRemoveConstraintClause(table.TableName, column.Name, column));
-                        sqls.Add(ColumnAddConstraintClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnRemoveConstraintClause(table.TableName, column));
+                        sqls.Add(ColumnAddConstraintClause(table.TableName, column));
                     }
 
                     if (column.NeedRemoveReference)
                     {
-                        sqls.Add(ColumnRemoveReferenceClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnRemoveReferenceClause(table.TableName, column));
                     }
                     else if (column.NeedAddReference)
                     {
-                        sqls.Add(ColumnAddReferenceClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnAddReferenceClause(table.TableName, column));
                     }
                     else if (column.NeedModifyReference)
                     {
-                        sqls.Add(ColumnRemoveReferenceClause(table.TableName, column.Name, column));
-                        sqls.Add(ColumnAddReferenceClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnRemoveReferenceClause(table.TableName, column));
+                        sqls.Add(ColumnAddReferenceClause(table.TableName, column));
                     }
 
                     if (column.NeedRemoveIndex)
                     {
-                        sqls.Add(ColumnRemoveIndexClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnRemoveIndexClause(table.TableName, column));
                     }
                     else if (column.NeedAddIndex)
                     {
-                        sqls.Add(ColumnAddIndexClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnAddIndexClause(table.TableName, column));
                     }
 
                     if (column.NeedRemoveUnique && !column.IsPK)
                     {
-                        sqls.Add(ColumnRemoveUniqueClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnRemoveUniqueClause(table.TableName, column));
                     }
                     else if (column.NeedAddUnique && !column.IsPK)
                     {
-                        sqls.Add(ColumnAddUniqueClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnAddUniqueClause(table.TableName, column));
                     }
 
                     if (column.NeedRemovePK)
                     {
-                        sqls.Add(ColumnRemovePKClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnRemovePKClause(table.TableName, column));
                     }
                     else if (column.NeedAddPK)
                     {
-                        sqls.Add(ColumnAddPKClause(table.TableName, column.Name, column));
+                        sqls.Add(ColumnAddPKClause(table.TableName, column));
                     }
 
                 }
@@ -676,7 +681,8 @@ namespace qshine.database
 
             if (!string.IsNullOrEmpty(column.Reference))
             {
-                builder.AppendFormat(" {0}", ColumnReferenceKeyword(column.Reference));
+                builder.AppendFormat(" constraint {0} {1}", SqlDDLTable.GetforeignKeyName(column.Name, column.InternalId),
+                    ColumnReferenceKeyword(column.Reference));
             }
             return builder.ToString();
         }

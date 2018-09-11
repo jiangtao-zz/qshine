@@ -228,8 +228,6 @@ namespace qshine.database
             return GetName("chk", tableName, internalId); ;
         }
 
-
-
         public void Create()
 		{
 		}

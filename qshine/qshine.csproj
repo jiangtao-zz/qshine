@@ -89,6 +89,7 @@
     <Compile Include="Logger\TraceLogger.cs" />
     <Compile Include="Logger\LoggerBase.cs" />
     <Compile Include="Utility\EnvironmentEx.cs" />
+    <Compile Include="Utility\FastHash.cs" />
     <Compile Include="Utility\ObjectInspector.cs" />
     <Compile Include="Utility\EnumExtension.cs" />
     <Compile Include="Globalization\Resources.Designer.cs">

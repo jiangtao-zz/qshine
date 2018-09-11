@@ -208,9 +208,9 @@ namespace qshine.database.postgresql
         /// <param name="columnName"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        public override string ColumnAddClause(string tableName, string columnName, SqlDDLColumn column)
+        public override string ColumnAddClause(string tableName,  SqlDDLColumn column)
         {
-            return string.Format("alter table {0} add column {1} {2};", tableName, columnName, ColumnDefinition(column));
+            return string.Format("alter table {0} add column {1} {2};", tableName, column.Name, ColumnDefinition(column));
         }
 
         /// <summary>

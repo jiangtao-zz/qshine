@@ -182,9 +182,9 @@ namespace qshine.database.oracle
         /// <param name="columnName"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        public override string ColumnAddClause(string tableName, string columnName, SqlDDLColumn column)
+        public override string ColumnAddClause(string tableName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} add {1} {2}", tableName, columnName, ColumnDefinition(column));
+            return string.Format("alter table {0} add {1} {2}", tableName, column.Name, ColumnDefinition(column));
         }
 
         ///// <summary>
@@ -208,9 +208,19 @@ namespace qshine.database.oracle
         /// </summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        string GetConstraintPkName(string tableName)
+        public string GetConstraintPkName(string tableName)
         {
             return tableName + "_pk";
+        }
+
+        public string GetAutoIncreaseSequenceName (string tableName)
+        {
+            return string.Format("{0}_aid", tableName);
+        }
+
+        public string GetAutoIncreaseTriggerName (string tableName)
+        {
+            return string.Format("{0}_aid", tableName);
         }
 
         string CreateSequenceSql(string sequenceName, long startValue)
@@ -221,14 +231,27 @@ namespace qshine.database.oracle
         string CreateAutoIncrementTriggerSql(string tableName, string columnName, string sequenceName)
         {
             return string.Format(@"
-create or replace trigger {0}_aid 
+create or replace trigger {0} 
 before insert on {1} 
 for each row
 begin
     if :new.{2} is null then
         select {3}.nextval into :new.{2} from dual;
     end if;
-end;", tableName, tableName, columnName, sequenceName);
+end;", GetAutoIncreaseTriggerName(tableName), tableName, columnName, sequenceName);
+        }
+        public override List<string> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        {
+            return new List<string> { string.Format(@"drop trigger {0}", GetAutoIncreaseTriggerName(tableName)) };
+        }
+
+        public override List<string> ColumnAddAutoIncrementClauses(string tableName,  SqlDDLColumn column)
+        {
+            var sequenceName = GetAutoIncreaseSequenceName(tableName);
+
+            return new List<string>{
+                CreateSequenceSql(sequenceName, 1000),
+                CreateAutoIncrementTriggerSql(tableName, column.Name, sequenceName) };
         }
 
         public override void TableCreateSqlAfter(List<string> sqlCommands, SqlDDLTable table)
@@ -237,10 +260,7 @@ end;", tableName, tableName, columnName, sequenceName);
 
             if (table.PkColumn != null && table.PkColumn.AutoIncrease)
             {
-                var sequenceName = string.Format("{0}_seq", table.TableName);
-
-                sqlCommands.Add(CreateSequenceSql(sequenceName,1000));
-                sqlCommands.Add(CreateAutoIncrementTriggerSql(table.TableName,table.PkColumn.Name,sequenceName));
+                sqlCommands.AddRange(ColumnAddAutoIncrementClauses(table.TableName, table.PkColumn));
             }
         }
 

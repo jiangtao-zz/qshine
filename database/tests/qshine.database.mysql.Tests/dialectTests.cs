@@ -6,7 +6,7 @@ using qshine.Configuration;
 using qshine.database;
 using System.Data;
 
-namespace qshine.database.oracle.Tests
+namespace qshine.database.mysql.Tests
 {
     [TestClass]
     public class DialectTests
@@ -19,9 +19,9 @@ namespace qshine.database.oracle.Tests
                 //Try to drop a table
                 try
                 {
-                    dbClient.Sql("drop table "+tableName);
+                    dbClient.Sql("drop table " + tableName);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Log.DevDebug(ex.Message);
                 }
@@ -29,7 +29,7 @@ namespace qshine.database.oracle.Tests
                 //Try to drop an auto sequence for the table PK
                 try
                 {
-                    dbClient.Sql("drop sequence " + tableName+"_aid");
+                    dbClient.Sql("drop sequence " + tableName + "_aid");
                 }
                 catch (Exception ex)
                 {
@@ -70,7 +70,7 @@ namespace qshine.database.oracle.Tests
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             Assert.IsFalse(dialect.CanCreate);
-            
+
             //Need create database before start the test
             Assert.IsTrue(dialect.DatabaseExists());
         }
@@ -115,7 +115,7 @@ namespace qshine.database.oracle.Tests
                 .AddColumn("T12", DbType.UInt16, 0, defaultValue: 123)
                 .AddColumn("T13", DbType.UInt32, 0, defaultValue: 1234)
                 .AddColumn("T14", DbType.UInt64, 0, defaultValue: 12345)
-                .AddColumn("T15", DbType.VarNumeric, 12,5, defaultValue: 12.123)
+                .AddColumn("T15", DbType.VarNumeric, 12, 5, defaultValue: 12.123)
                 .AddColumn("T16", DbType.AnsiString, 100, defaultValue: "abcdefg")
                 .AddColumn("T17", DbType.AnsiStringFixedLength, 10, defaultValue: "abcdefgf")
                 .AddColumn("T18", DbType.Binary, 100)
@@ -128,7 +128,7 @@ namespace qshine.database.oracle.Tests
                 .AddColumn("T25", DbType.DateTimeOffset, 0, defaultValue: SqlReservedWord.SysDate)
                 .AddColumn("T26", DbType.Guid, 0)
                 .AddColumn("T27", DbType.Xml, 100)
-                .AddColumn("T28", DbType.String, 10000, defaultValue:"CLOB Data")
+                .AddColumn("T28", DbType.String, 10000, defaultValue: "CLOB Data")
 
                 ;
 
@@ -140,7 +140,7 @@ namespace qshine.database.oracle.Tests
                 var result = dbclient.Sql(false, sql);
                 Assert.IsTrue(result);
 
-                dbclient.Sql(string.Format("insert into {0}(T1) values(:p1)",testTable), DbParameters.New.Input("p1", "AAA"));
+                dbclient.Sql(string.Format("insert into {0}(T1) values(:p1)", testTable), DbParameters.New.Input("p1", "AAA"));
                 var data = dbclient.SqlDataTable("select * from table1 where T1='AAA'");
                 Assert.AreEqual(1, data.Rows.Count);
                 Assert.AreEqual("AAA", data.Rows[0]["T1"]);
@@ -208,7 +208,7 @@ namespace qshine.database.oracle.Tests
 
                 dbclient.Sql(false, sqls);
 
-                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable,dialect.ParameterPrefix),
+                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix),
                     DbParameters.New.Input("p1", "AAA"));
 
             }
@@ -218,7 +218,7 @@ namespace qshine.database.oracle.Tests
             table = new SqlDDLTable(testTable, "test", "test table 2", "testspace1", "testindex1", 3, "NewTest");
 
             table.AddPKColumn("PKC", DbType.UInt64)
-                .AddColumn("T1x", DbType.String, 120, defaultValue: "X123", version:2)
+                .AddColumn("T1x", DbType.String, 120, defaultValue: "X123", version: 2)
                 .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
@@ -236,7 +236,7 @@ namespace qshine.database.oracle.Tests
                 Assert.IsTrue(result);
 
 
-                var data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='AAA'",testTable));
+                var data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='AAA'", testTable));
                 Assert.AreEqual(1, data.Rows.Count);
                 Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
                 Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
@@ -244,10 +244,10 @@ namespace qshine.database.oracle.Tests
                 Assert.AreEqual("12.345678", data.Rows[0]["T6"].ToString());
                 Assert.AreEqual("A", data.Rows[0]["T1x"]);
 
-                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)",testTable,dialect.ParameterPrefix),
+                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix),
                     DbParameters.New.Input("p1", "BBB"));
 
-                data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='BBB'",testTable));
+                data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='BBB'", testTable));
                 Assert.AreEqual(1, data.Rows.Count);
                 Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
                 Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
@@ -278,7 +278,7 @@ namespace qshine.database.oracle.Tests
 
             var sqls = dialect.TableCreateSqls(table);
             DropTable(testTable);
-            DropTable(testTable+"_1");
+            DropTable(testTable + "_1");
 
             using (var dbclient = new DbClient(_testDb))
             {
@@ -286,15 +286,15 @@ namespace qshine.database.oracle.Tests
                 Assert.IsTrue(result);
 
 
-                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)",testTable,dialect.ParameterPrefix),
+                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix),
                     DbParameters.New.Input("p1", "AAA"));
 
-                var sql = dialect.TableRenameClause(table.TableName, testTable+"_1");
+                var sql = dialect.TableRenameClause(table.TableName, testTable + "_1");
 
                 dbclient.Sql(sql);
 
 
-                var data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='AAA'",testTable+"_1"));
+                var data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='AAA'", testTable + "_1"));
                 Assert.AreEqual(1, data.Rows.Count);
                 Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
                 Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
@@ -302,7 +302,7 @@ namespace qshine.database.oracle.Tests
 
             }
             DropTable(testTable);
-            DropTable(testTable+"_1");
+            DropTable(testTable + "_1");
 
         }
 
@@ -338,7 +338,7 @@ namespace qshine.database.oracle.Tests
 
                 //insert data for compare
                 dbclient.Sql(string.Format(
-                    "insert into {0}(T2) values({1}p1)",testTable,dialect.ParameterPrefix),
+                    "insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix),
                     DbParameters.New.Input("p1", "AAA"));
 
                 table = new SqlDDLTable(testTable, "test", "test table 4", "testspace1", "testindex1", 3, "NewTest");
@@ -346,7 +346,7 @@ namespace qshine.database.oracle.Tests
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
-                    .AddColumn("T3", DbType.Int16, 0, version:2)
+                    .AddColumn("T3", DbType.Int16, 0, version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
@@ -360,17 +360,17 @@ namespace qshine.database.oracle.Tests
 
 
                 dbclient.Sql(string.Format(
-                    "insert into {0}(T2) values({1}p1)",testTable,dialect.ParameterPrefix),
+                    "insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix),
                     DbParameters.New.Input("p1", "BBB"));
 
 
-                var data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='AAA'",testTable));
+                var data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='AAA'", testTable));
                 Assert.AreEqual(1, data.Rows.Count);
                 Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
                 Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
                 Assert.AreEqual("1234567890", data.Rows[0]["T5"].ToString());
 
-                data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='BBB'",testTable));
+                data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='BBB'", testTable));
                 Assert.AreEqual(1, data.Rows.Count);
                 Assert.AreEqual("", data.Rows[0]["T3"].ToString());
                 Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
@@ -411,7 +411,7 @@ namespace qshine.database.oracle.Tests
 
 
                 //insert data for compare
-                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)",testTable,dialect.ParameterPrefix)
+                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix)
                     , DbParameters.New.Input("p1", "AAA"));
 
                 table = new SqlDDLTable(testTable, "test", "test table 5", "testspace1", "testindex1", 3, "NewTest");
@@ -419,7 +419,7 @@ namespace qshine.database.oracle.Tests
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: true, allowNull: false, version:3)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: true, allowNull: false, version: 3)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
@@ -490,7 +490,7 @@ namespace qshine.database.oracle.Tests
 
 
                 //insert data for compare
-                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)",testTable,dialect.ParameterPrefix)
+                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix)
                     , DbParameters.New.Input("p1", "AAA"));
 
 
@@ -499,7 +499,7 @@ namespace qshine.database.oracle.Tests
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint: "T3>10", version:2)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint: "T3>10", version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
@@ -514,7 +514,7 @@ namespace qshine.database.oracle.Tests
 
                 try
                 {
-                    dbclient.SqlDataTable(string.Format("insert into {0}(T3) values(5)",testTable));
+                    dbclient.SqlDataTable(string.Format("insert into {0}(T3) values(5)", testTable));
                     Assert.Fail("Check constraint failed.");
                 }
                 catch (Exception ex)
@@ -557,12 +557,12 @@ namespace qshine.database.oracle.Tests
 
 
                 //insert data for compare
-                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable,dialect.ParameterPrefix)
+                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix)
                     , DbParameters.New.Input("p1", "AAA"));
 
                 try
                 {
-                    dbclient.Sql(string.Format("insert into {0}(T2,T3) values({1}p1,null)", testTable,dialect.ParameterPrefix)
+                    dbclient.Sql(string.Format("insert into {0}(T2,T3) values({1}p1,null)", testTable, dialect.ParameterPrefix)
                         , DbParameters.New.Input("p1", "AAA2"));
                     Assert.Fail("Not null constraint.");
                 }
@@ -577,7 +577,7 @@ namespace qshine.database.oracle.Tests
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, version:2)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
@@ -627,13 +627,13 @@ namespace qshine.database.oracle.Tests
 
 
                 //insert data for compare
-                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable,dialect.ParameterPrefix), 
+                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix),
                     DbParameters.New.Input("p1", "AAA"));
 
                 try
                 {
                     dbclient.Sql(string.Format(
-                        "insert into {0}(T2,T3) values({1}p1,5)", testTable,dialect.ParameterPrefix)
+                        "insert into {0}(T2,T3) values({1}p1,5)", testTable, dialect.ParameterPrefix)
                         , DbParameters.New.Input("p1", "AAA2"));
                     Assert.Fail("Failed Check constraint.");
                 }
@@ -647,7 +647,7 @@ namespace qshine.database.oracle.Tests
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, version:2)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
@@ -697,7 +697,7 @@ namespace qshine.database.oracle.Tests
 
                 //insert data for compare
                 dbclient.Sql(string.Format(
-                    "insert into {0}(T2) values({1}p1)", testTable,dialect.ParameterPrefix)
+                    "insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix)
                     , DbParameters.New.Input("p1", "AAA"));
 
 
@@ -705,7 +705,7 @@ namespace qshine.database.oracle.Tests
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: false, version:2)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: false, version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
@@ -760,7 +760,7 @@ namespace qshine.database.oracle.Tests
 
 
                 //insert data for compare
-                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable,dialect.ParameterPrefix),
+                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix),
                     DbParameters.New.Input("p1", "AAA"));
 
 
@@ -825,7 +825,7 @@ namespace qshine.database.oracle.Tests
 
                 //insert data for compare
                 dbclient.Sql(string.Format(
-                    "insert into {0}(T2) values({1}p1)", testTable,dialect.ParameterPrefix)
+                    "insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix)
                     , DbParameters.New.Input("p1", "AAA"));
 
 
@@ -833,7 +833,7 @@ namespace qshine.database.oracle.Tests
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: "", isUnique: true, version:2)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: "", isUnique: true, version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
@@ -890,7 +890,7 @@ namespace qshine.database.oracle.Tests
 
 
                 //insert data for compare
-                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable,dialect.ParameterPrefix)
+                dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix)
                     , DbParameters.New.Input("p1", "AAA"));
 
 
@@ -898,7 +898,7 @@ namespace qshine.database.oracle.Tests
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
-                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 12, version:2)
+                    .AddColumn("T3", DbType.Int16, 0, defaultValue: 12, version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                     ;
@@ -935,7 +935,7 @@ namespace qshine.database.oracle.Tests
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                 .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
-                .AddColumn("T3", DbType.Int16, 0, checkConstraint:"T3>10 and T3<20")
+                .AddColumn("T3", DbType.Int16, 0, checkConstraint: "T3>10 and T3<20")
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
                 ;
@@ -1041,7 +1041,7 @@ namespace qshine.database.oracle.Tests
 
                 table = new SqlDDLTable(testTable, "test", "test table 12", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
-                    .AddColumn("T1", DbType.String, 100, defaultValue: "B",version:2)
+                    .AddColumn("T1", DbType.String, 100, defaultValue: "B", version: 2)
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC")
                     ;
 
@@ -1134,7 +1134,7 @@ namespace qshine.database.oracle.Tests
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                     .AddColumn("T3", DbType.Int16, 0)
-                    .AddColumn("T4", DbType.UInt64, 0, version:2)
+                    .AddColumn("T4", DbType.UInt64, 0, version: 2)
                     ;
 
                 //Analyse the table change
@@ -1275,12 +1275,12 @@ namespace qshine.database.oracle.Tests
                 //insert record 2
                 dbclient.Sql(string.Format("insert into {0}(T1) values('AAA1')", testTable));
 
-                var id2= dbclient.SqlSelect(string.Format("select id from {0} where T1='AAA1'", testTable));
+                var id2 = dbclient.SqlSelect(string.Format("select id from {0} where T1='AAA1'", testTable));
 
                 Assert.AreEqual((Convert.ToInt32(id) + 1).ToString(), id2.ToString());
 
                 table = new SqlDDLTable(testTable, "test", "test table 17", "testspace1", "testindex1", 2, "NewTest");
-                table.AddPKColumn("Id", DbType.UInt64, autoIncrease:false, version:2)
+                table.AddPKColumn("Id", DbType.UInt64, autoIncrease: false, version: 2)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     ;
 
