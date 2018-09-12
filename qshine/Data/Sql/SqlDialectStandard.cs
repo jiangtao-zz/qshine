@@ -412,7 +412,11 @@ namespace qshine.database
             }
 
             //Build additional table creation statements
-            TableCreateSqlAfter(sqls, table);
+            var additionalSqls = TableCreateAdditionSqls(table);
+            if (additionalSqls != null)
+            {
+                sqls.AddRange(additionalSqls);
+            }
 
             return sqls;
         }
@@ -431,14 +435,14 @@ namespace qshine.database
         /// <summary>
         /// Add additional sql statements after table creation statement
         /// </summary>
-        /// <param name="sqlCommands">Store additional sql commands</param>
         /// <param name="table"></param>
-        /// <returns></returns>
+        /// <returns>Return additional sqls for table creation</returns>
         /// <remarks>
-        /// It is useful to create a trigger for oracle PK column auto_increment
+        /// It is useful to create a trigger for oracle PK column auto_increment and others
         /// </remarks>
-        public virtual void TableCreateSqlAfter(List<string> sqlCommands, SqlDDLTable table)
+        public virtual List<string> TableCreateAdditionSqls(SqlDDLTable table)
         {
+            return null;
         }
 
 

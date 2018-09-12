@@ -254,14 +254,13 @@ end;", GetAutoIncreaseTriggerName(tableName), tableName, columnName, sequenceNam
                 CreateAutoIncrementTriggerSql(tableName, column.Name, sequenceName) };
         }
 
-        public override void TableCreateSqlAfter(List<string> sqlCommands, SqlDDLTable table)
+        public override List<string> TableCreateAdditionSqls(SqlDDLTable table)
         {
-            base.TableCreateSqlAfter(sqlCommands, table);
-
             if (table.PkColumn != null && table.PkColumn.AutoIncrease)
             {
-                sqlCommands.AddRange(ColumnAddAutoIncrementClauses(table.TableName, table.PkColumn));
+                return ColumnAddAutoIncrementClauses(table.TableName, table.PkColumn);
             }
+            return null;
         }
 
 

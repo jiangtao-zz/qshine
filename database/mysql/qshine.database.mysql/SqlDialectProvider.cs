@@ -164,7 +164,46 @@ namespace qshine.database.mysql
         /// <returns></returns>
         public override string ColumnDefaultKeyword(string defaultValue)
         {
+            if(defaultValue == ToNativeValue(SqlReservedWord.SysDate))
+            {
+                //MySql doesn't support DATETIME default value. 
+                //We use a trigger to
+                return "";
+            }
             return string.Format("default {0}", defaultValue);
+        }
+
+        /// <summary>
+        /// Add additional sql statements after table creation statement
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns>Return additional sqls for table creation</returns>
+        /// <remarks>
+        /// It is useful to create a trigger for oracle PK column auto_increment and others
+        /// </remarks>
+        public override List<string> TableCreateAdditionSqls(SqlDDLTable table)
+        {
+            var sqls = new List<string>();
+
+            //workaround for default SYSDATE()
+            foreach(var column in table.Columns)
+            {
+                SqlReservedWord reservedValue = column.DefaultValue as SqlReservedWord;
+                if (reservedValue!=null && reservedValue.IsSysDate)
+                {
+                    sqls.Add(SetDefaultSysdateColumn(table.TableName, column.Name, column.AllowNull));
+                }
+            }
+
+            return sqls;
+        }
+
+        string SetDefaultSysdateColumn(string tableName, string columnName, bool isNull)
+        {
+            var sql = string.Format(
+                "alter table {0} modify column {1} datetime {2} default now()",
+                tableName, columnName, isNull?"":"not null");
+            return sql;
         }
 
         /// <summary>
@@ -240,7 +279,7 @@ namespace qshine.database.mysql
             {
                 if (reservedWord.IsSysDate)
                 {
-                    return "CURRENT_TIMESTAMP";
+                    return "now()";
                 }
             }
             return string.Format("{0}", value);
@@ -263,7 +302,14 @@ namespace qshine.database.mysql
 
                 case "AnsiString":
                 case "String":
+                    if(size> 65530)
+                    {
+                        return "MEDIUMTEXT";
+                    }
                     return string.Format("VARCHAR({0})", size);
+
+                case "Xml":
+                    return "MEDIUMTEXT";
 
                 case "Int64":
                     return "BIGINT";
@@ -311,6 +357,7 @@ namespace qshine.database.mysql
 
                 case "Decimal":
                 case "Currency":
+                case "VarNumeric":
                     return "NUMERIC";
 
                 case "DateTime":

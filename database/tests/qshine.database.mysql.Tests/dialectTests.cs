@@ -69,7 +69,7 @@ namespace qshine.database.mysql.Tests
             var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
-            Assert.IsFalse(dialect.CanCreate);
+            Assert.IsTrue(dialect.CanCreate);
 
             //Need create database before start the test
             Assert.IsTrue(dialect.DatabaseExists());
@@ -140,7 +140,7 @@ namespace qshine.database.mysql.Tests
                 var result = dbclient.Sql(false, sql);
                 Assert.IsTrue(result);
 
-                dbclient.Sql(string.Format("insert into {0}(T1) values(:p1)", testTable), DbParameters.New.Input("p1", "AAA"));
+                dbclient.Sql(string.Format("insert into {0}(T1) values(@p1)", testTable), DbParameters.New.Input("p1", "AAA"));
                 var data = dbclient.SqlDataTable("select * from table1 where T1='AAA'");
                 Assert.AreEqual(1, data.Rows.Count);
                 Assert.AreEqual("AAA", data.Rows[0]["T1"]);
