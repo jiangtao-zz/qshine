@@ -125,6 +125,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.mysql.Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.postgresql.Tests", "database\tests\qshine.database.postgresql.Tests\qshine.database.postgresql.Tests.csproj", "{532CBFF1-45CD-4760-A1F9-E3269A8C6A39}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "input", "input", "{2CAD8C2F-BA02-45B2-BAB3-0D75E67D2C70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

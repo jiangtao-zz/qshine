@@ -70,6 +70,10 @@ namespace qshine.database.mysql.Tests
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             Assert.IsTrue(dialect.CanCreate);
+            if (!dialect.DatabaseExists())
+            {
+                dialect.CreateDatabase();
+            }
 
             //Need create database before start the test
             Assert.IsTrue(dialect.DatabaseExists());
@@ -144,22 +148,22 @@ namespace qshine.database.mysql.Tests
                 var data = dbclient.SqlDataTable("select * from table1 where T1='AAA'");
                 Assert.AreEqual(1, data.Rows.Count);
                 Assert.AreEqual("AAA", data.Rows[0]["T1"]);
-                Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
-                Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
-                Assert.AreEqual("1234567890", data.Rows[0]["T5"].ToString());
-                Assert.AreEqual("12.345678", data.Rows[0]["T6"].ToString());
-                Assert.AreEqual("22.345678", data.Rows[0]["T7"].ToString());
+                Assert.AreEqual((short)16, data.Rows[0]["T3"]);
+                Assert.AreEqual(32, data.Rows[0]["T4"]);
+                Assert.AreEqual(1234567890L, data.Rows[0]["T5"]);
+                Assert.AreEqual(12.345678M, data.Rows[0]["T6"]);
+                Assert.AreEqual(22.345678D, data.Rows[0]["T7"]);
                 Assert.AreEqual("8", data.Rows[0]["T8"].ToString());
                 Assert.AreEqual("123.456", data.Rows[0]["T9"].ToString());
-                Assert.AreEqual("ABC  ", data.Rows[0]["T10"].ToString()); //add spaces padding for string fix length
+                Assert.AreEqual("ABC", data.Rows[0]["T10"].ToString()); //mysql do not return padding spaces for string fix length
                 TimeSpan ticket = DateTime.Now - (DateTime)data.Rows[0]["T11"];
                 Assert.IsTrue(ticket.Seconds < 10);
                 Assert.AreEqual("123", data.Rows[0]["T12"].ToString());
                 Assert.AreEqual("1234", data.Rows[0]["T13"].ToString());
                 Assert.AreEqual("12345", data.Rows[0]["T14"].ToString());
-                Assert.AreEqual("12.123", data.Rows[0]["T15"].ToString());
+                Assert.AreEqual(12.123M, data.Rows[0]["T15"]);
                 Assert.AreEqual("abcdefg", data.Rows[0]["T16"].ToString());
-                Assert.AreEqual("abcdefgf  ", data.Rows[0]["T17"].ToString());//add spaces padding for string fix length
+                Assert.AreEqual("abcdefgf", data.Rows[0]["T17"].ToString());//mySql do not return padding spaces for string fix length
                 //Assert.AreEqual("123.456", data.Rows[0]["T18"].ToString());
                 Assert.AreEqual(true, DbClient.ToBoolean(data.Rows[0]["T19"]));
                 Assert.AreEqual("1", data.Rows[0]["T20"].ToString());
@@ -238,10 +242,10 @@ namespace qshine.database.mysql.Tests
 
                 var data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='AAA'", testTable));
                 Assert.AreEqual(1, data.Rows.Count);
-                Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
-                Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
-                Assert.AreEqual("1234567890", data.Rows[0]["T5"].ToString());
-                Assert.AreEqual("12.345678", data.Rows[0]["T6"].ToString());
+                Assert.AreEqual((short)16, data.Rows[0]["T3"]);
+                Assert.AreEqual(32, data.Rows[0]["T4"]);
+                Assert.AreEqual(1234567890L, data.Rows[0]["T5"]);
+                Assert.AreEqual(12.345678M, data.Rows[0]["T6"]);
                 Assert.AreEqual("A", data.Rows[0]["T1x"]);
 
                 dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix),
@@ -249,10 +253,10 @@ namespace qshine.database.mysql.Tests
 
                 data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='BBB'", testTable));
                 Assert.AreEqual(1, data.Rows.Count);
-                Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
-                Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
-                Assert.AreEqual("1234567890", data.Rows[0]["T5"].ToString());
-                Assert.AreEqual("12.345678", data.Rows[0]["T6"].ToString());
+                Assert.AreEqual((short)16, data.Rows[0]["T3"]);
+                Assert.AreEqual(32, data.Rows[0]["T4"]);
+                Assert.AreEqual(1234567890L, data.Rows[0]["T5"]);
+                Assert.AreEqual(12.345678M, data.Rows[0]["T6"]);
                 Assert.AreEqual("X123", data.Rows[0]["T1x"]);
             }
 
@@ -356,7 +360,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 dbclient.Sql(string.Format(
@@ -425,7 +429,7 @@ namespace qshine.database.mysql.Tests
                     ;
 
                 var count = dbclient.SqlSelect(string.Format(
-                    "select count(*) from all_indexes  where table_name = '{0}'", testTable.ToUpper()));
+                    "select count(*) from information_schema.statistics where table_name = '{0}'", testTable.ToUpper()));
 
                 //Analyse the table change
                 dialect.AnalyseTableChange(table, trackingTable);
@@ -451,7 +455,7 @@ namespace qshine.database.mysql.Tests
 
                 //check for index
                 var count1 = dbclient.SqlSelect(string.Format(
-                    "select count(*) from all_indexes  where table_name = '{0}'", testTable.ToUpper()));
+                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
 
                 Assert.AreEqual(int.Parse(count.ToString()) + 1, int.Parse(count1.ToString()));
 
@@ -519,7 +523,7 @@ namespace qshine.database.mysql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("ORA-02290: check constraint"));
+                    Assert.IsTrue(ex.Message.Contains("Check constraint failed"));
                 }
 
             }
@@ -568,7 +572,7 @@ namespace qshine.database.mysql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("ORA-01400: cannot insert NULL"));
+                    Assert.IsTrue(ex.Message.Contains("cannot be null"));
                 }
 
 
@@ -587,7 +591,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 var c = dbclient.Sql(string.Format("insert into {0}(T2, T3) values('BBB',null)", testTable));
@@ -623,7 +627,7 @@ namespace qshine.database.mysql.Tests
             {
 
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 //insert data for compare
@@ -639,7 +643,7 @@ namespace qshine.database.mysql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("ORA-02290: check constraint"));
+                    Assert.IsTrue(ex.Message.Contains("Failed Check constraint"));
                 }
 
 
@@ -714,7 +718,7 @@ namespace qshine.database.mysql.Tests
                 dialect.AnalyseTableChange(table, trackingTable);
 
                 var count = dbclient.SqlSelect(string.Format(
-                    "select count(*) from all_indexes  where table_name = '{0}'", testTable.ToUpper()));
+                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -723,7 +727,7 @@ namespace qshine.database.mysql.Tests
 
                 //check for index
                 var count1 = dbclient.SqlSelect(string.Format(
-                    "select count(*) from all_indexes  where table_name = '{0}'", testTable.ToUpper()));
+                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
 
                 Assert.AreEqual(int.Parse(count.ToString()), int.Parse(count1.ToString()) + 1);
             }
@@ -756,7 +760,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 //insert data for compare
@@ -777,16 +781,16 @@ namespace qshine.database.mysql.Tests
                 dialect.AnalyseTableChange(table, trackingTable);
 
                 var count = dbclient.SqlSelect(string.Format(
-                    "select count(*) from all_indexes  where table_name = '{0}'", testTable.ToUpper()));
+                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 //check for index (Oracle unique constraint create unique index automatically. we need remove unique constraint to remove the index.
                 var count1 = dbclient.SqlSelect(string.Format(
-                    "select count(*) from all_indexes  where table_name = '{0}'", testTable.ToUpper()));
+                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
 
                 Assert.AreEqual(int.Parse(count.ToString()), int.Parse(count1.ToString()) + 1);
             }
@@ -853,7 +857,7 @@ namespace qshine.database.mysql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("ORA-00001: unique constraint"));
+                    Assert.IsTrue(ex.Message.Contains("Duplicate entry"));
                 }
             }
             DropTable(testTable);
@@ -964,7 +968,7 @@ namespace qshine.database.mysql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("ORA-02290: check constraint"));
+                    Assert.IsTrue(ex.Message.Contains("Duplicate entry"));
                 }
 
                 table = new SqlDDLTable(testTable, "test", "test table 6", "testspace1", "testindex1", 3, "NewTest");
@@ -1001,7 +1005,7 @@ namespace qshine.database.mysql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("ORA-02290: check constraint"));
+                    Assert.IsTrue(ex.Message.Contains("Duplicate entry"));
                 }
 
             }
@@ -1126,7 +1130,7 @@ namespace qshine.database.mysql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("ORA-02291: integrity constraint"));
+                    Assert.IsTrue(ex.Message.Contains("FK test failed"));
                 }
 
                 table2 = new SqlDDLTable(testTable2, "test", "test table 15_1", "testspace1", "testindex1", 3, "NewTest");
@@ -1233,7 +1237,7 @@ namespace qshine.database.mysql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("ORA-02291: integrity constraint"));
+                    Assert.IsTrue(ex.Message.Contains("FK test failed"));
                 }
 
             }
