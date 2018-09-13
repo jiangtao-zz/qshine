@@ -67,9 +67,19 @@ namespace qshine
 		/// </summary>
 		public DbProviderFactory DbProviderFactory
 		{
-			get { 
-				return _factory ?? (_factory = DbProviderFactories.GetFactory(_providerName)); 
-			}
+			get {
+                if (_factory == null)
+                {
+                    _factory = DbProviderFactories.GetFactory(_providerName);
+                    if(_factory == null)
+                    {
+                        throw new InvalidProviderException(string.Format(".NET DbProviderFactory {0} load error.", _providerName));
+                    }
+
+                }
+                return _factory;
+
+            }
 		}
 
 		/// <summary>

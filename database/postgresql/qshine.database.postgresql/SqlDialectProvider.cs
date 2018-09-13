@@ -285,13 +285,13 @@ namespace qshine.database.postgresql
                     return "BOOLEAN";
 
                 case "SByte":
-                    return "\"char\"";
+                    return "INT2";
 
                 case "Single":
                     return "REAL";
 
                 case "Byte":
-                    return "\"char\"";
+                    return "INT2";
 
                 case "Binary":
                 case "Object":
@@ -301,11 +301,28 @@ namespace qshine.database.postgresql
                     return "CHAR(36)";
 
                 case "Double":
-                    return "DOUBLE";
+                    return "DOUBLE PRECISION";
 
                 case "Decimal":
+                    if (size == 0)
+                    {
+                        if (scale == 0)
+                        {
+                            return "DECIMAL(18,6)";
+                        }
+                    }
+                    return string.Format("DECIMAL({0},{1})", size, scale);
+
                 case "Currency":
-                    return "NUMERIC";
+                case "VarNumeric":
+                    if (size == 0)
+                    {
+                        if (scale == 0)
+                        {
+                            return "NUMERIC(18,2)";
+                        }
+                    }
+                    return string.Format("NUMERIC({0},{1})", size, scale);
 
                 case "DateTime":
                 case "DateTimeOffset":
@@ -319,6 +336,10 @@ namespace qshine.database.postgresql
 
                 case "Date":
                     return "DATE";
+
+                case "Xml":
+                    return "XML";
+
 
                 default:
                     throw new NotSupportedException(String.Format("Doesn't support DbType {0}", dbType));
