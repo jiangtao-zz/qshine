@@ -206,6 +206,67 @@ namespace qshine.database.mysql
             return sql;
         }
 
+        public override string ColumnModifyDefaultClause(string tableName, SqlDDLColumn column)
+        {
+            return string.Format("alter table {0} alter column {1} set default {2}", tableName, column.Name, ToNativeValue(column.DefaultValue));
+        }
+
+        public override string ColumnRemoveDefaultClause(string tableName, SqlDDLColumn column)
+        {
+            return string.Format("alter table {0} alter column {1} set default {2}", tableName, column.Name, "null");
+        }
+
+        public override string ColumnAddDefaultClause(string tableName, SqlDDLColumn column)
+        {
+            return ColumnModifyDefaultClause(tableName, column);
+        }
+
+        public override string ColumnRemoveConstraintClause(string tableName, SqlDDLColumn column)
+        {
+            var checkConstraintName = SqlDDLTable.GetCheckConstraintName(tableName, column.InternalId);
+
+            return 
+                FormatCommandSqlLine("alter table {0} add constraint {1} check(null)",
+                            tableName, checkConstraintName, column.CheckConstraint);
+        }
+
+        public override List<string> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        {
+            //Note: auto increment is only for PK
+            return  new List<string>{
+                string.Format("alter table {0} drop primary key, add primary key ({1})",tableName,column.Name)
+            };
+        }
+
+        public override List<string> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        {
+            //Note: auto increment is only for PK
+            return new List<string>{
+                string.Format("alter table {0} add primary key ({1}) not null auto_increment",tableName,column.Name)
+            };
+        }
+
+        public override string ColumnRemoveIndexClause(string tableName, SqlDDLColumn column)
+        {
+            var indexName = SqlDDLTable.GetIndexName(tableName, column);
+
+            return
+                string.Format("alter table {0} drop index {1}", tableName, indexName);
+        }
+
+        public override string ColumnNotNullClause(string tableName, SqlDDLColumn column)
+        {
+            return FormatCommandSqlLine("alter table {0} modify column {1} {2}",
+                tableName, column.Name, ColumnDefinition(column));
+        }
+
+        public override string ColumnNullClause(string tableName, SqlDDLColumn column)
+        {
+            return FormatCommandSqlLine("alter table {0} modify column {1} {2}",
+                tableName, column.Name, ColumnDefinition(column));
+        }
+
+
         /// <summary>
         /// Get a keyword to set column Foreign key.
         /// </summary>
@@ -231,28 +292,47 @@ namespace qshine.database.mysql
         }
 
         /// <summary>
-        /// Get a sql statement to reset column definition
+        /// Indicates whether an inline Foreign key reference constraint used for table column creation.
+        /// If it is enabled the actual FK constraint need be implemented in TableInlineConstraintClause
         /// </summary>
-        /// <param name="tableName">table name</param>
-        /// <param name="columnName">column name</param>
-        /// <param name="column">Column new definition</param>
-        /// <returns></returns>
-        //public override string ColumnModifySql(string tableName, string columnName, SqlDDLColumn column)
-        //{
-        //    return string.Format("alter table {0} modify column {1} {2};", tableName, columnName, ColumnDefinition(column));
-        //}
+        public override bool EnableInlineFKConstraint { get { return true; } }
 
-        /// <summary>
-        /// Get add new column statement
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="columnName"></param>
-        /// <param name="column"></param>
-        /// <returns></returns>
-        //public override string ColumnAddClause(string tableName, string columnName, SqlDDLColumn column)
-        //{
-        //    return string.Format("alter table {0} add column {1} {2};", tableName, columnName, ColumnDefinition(column));
-        //}
+        public override string ColumnRemoveReferenceClause(string tableName, SqlDDLColumn column)
+        {
+            var foreignKey = SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId);
+
+            return
+                string.Format("alter table {0} drop foreign key {1}",
+                tableName, foreignKey);
+        }
+
+        public override bool EnableInlineUniqueConstraint
+        {
+            get { return true; }
+        }
+
+        public override string ColumnRemoveUniqueClause(string tableName, SqlDDLColumn column)
+        {
+            string sql="";
+            if (column.IsUnique)
+            {
+                string uniqeIndexName = (column.IsIndex)
+                ? SqlDDLTable.GetIndexName(tableName, column)
+                : SqlDDLTable.GetUniqueKeyName(tableName, column.InternalId);
+
+                sql = string.Format("alter table {0} drop index {1}",
+                    tableName,
+                    uniqeIndexName
+                    );
+
+                if (column.IsIndex)
+                {
+                    sql += ColumnAddIndexClause(tableName, column);
+                }
+            }
+            return sql;
+        }
+
 
         /// <summary>
         /// Convert an object value to database native literals.
@@ -356,9 +436,19 @@ namespace qshine.database.mysql
                     return "DOUBLE";
 
                 case "Decimal":
-                case "Currency":
                 case "VarNumeric":
-                    return "NUMERIC";
+                    if (size == 0)
+                    {
+                        size = 18;
+                        if (scale == 0)
+                        {
+                            scale = 10;
+                        }
+                    }
+                    
+                    return string.Format("NUMERIC({0},{1})",size,scale);
+                case "Currency":
+                    return "NUMERIC(18,2)";
 
                 case "DateTime":
                 case "DateTimeOffset":

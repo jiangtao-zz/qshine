@@ -220,6 +220,8 @@ namespace qshine
             string lastErrorMessage;
             foreach (var c in batchCommands)
             {
+                if (string.IsNullOrWhiteSpace(c)) continue;
+
                 if (ignoreError)
                 {
                     try
@@ -339,6 +341,8 @@ namespace qshine
         public static bool ToBoolean(object value)
         {
             if (value == null) return false;
+            if (value is Boolean) return (bool)value;
+
             var s = value.ToString().ToLower();
             return s == "1"
             || s == "-1"

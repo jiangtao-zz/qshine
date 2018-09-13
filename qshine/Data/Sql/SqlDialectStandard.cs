@@ -62,10 +62,22 @@ namespace qshine.database
         public virtual bool AutoUniqueIndex { get { return false; } }
 
         /// <summary>
-        /// Indicates using outline constraints instead of inline column constraint 
+        /// Indicates whether an outline check constraint used for table column creation.
+        /// If it is enabled the actual CHECK constraint need be implemented in TableCreateAdditionSqls()
         /// </summary>
         public virtual bool EnableOutlineCheckConstraint { get { return false; } }
 
+        /// <summary>
+        /// Indicates whether an inline Foreign key reference constraint used for table column creation.
+        /// If it is enabled the actual FK constraint need be implemented in TableInlineConstraintClause
+        /// </summary>
+        public virtual bool EnableInlineFKConstraint { get { return false; } }
+
+        /// <summary>
+        /// Indicates whether an inline Unique key constraint used for table column creation.
+        /// If it is enabled the column Unique Key constraint need be implemented in TableInlineConstraintClause
+        /// </summary>
+        public virtual bool EnableInlineUniqueConstraint { get { return false; } }
 
         /// <summary>
         /// Get a SQL statement to check table exists.
@@ -203,7 +215,7 @@ namespace qshine.database
         public virtual string ColumnRemoveUniqueClause(string tableName, SqlDDLColumn column)
         {
             return
-                FormatCommandSqlLine("alter table {0} drop unique({1})",
+                string.Format("alter table {0} drop unique({1})",
                 tableName,
                 column.Name
                 );
@@ -231,7 +243,7 @@ namespace qshine.database
 
         public virtual string ColumnAddReferenceClause(string tableName, SqlDDLColumn column)
         {
-            var foreignKey = SqlDDLTable.GetforeignKeyName(column.Name, column.InternalId);
+            var foreignKey = SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId);
 
             return
                 FormatCommandSqlLine("alter table {0} add constraint {1} foreign key({2}) {3}",
@@ -240,11 +252,29 @@ namespace qshine.database
 
         public virtual string ColumnRemoveReferenceClause(string tableName, SqlDDLColumn column)
         {
-            var foreignKey = SqlDDLTable.GetforeignKeyName(column.Name, column.InternalId);
+            var foreignKey = SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId);
 
             return
                 FormatCommandSqlLine("alter table {0} drop constraint {1}",
                 tableName, foreignKey);
+        }
+
+        public virtual string InlineFKConstraint(string tableName, SqlDDLColumn column)
+        {
+            var foreignKey = SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId);
+
+            return
+                string.Format("constraint {0} foreign key ({1}) {2}",
+                foreignKey, column.Name, ColumnReferenceKeyword(column.Reference));
+        }
+
+        public virtual string InlineUniqueConstraint(string tableName, SqlDDLColumn column)
+        {
+            var uniqueKey = SqlDDLTable.GetUniqueKeyName(tableName, column.InternalId);
+
+            return
+                string.Format("constraint {0} unique ({1})",
+                uniqueKey, column.Name);
         }
 
 
@@ -429,7 +459,26 @@ namespace qshine.database
         /// <remarks>It is useful to add additional statements in end of table creation sql statement</remarks>
         public virtual string TableInlineConstraintClause(SqlDDLTable table)
         {
-            return "";
+            StringBuilder builder = new StringBuilder();
+
+            foreach (var column in table.Columns)
+            {
+                if (!string.IsNullOrEmpty(column.Reference))
+                {
+                    if (EnableInlineFKConstraint)
+                    {
+                        builder.AppendFormat(",{0}", InlineFKConstraint(table.TableName, column));
+                    }
+                }
+                if (column.IsUnique && !column.IsIndex)
+                {
+                    if (EnableInlineUniqueConstraint)
+                    {
+                        builder.AppendFormat(",{0}", InlineUniqueConstraint(table.TableName, column));
+                    }
+                }
+            }
+            return builder.ToString();
         }
 
         /// <summary>
@@ -659,9 +708,12 @@ namespace qshine.database
                 builder.Append(" not null");
             }
 
-            if (column.IsUnique)
+            if (!EnableInlineUniqueConstraint)
             {
-                builder.Append(" unique");
+                if (column.IsUnique)
+                {
+                    builder.Append(" unique");
+                }
             }
 
             if (column.IsPK)
@@ -683,10 +735,13 @@ namespace qshine.database
                 builder.AppendFormat(" {0}", ColumnAutoIncrementKeyword);
             }
 
-            if (!string.IsNullOrEmpty(column.Reference))
+            if (!EnableInlineFKConstraint)
             {
-                builder.AppendFormat(" constraint {0} {1}", SqlDDLTable.GetforeignKeyName(column.Name, column.InternalId),
-                    ColumnReferenceKeyword(column.Reference));
+                if (!string.IsNullOrEmpty(column.Reference))
+                {
+                    builder.AppendFormat(" constraint {0} {1}", SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId),
+                        ColumnReferenceKeyword(column.Reference));
+                }
             }
             return builder.ToString();
         }

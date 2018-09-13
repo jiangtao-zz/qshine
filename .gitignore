@@ -35,3 +35,4 @@ Thumbs.db
 # dotCover
 *.dotCover
 /.vs/qshine/v15/Server/sqlite3
+!input/

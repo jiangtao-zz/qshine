@@ -218,14 +218,37 @@ namespace qshine.database
             return GetName("inx", tableName, column.InternalId);
         }
 
-        public static string GetforeignKeyName(string tableName, int internalId)
+        /// <summary>
+        /// Get possible table column unique key name.
+        /// </summary>
+        /// <param name="tableName">table name</param>
+        /// <param name="internalId">internal unique column id</param>
+        /// <returns></returns>
+        public static string GetForeignKeyName(string tableName, int internalId)
         {
             return GetName("fk", tableName, internalId); ;
         }
-
+        
+        /// <summary>
+        /// Get possible table column Check constraint name.
+        /// </summary>
+        /// <param name="tableName">table name</param>
+        /// <param name="internalId">internal unique column id</param>
+        /// <returns></returns>
         public static string GetCheckConstraintName(string tableName, int internalId)
         {
             return GetName("chk", tableName, internalId); ;
+        }
+        
+        /// <summary>
+        /// Get possible table column Unique constraint name.
+        /// </summary>
+        /// <param name="tableName">table name</param>
+        /// <param name="internalId">internal unique column id</param>
+        /// <returns></returns>
+        public static string GetUniqueKeyName(string tableName, int internalId)
+        {
+            return GetName("uk", tableName, internalId);
         }
 
         public void Create()
@@ -308,6 +331,5 @@ namespace qshine.database
 			}
 			return name;
 		}
-
     }
 }
