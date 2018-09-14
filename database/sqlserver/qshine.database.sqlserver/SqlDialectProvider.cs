@@ -208,25 +208,20 @@ namespace qshine.database.sqlserver
 
         public override string ColumnNotNullClause(string tableName, SqlDDLColumn column)
         {
-            return ColumnModifyClause(tableName, column.Name, "not null");
+            return ColumnModifyClause(tableName, column, "not null");
         }
 
         public override string ColumnNullClause(string tableName, SqlDDLColumn column)
         {
-            return ColumnDropClause(tableName, column.Name, "not null");
+            return ColumnModifyClause(tableName, column, "null");
         }
 
-        private string ColumnModifyClause(string tableName, string columnName, string value)
+        private string ColumnModifyClause(string tableName, SqlDDLColumn column, string value)
         {
-            return string.Format("alter table {0} alter column {1} set {2}",
-                tableName, columnName, value);
+            return string.Format("alter table {0} alter column {1} {2} {3}",
+                tableName, column.Name, ToNativeDBType(column.DbType.ToString(), column.Size, column.Scale), value);
         }
 
-        private string ColumnDropClause(string tableName, string columnName, string value)
-        {
-            return string.Format("alter table {0} alter column {1} drop {2}",
-                tableName, columnName, value);
-        }
 
         /// <summary>
         /// Convert an object value to database native literals.

@@ -241,7 +241,7 @@ namespace qshine.database.sqlserver.Tests
                 Assert.AreEqual((short)16, data.Rows[0]["T3"]);
                 Assert.AreEqual(32, data.Rows[0]["T4"]);
                 Assert.AreEqual(1234567890L, data.Rows[0]["T5"]);
-                Assert.AreEqual(12.345678M, data.Rows[0]["T6"]);
+                Assert.AreNotEqual(12.345678M, data.Rows[0]["T6"]); //Note: Sql server do not update default value in existing rows
                 Assert.AreEqual("A", data.Rows[0]["T1x"]);
 
                 dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix),
@@ -425,7 +425,7 @@ namespace qshine.database.sqlserver.Tests
                     ;
 
                 var count = dbclient.SqlSelect(string.Format(
-                    "select count(*) from information_schema.statistics where table_name = '{0}'", testTable.ToUpper()));
+                    "select count(*) from sys.indexes where object_name(object_id) = '{0}'", testTable.ToLower()));
 
                 //Analyse the table change
                 dialect.AnalyseTableChange(table, trackingTable);
@@ -451,7 +451,7 @@ namespace qshine.database.sqlserver.Tests
 
                 //check for index
                 var count1 = dbclient.SqlSelect(string.Format(
-                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
+                    "select count(*) from sys.indexes where object_name(object_id) = '{0}'", testTable.ToLower()));
 
                 Assert.AreEqual(int.Parse(count.ToString()) + 1, int.Parse(count1.ToString()));
 
@@ -568,7 +568,7 @@ namespace qshine.database.sqlserver.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("cannot be null"));
+                    Assert.IsTrue(ex.Message.Contains("column does not allow nulls"));
                 }
 
 
@@ -714,7 +714,7 @@ namespace qshine.database.sqlserver.Tests
                 dialect.AnalyseTableChange(table, trackingTable);
 
                 var count = dbclient.SqlSelect(string.Format(
-                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
+                    "select count(*) from sys.indexes where object_name(object_id) = '{0}'", testTable.ToLower()));
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -723,7 +723,7 @@ namespace qshine.database.sqlserver.Tests
 
                 //check for index
                 var count1 = dbclient.SqlSelect(string.Format(
-                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
+                    "select count(*) from sys.indexes where object_name(object_id) = '{0}'", testTable.ToLower()));
 
                 Assert.AreEqual(int.Parse(count.ToString()), int.Parse(count1.ToString()) + 1);
             }
@@ -777,7 +777,7 @@ namespace qshine.database.sqlserver.Tests
                 dialect.AnalyseTableChange(table, trackingTable);
 
                 var count = dbclient.SqlSelect(string.Format(
-                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
+                    "select count(*) from sys.indexes where object_name(object_id) = '{0}'", testTable.ToLower()));
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -786,7 +786,7 @@ namespace qshine.database.sqlserver.Tests
 
                 //check for index (Oracle unique constraint create unique index automatically. we need remove unique constraint to remove the index.
                 var count1 = dbclient.SqlSelect(string.Format(
-                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
+                    "select count(*) from sys.indexes where object_name(object_id) = '{0}'", testTable.ToLower()));
 
                 Assert.AreEqual(int.Parse(count.ToString()), int.Parse(count1.ToString()) + 1);
             }
