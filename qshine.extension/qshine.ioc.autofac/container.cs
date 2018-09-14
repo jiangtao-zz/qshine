@@ -205,7 +205,8 @@ namespace qshine.ioc.autofac
 				value.Dispose();
 				//context value already exists, release it
 				ContextManager.FreeData(LifeTimeScopeName);
-			}		}
+			}
+		}
 		#endregion
 
 		#region Dispose

@@ -180,11 +180,14 @@ namespace qshine.database.sqlserver
         /// <returns></returns>
         public override string ColumnAddDefaultClause(string tableName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} add constraint {1} {2} for {3}",
+            //Sql server do not update the default value for existing rows. 
+            //We need manually issue a SQL to update it.
+            var alterClause =  string.Format("alter table {0} add constraint {1} {2} for {3}",
                 tableName,
                 SqlDDLTable.GetDefaultConstraintName(column.TableName, column.InternalId),
                 ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)),
                 column.Name);
+            return alterClause;
         }
 
         /// <summary>
