@@ -80,6 +80,16 @@ namespace qshine.database
         public virtual bool EnableInlineUniqueConstraint { get { return false; } }
 
         /// <summary>
+        /// Indicates whether a constraint name used for table column default value.
+        /// If it is enabled a default value constraint name will be added in column default clause.
+        /// </summary>
+        public virtual bool EnableDefaultConstraint
+        {
+            get { return false; }
+        }
+
+
+        /// <summary>
         /// Get a SQL statement to check table exists.
         /// </summary>
         /// <param name="tableName">table name</param>
@@ -214,6 +224,28 @@ namespace qshine.database
 
         public virtual string ColumnRemoveUniqueClause(string tableName, SqlDDLColumn column)
         {
+            if (EnableInlineUniqueConstraint)
+            {
+                string sql = "";
+                if (column.IsUnique)
+                {
+                    string uniqeIndexName = (column.IsIndex)
+                    ? SqlDDLTable.GetIndexName(tableName, column)
+                    : SqlDDLTable.GetUniqueKeyName(tableName, column.InternalId);
+
+                    sql = string.Format("alter table {0} drop constraint {1}",
+                        tableName,
+                        uniqeIndexName
+                        );
+
+                    if (column.IsIndex)
+                    {
+                        sql += ColumnAddIndexClause(tableName, column);
+                    }
+                }
+                return sql;
+            }
+
             return
                 string.Format("alter table {0} drop unique({1})",
                 tableName,
@@ -414,13 +446,16 @@ namespace qshine.database
             builder.Clear();
             //Build outline constraints
 
-            for (int i = 0; i < totalCount; i++)
+            if (EnableOutlineCheckConstraint)
             {
-                var column = table.Columns[i];
-
-                if (!string.IsNullOrEmpty(column.CheckConstraint))
+                for (int i = 0; i < totalCount; i++)
                 {
-                    sqls.Add(ColumnAddConstraintClause(table.TableName, column));
+                    var column = table.Columns[i];
+
+                    if (!string.IsNullOrEmpty(column.CheckConstraint))
+                    {
+                        sqls.Add(ColumnAddConstraintClause(table.TableName, column));
+                    }
                 }
             }
 
@@ -700,7 +735,12 @@ namespace qshine.database
 
             if (column.DefaultValue != null && column.DefaultValue.ToString() != "")
             {
-                builder.AppendFormat(" {0}", ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
+                string constraintKey = "";
+                if (EnableDefaultConstraint)
+                {
+                    constraintKey = " constraint " + SqlDDLTable.GetDefaultConstraintName(column.TableName, column.InternalId);
+                }
+                builder.AppendFormat("{0} {1}", constraintKey, ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
             }
 
             if (!column.AllowNull)

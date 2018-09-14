@@ -136,18 +136,6 @@ namespace qshine.database.postgresql
         }
 
         /// <summary>
-        /// Get a SQL statement to rename a table 
-        /// </summary>
-        /// <param name="oldTableName">table name to be changed</param>
-        /// <param name="newTableName">new table name</param>
-        /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
-        //public override string TableRenameClause(string oldTableName, string newTableName)
-        //{
-        //    return string.Format("rename table {0} to {1}", oldTableName, newTableName);
-        //}
-
-
-        /// <summary>
         /// Get a keyword of auto increase in create table statement 
         /// </summary>
         public override string ColumnAutoIncrementKeyword
@@ -177,29 +165,28 @@ namespace qshine.database.postgresql
             return string.Format("default {0}", defaultValue);
         }
 
-        /// <summary>
-        /// Get a keyword to set column Foreign key.
-        /// </summary>
-        /// <param name="referenceTable">foreign key table</param>
-        /// <param name="referenceColumn">foreign key table column</param>
-        /// <returns></returns>
-        //public override string ColumnReferenceKeyword(string referenceTable, string referenceColumn)
-        //{
-        //    return string.Format("references {0}({1})", referenceTable, referenceColumn);
-        //}
+        public override bool EnableOutlineCheckConstraint
+        {
+            get { return true; }
+        }
+
+        public override bool EnableInlineUniqueConstraint
+        {
+            get { return true; }
+        }
 
         /// <summary>
-        /// Get a sql statement to rename a column and set new column definition
+        /// Get a SQL clause to rename a table 
         /// </summary>
-        /// <param name="tableName">table name</param>
-        /// <param name="oldColumnName">old column name</param>
-        /// <param name="newColumnName">new column name</param>
-        /// <param name="column">column definition</param>
-        /// <returns></returns>
-        public override string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
+        /// <param name="oldTableName">table name to be changed</param>
+        /// <param name="newTableName">new table name</param>
+        /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
+        public override string TableRenameClause(string oldTableName, string newTableName)
         {
-            return string.Format("alter table {0} change column {1} {2} {3};", tableName, oldColumnName, newColumnName, ColumnDefinition(column));
+            return FormatCommandSqlLine("alter table {0} rename to {1}",
+                oldTableName, newTableName);
         }
+
 
         /// <summary>
         /// Get add new column statement
@@ -212,6 +199,81 @@ namespace qshine.database.postgresql
         {
             return string.Format("alter table {0} add column {1} {2};", tableName, column.Name, ColumnDefinition(column));
         }
+
+        /// <summary>
+        /// Change column default value
+        /// </summary>
+        /// <param name="tableName">table name</param>
+        /// <param name="column">column</param>
+        /// <returns></returns>
+        public override string ColumnModifyDefaultClause(string tableName, SqlDDLColumn column)
+        {
+            return ColumnModifyClause(tableName, column.Name, ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
+        }
+
+        /// <summary>
+        /// Add column default value
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public override string ColumnAddDefaultClause(string tableName, SqlDDLColumn column)
+        {
+            return ColumnModifyDefaultClause(tableName, column);
+        }
+
+
+        /// <summary>
+        /// Remove column default value
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public override string ColumnRemoveDefaultClause(string tableName, SqlDDLColumn column)
+        {
+            return ColumnDropClause(tableName, column.Name, "default");
+        }
+
+
+        public override string ColumnNotNullClause(string tableName, SqlDDLColumn column)
+        {
+            return ColumnModifyClause(tableName, column.Name, "not null");
+        }
+
+        public override string ColumnNullClause(string tableName, SqlDDLColumn column)
+        {
+            return ColumnDropClause(tableName, column.Name, "not null");
+        }
+
+        private string ColumnModifyClause(string tableName, string columnName, string value)
+        {
+            return string.Format("alter table {0} alter column {1} set {2}",
+                tableName, columnName, value);
+        }
+
+        private string ColumnDropClause(string tableName, string columnName, string value)
+        {
+            return string.Format("alter table {0} alter column {1} drop {2}",
+                tableName, columnName, value);
+        }
+
+        public override List<string> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        {
+            return new List<string> {
+                string.Format("alter table {0} alter {1} set default nextval('{0}_{1}_seq')",
+                tableName, column.Name)
+            };
+        }
+
+        public override List<string> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        {
+            return new List<string> {
+                ColumnRemoveDefaultClause(tableName, column)
+            };
+        }
+
+
+
 
         /// <summary>
         /// Convert an object value to database native literals.

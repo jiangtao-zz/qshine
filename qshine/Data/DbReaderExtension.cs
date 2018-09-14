@@ -210,19 +210,20 @@ namespace qshine
 				return default(DateTime);
 			}
 
-			DateTime value;
+            DateTime value;
 
-			try
-			{
-				value = reader.GetDateTime(index);
-			}
-			catch
-			{
-	            if (!DateTime.TryParse(reader[index].ToString(), out value))
-	            {
-					throw;
-	            }
-			}
+            var type = reader.GetFieldType(index);
+            if (type == typeof(DateTime))
+            {
+                value = reader.GetDateTime(index);
+            }else if(type == typeof(TimeSpan))
+            {
+                value = new DateTime(0, 0, 0)+ (TimeSpan)reader.GetValue(index);
+            }
+            if (!DateTime.TryParse(reader[index].ToString(), out value))
+            {
+                throw new InvalidCastException(string.Format("Cannot cast field {0} to DateTime.",index));
+            }
 
 			return value;
 		}
@@ -434,5 +435,44 @@ namespace qshine
 			return reader.ReadBoolean(reader.GetOrdinal(columnName));
 		}
 		#endregion
-	}
+
+        public static DateTime ToDateTime(this object value)
+        {
+            return _toDateTime(value, value.GetType());
+        }
+
+        private static DateTime _toDateTime(object value, Type type=null)
+        {
+            if (value == null)
+            {
+                return default(DateTime);
+            }
+
+            DateTime actualValue;
+
+            if (type == null)
+            {
+                type = value.GetType();
+            }
+
+            if (type == typeof(DateTime))
+            {
+                actualValue = (DateTime) value;
+            }
+            else if (type == typeof(TimeSpan))
+            {
+                actualValue = default(DateTime);
+                var time = (TimeSpan)value;
+                actualValue += time;
+            }else if (type == typeof(DateTimeOffset))
+            {
+                actualValue = ((DateTimeOffset)value).UtcDateTime;
+            }
+            if (!DateTime.TryParse(value.ToString(), out actualValue))
+            {
+                throw new InvalidCastException(string.Format("Cannot cast value '{0}' to DateTime.", value.ToString()));
+            }
+            return actualValue;
+        }
+    }
 }

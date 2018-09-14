@@ -17,12 +17,17 @@ namespace qshine.database
     /// </remarks>
 	public class SqlDDLColumn
 	{
-		public SqlDDLColumn()
+		public SqlDDLColumn(string tableName)
 		{
+            TableName = tableName;
             //set default values
             Size = 0;//char size or number precision
             Scale = 0; //number scale
         }
+        /// <summary>
+        /// Table name
+        /// </summary>
+        public string TableName { get; private set; }
         /// <summary>
         /// Column name
         /// </summary>

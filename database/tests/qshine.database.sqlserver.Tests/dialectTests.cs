@@ -6,7 +6,7 @@ using qshine.Configuration;
 using qshine.database;
 using System.Data;
 
-namespace qshine.database.postgresql.Tests
+namespace qshine.database.sqlserver.Tests
 {
     [TestClass]
     public class DialectTests
@@ -69,7 +69,7 @@ namespace qshine.database.postgresql.Tests
             var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
-            Assert.IsTrue(dialect.CanCreate);
+            Assert.IsFalse(dialect.CanCreate);
 
             //Need create database before start the test
             Assert.IsTrue(dialect.DatabaseExists());
@@ -163,14 +163,14 @@ namespace qshine.database.postgresql.Tests
                 //Assert.AreEqual("123.456", data.Rows[0]["T18"].ToString());
                 Assert.AreEqual(true, DbClient.ToBoolean(data.Rows[0]["T19"]));
                 Assert.AreEqual("1", data.Rows[0]["T20"].ToString());
-                Assert.AreEqual("12.34", data.Rows[0]["T21"].ToString());
+                Assert.AreEqual(12.34M, data.Rows[0]["T21"]);
                 ticket = DateTime.Now.Date - (DateTime)data.Rows[0]["T22"];
                 Assert.IsTrue(ticket.Seconds < 60);
                 ticket = DateTime.Now - (DateTime)data.Rows[0]["T23"];
                 Assert.IsTrue(ticket.Seconds < 10);
                 ticket = DateTime.Now - (DateTime)data.Rows[0]["T24"];
                 Assert.IsTrue(ticket.Seconds < 10);
-                ticket = DateTime.Now - (DateTime)data.Rows[0]["T25"];
+                ticket = DateTime.Now - data.Rows[0]["T25"].ToDateTime();
                 Assert.IsTrue(ticket.Seconds < 10);
                 //                Assert.AreEqual("123.456", data.Rows[0]["T26"].ToString());
                 //                Assert.AreEqual("123.456", data.Rows[0]["T27"].ToString());
@@ -238,10 +238,10 @@ namespace qshine.database.postgresql.Tests
 
                 var data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='AAA'", testTable));
                 Assert.AreEqual(1, data.Rows.Count);
-                Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
-                Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
-                Assert.AreEqual("1234567890", data.Rows[0]["T5"].ToString());
-                Assert.AreEqual("12.345678", data.Rows[0]["T6"].ToString());
+                Assert.AreEqual((short)16, data.Rows[0]["T3"]);
+                Assert.AreEqual(32, data.Rows[0]["T4"]);
+                Assert.AreEqual(1234567890L, data.Rows[0]["T5"]);
+                Assert.AreEqual(12.345678M, data.Rows[0]["T6"]);
                 Assert.AreEqual("A", data.Rows[0]["T1x"]);
 
                 dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix),
@@ -249,10 +249,10 @@ namespace qshine.database.postgresql.Tests
 
                 data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='BBB'", testTable));
                 Assert.AreEqual(1, data.Rows.Count);
-                Assert.AreEqual("16", data.Rows[0]["T3"].ToString());
-                Assert.AreEqual("32", data.Rows[0]["T4"].ToString());
-                Assert.AreEqual("1234567890", data.Rows[0]["T5"].ToString());
-                Assert.AreEqual("12.345678", data.Rows[0]["T6"].ToString());
+                Assert.AreEqual((short)16, data.Rows[0]["T3"]);
+                Assert.AreEqual(32, data.Rows[0]["T4"]);
+                Assert.AreEqual(1234567890L, data.Rows[0]["T5"]);
+                Assert.AreEqual(12.345678M, data.Rows[0]["T6"]);
                 Assert.AreEqual("X123", data.Rows[0]["T1x"]);
             }
 
@@ -425,7 +425,7 @@ namespace qshine.database.postgresql.Tests
                     ;
 
                 var count = dbclient.SqlSelect(string.Format(
-                    "select count(*) from pg_indexes  where tablename = '{0}'", testTable.ToLower()));
+                    "select count(*) from information_schema.statistics where table_name = '{0}'", testTable.ToUpper()));
 
                 //Analyse the table change
                 dialect.AnalyseTableChange(table, trackingTable);
@@ -451,7 +451,7 @@ namespace qshine.database.postgresql.Tests
 
                 //check for index
                 var count1 = dbclient.SqlSelect(string.Format(
-                    "select count(*) from pg_indexes  where tablename = '{0}'", testTable.ToLower()));
+                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
 
                 Assert.AreEqual(int.Parse(count.ToString()) + 1, int.Parse(count1.ToString()));
 
@@ -519,7 +519,7 @@ namespace qshine.database.postgresql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("violates check constraint"));
+                    Assert.IsTrue(ex.Message.Contains("conflicted with the CHECK constraint"));
                 }
 
             }
@@ -568,7 +568,7 @@ namespace qshine.database.postgresql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("null value in column"));
+                    Assert.IsTrue(ex.Message.Contains("cannot be null"));
                 }
 
 
@@ -639,7 +639,7 @@ namespace qshine.database.postgresql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("violates check constraint"));
+                    Assert.IsTrue(ex.Message.Contains("conflicted with the CHECK constraint"));
                 }
 
 
@@ -714,7 +714,7 @@ namespace qshine.database.postgresql.Tests
                 dialect.AnalyseTableChange(table, trackingTable);
 
                 var count = dbclient.SqlSelect(string.Format(
-                    "select count(*) from pg_indexes  where tablename = '{0}'", testTable.ToLower()));
+                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -723,7 +723,7 @@ namespace qshine.database.postgresql.Tests
 
                 //check for index
                 var count1 = dbclient.SqlSelect(string.Format(
-                    "select count(*) from pg_indexes  where tablename = '{0}'", testTable.ToLower()));
+                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
 
                 Assert.AreEqual(int.Parse(count.ToString()), int.Parse(count1.ToString()) + 1);
             }
@@ -777,7 +777,7 @@ namespace qshine.database.postgresql.Tests
                 dialect.AnalyseTableChange(table, trackingTable);
 
                 var count = dbclient.SqlSelect(string.Format(
-                    "select count(*) from pg_indexes where tablename = '{0}'", testTable.ToLower()));
+                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
@@ -786,7 +786,7 @@ namespace qshine.database.postgresql.Tests
 
                 //check for index (Oracle unique constraint create unique index automatically. we need remove unique constraint to remove the index.
                 var count1 = dbclient.SqlSelect(string.Format(
-                    "select count(*) from pg_indexes where tablename = '{0}'", testTable.ToLower()));
+                    "select count(*) from information_schema.statistics  where table_name = '{0}'", testTable.ToUpper()));
 
                 Assert.AreEqual(int.Parse(count.ToString()), int.Parse(count1.ToString()) + 1);
             }
@@ -853,7 +853,7 @@ namespace qshine.database.postgresql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("unique constraint"));
+                    Assert.IsTrue(ex.Message.Contains("Violation of UNIQUE KEY constraint"));
                 }
             }
             DropTable(testTable);
@@ -964,7 +964,7 @@ namespace qshine.database.postgresql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("violates check constraint"));
+                    Assert.IsTrue(ex.Message.Contains("duplicate key row"));
                 }
 
                 table = new SqlDDLTable(testTable, "test", "test table 6", "testspace1", "testindex1", 3, "NewTest");
@@ -1001,7 +1001,7 @@ namespace qshine.database.postgresql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("violates check constraint"));
+                    Assert.IsTrue(ex.Message.Contains("unique index"));
                 }
 
             }
@@ -1126,7 +1126,7 @@ namespace qshine.database.postgresql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("violates foreign key constraint"));
+                    Assert.IsTrue(ex.Message.Contains("FK test failed"));
                 }
 
                 table2 = new SqlDDLTable(testTable2, "test", "test table 15_1", "testspace1", "testindex1", 3, "NewTest");
@@ -1233,7 +1233,7 @@ namespace qshine.database.postgresql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("violates foreign key constraint"));
+                    Assert.IsTrue(ex.Message.Contains("FK test failed"));
                 }
 
             }

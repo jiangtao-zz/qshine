@@ -89,17 +89,6 @@ namespace qshine.database.sqlserver
             return string.Format(@"select table_name from information_schema.tables where table_name = '{0}'", tableName);
         }
 
-        /// <summary>
-        /// Get a SQL statement to rename a table 
-        /// </summary>
-        /// <param name="oldTableName">table name to be changed</param>
-        /// <param name="newTableName">new table name</param>
-        /// <returns>return rename table statement ex:"rename table [oldtable] to [newtable]"</returns>
-        //public override string TableRenameClause(string oldTableName, string newTableName)
-        //{
-        //    return string.Format("rename table {0} to {1}", oldTableName, newTableName);
-        //}
-
 
         /// <summary>
         /// Get a keyword of auto increase in create table statement 
@@ -119,16 +108,21 @@ namespace qshine.database.sqlserver
             return string.Format("default {0}", defaultValue);
         }
 
-        /// <summary>
-        /// Get a keyword to set column Foreign key.
-        /// </summary>
-        /// <param name="referenceTable">foreign key table</param>
-        /// <param name="referenceColumn">foreign key table column</param>
-        /// <returns></returns>
-        //public override string ColumnReferenceKeyword(string referenceTable, string referenceColumn)
-        //{
-        //    return string.Format("references {0}({1})", referenceTable, referenceColumn);
-        //}
+        public override bool EnableOutlineCheckConstraint
+        {
+            get { return true; }
+        }
+
+        public override bool EnableInlineUniqueConstraint
+        {
+            get { return true; }
+        }
+
+        public override bool EnableDefaultConstraint
+        {
+            get { return true; }
+        }
+
 
         /// <summary>
         /// Get a sql statement to rename a column and set new column definition
@@ -140,7 +134,7 @@ namespace qshine.database.sqlserver
         /// <returns></returns>
         public override string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
-            return string.Format("exec sp_rename '{0}.{1}', '{2}' 'COLUMN';", tableName, oldColumnName, newColumnName);
+            return string.Format("exec sp_rename '{0}.{1}', '{2}', 'COLUMN'", tableName, oldColumnName, newColumnName);
         }
 
         /// <summary>
@@ -151,7 +145,7 @@ namespace qshine.database.sqlserver
         /// <returns></returns>
         public override string TableRenameClause(string oldTableName, string newTableName)
         {
-            return string.Format("exec sp_rename '{0}', '{1}';", oldTableName, newTableName);
+            return string.Format("exec sp_rename '{0}', '{1}'", oldTableName, newTableName);
         }
 
         /// <summary>
@@ -163,7 +157,72 @@ namespace qshine.database.sqlserver
         /// <returns></returns>
         public override string ColumnAddClause(string tableName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} add column {1} {2};", tableName, column.Name, ColumnDefinition(column));
+            return string.Format("alter table {0} add {1} {2}", tableName, column.Name, ColumnDefinition(column));
+        }
+
+        /// <summary>
+        /// Change column default value
+        /// </summary>
+        /// <param name="tableName">table name</param>
+        /// <param name="column">column</param>
+        /// <returns></returns>
+        public override string ColumnModifyDefaultClause(string tableName, SqlDDLColumn column)
+        {
+            return ColumnRemoveDefaultClause(tableName, column)+";"+
+                ColumnAddDefaultClause(tableName, column);
+        }
+
+        /// <summary>
+        /// Add column default value
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public override string ColumnAddDefaultClause(string tableName, SqlDDLColumn column)
+        {
+            return string.Format("alter table {0} add constraint {1} {2} for {3}",
+                tableName,
+                SqlDDLTable.GetDefaultConstraintName(column.TableName, column.InternalId),
+                ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)),
+                column.Name);
+        }
+
+        /// <summary>
+        /// Remove column default value
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public override string ColumnRemoveDefaultClause(string tableName, SqlDDLColumn column)
+        {
+            return string.Format("alter table {0} drop constraint {1}",
+                tableName,
+                SqlDDLTable.GetDefaultConstraintName(column.TableName, column.InternalId)
+                );
+        }
+
+
+
+        public override string ColumnNotNullClause(string tableName, SqlDDLColumn column)
+        {
+            return ColumnModifyClause(tableName, column.Name, "not null");
+        }
+
+        public override string ColumnNullClause(string tableName, SqlDDLColumn column)
+        {
+            return ColumnDropClause(tableName, column.Name, "not null");
+        }
+
+        private string ColumnModifyClause(string tableName, string columnName, string value)
+        {
+            return string.Format("alter table {0} alter column {1} set {2}",
+                tableName, columnName, value);
+        }
+
+        private string ColumnDropClause(string tableName, string columnName, string value)
+        {
+            return string.Format("alter table {0} alter column {1} drop {2}",
+                tableName, columnName, value);
         }
 
         /// <summary>
@@ -194,6 +253,10 @@ namespace qshine.database.sqlserver
                     return "CURRENT_TIMESTAMP";
                 }
             }
+            if (value is bool)
+            {
+                return ((bool)value) ? "1" : "0";
+            }
             return string.Format("{0}", value);
         }
 
@@ -216,6 +279,10 @@ namespace qshine.database.sqlserver
 
                 case "AnsiString":
                 case "String":
+                    if (size > 8000)
+                    {
+                        return "VARCHAR(MAX)";
+                    }
                     return string.Format("VARCHAR({0})", size);
 
                 case "Int64":
@@ -271,8 +338,16 @@ namespace qshine.database.sqlserver
                         return string.Format("FLOAT({0})", size);
                     }
 
+                case "VarNumeric":
                 case "Decimal":
-                    return "DECIMAL";
+                    if (size == 0)
+                    {
+                        if (scale == 0)
+                        {
+                            return "DECIMAL(18,6)";
+                        }
+                    }
+                    return string.Format("DECIMAL({0},{1})", size, scale);
 
                 case "Currency":
                     return "MONEY";

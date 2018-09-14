@@ -95,24 +95,24 @@ namespace qshine.database
                 throw new InvalidExpressionException("Only one PRIMARY key column is allow in the table.");
             }
 
-            var column = new SqlDDLColumn
-			{
-				Name = columnName,
-				DbType = dbType,
-				Size = size,
+            var column = new SqlDDLColumn(TableName)
+            {
+                Name = columnName,
+                DbType = dbType,
+                Size = size,
                 Scale = scale,
-				DefaultValue = defaultValue,
-				IsUnique = isUnique,
-				AllowNull = allowNull,
+                DefaultValue = defaultValue,
+                IsUnique = isUnique,
+                AllowNull = allowNull,
                 IsPK = isPK,
-				AutoIncrease = autoIncrease,
-				Comments = comments,
-				CheckConstraint = checkConstraint,
-				Reference = reference,
-				IsIndex = isIndex,
-				Version = version,
+                AutoIncrease = autoIncrease,
+                Comments = comments,
+                CheckConstraint = checkConstraint,
+                Reference = reference,
+                IsIndex = isIndex,
+                Version = version,
                 InternalId = internalId
-			};
+            };
 
             foreach (var oldColumn in oldColumnNames)
 			{
@@ -250,6 +250,12 @@ namespace qshine.database
         {
             return GetName("uk", tableName, internalId);
         }
+
+        public static string GetDefaultConstraintName(string tableName , int internalId)
+        {
+            return GetName("df", tableName, internalId);
+        }
+
 
         public void Create()
 		{
