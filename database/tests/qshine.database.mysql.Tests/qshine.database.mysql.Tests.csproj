@@ -57,9 +57,6 @@
     <None Include="App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="config\mysql\connectionStrings.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -68,6 +65,7 @@
       <Name>qshine</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
@@ -79,10 +77,10 @@
   </Target>
   <Import Project="..\..\..\packages\MSTest.TestAdapter.1.3.2\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\..\..\packages\MSTest.TestAdapter.1.3.2\build\net45\MSTest.TestAdapter.targets')" />
   <PropertyGroup>
-    <PreBuildEvent>xcopy  /F /E /R /Y /D /i $(SolutionDir)database\config $(TargetDir)config</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy  /F /R /Y /D "$(ProjectDir)..\..\mysql\qshine.database.mysql\$(OutDir)qshine.database.mysql.dll" "$(TargetDir)config\mysql\bin\"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\mysql\qshine.database.mysql\$(OutDir)MySql.Data.dll" "$(TargetDir)config\mysql\bin\"</PostBuildEvent>
+    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(SolutionDir)config\*.*" "$(TargetDir)config\"</PostBuildEvent>
   </PropertyGroup>
 </Project>

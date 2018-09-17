@@ -166,17 +166,15 @@ namespace qshine.Configuration
                     return _commonNamedType[typeName];
                 }
 
-				type = AssemblyMaps.Values.Where(x=>x.Assembly!=null)
+				type = _assemblyMaps.Values.Where(x=>x.Assembly!=null)
                     .Select(a => a.Assembly.GetType(typeName))
                     .FirstOrDefault(t => t != null);
                 if (type != null)
                 {
-                    lock (lockObject)
+                    //thread-safe
+                    if (!_commonNamedType.ContainsKey(typeName))
                     {
-                        if (!_commonNamedType.ContainsKey(typeName))
-                        {
-                            _commonNamedType.Add(typeName, type);
-                        }
+                        _commonNamedType.Add(typeName, type);
                     }
                 }
             }
@@ -644,7 +642,11 @@ namespace qshine.Configuration
 
 						var folder = Path.GetDirectoryName(section.CurrentConfiguration.FilePath);
 						var path = UnifiedPath(folder,environment.Path);
-						if (Directory.Exists(path) && !_environmentConfigure.ConfigureFolders.Contains(path))
+                        if (!Directory.Exists(path))
+                        {
+                            Log.DevDebug("Config path {0} does not exist.", path);
+                        }
+						else if (!_environmentConfigure.ConfigureFolders.Contains(path))
 						{
 							_environmentConfigure.ConfigureFolders.Add(path);
 

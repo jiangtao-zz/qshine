@@ -138,7 +138,8 @@ namespace qshine
         #endregion
 
         #region RegisterType
-		public override IIocContainer RegisterType(Type requestedType, Type actualType, string name, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
+
+        public override IIocContainer RegisterType(Type requestedType, Type actualType, string name, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
         {
             if (name == null)
             {
@@ -191,7 +192,14 @@ namespace qshine
                     {
                         typeWithCtorParameters.Add(new NamedIoCType(requestedType, name), constructorParameters);
                     }
-                    this.SetInstanceScope(container.Register(requestedType, actualType, name), instanceScopeOption);
+                    if (actualType == null)
+                    {
+                        this.SetInstanceScope(container.Register(requestedType, name), instanceScopeOption);
+                    }
+                    else
+                    {
+                        this.SetInstanceScope(container.Register(requestedType, actualType, name), instanceScopeOption);
+                    }
                 }
                 return this;
             }

@@ -62,4 +62,7 @@
     <Content Include="readme.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)*.*" "$(SolutionDir)config\component\database\mysql\bin\"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

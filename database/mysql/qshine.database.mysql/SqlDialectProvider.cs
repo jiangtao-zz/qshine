@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Data;
-using System.Text;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using qshine.Configuration;
 using MySql.Data.MySqlClient;
 
 namespace qshine.database.mysql
@@ -28,7 +23,6 @@ namespace qshine.database.mysql
         //ILogger _logger;
         string _dataSource;
         string _connectionString;
-        //const string _sqlProviderName = "MySql.Data.MySqlClient";
         MySqlConnectionStringBuilder _connectionBuilder;
 
 
@@ -242,7 +236,8 @@ namespace qshine.database.mysql
         {
             //Note: auto increment is only for PK
             return new List<string>{
-                string.Format("alter table {0} add primary key ({1}) not null auto_increment",tableName,column.Name)
+                string.Format("alter table {0} modify {1} {2} not null auto_increment",tableName,column.Name, 
+                ToNativeDBType(column.DbType.ToString(),column.Size,column.Scale))
             };
         }
 

@@ -70,42 +70,6 @@
   <ItemGroup>
     <None Include="applicationDesign\0_readme.txt" />
     <None Include="App.config" />
-    <None Include="config\mysql\App.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="config\oracle\App.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="config\postgresql\App.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="config\sqlite\App.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="config\sqlite\bin\net45\System.Data.SQLite.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="config\sqlite\bin\net45\System.Data.SQLite.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="config\sqlite\bin\net45\System.Data.SQLite.EF6.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="config\sqlite\bin\net45\System.Data.SQLite.Linq.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="config\main.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="config\sqlite\bin\net45\x64\SQLite.Interop.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="config\sqlserver\App.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="tables\queue\idm.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>idm.sql</LastGenOutput>
@@ -120,118 +84,22 @@
       <LastGenOutput>DDL.sql</LastGenOutput>
     </None>
     <None Include="tables\queue\user.sql" />
-    <None Include="config\bin\qshine.LogInspector.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="config\sqlite\bin\net45\x86\SQLite.Interop.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="config\sqlite\bin\qshine.database.sqlite.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\qshine\qshine.csproj">
       <Project>{05162FC4-73A3-4190-A336-568E2289302C}</Project>
       <Name>qshine</Name>
     </ProjectReference>
-    <ProjectReference Include="..\oracle\qshine.database.oracle\qshine.database.oracle.csproj">
-      <Project>{ddfb91fb-2a90-4632-ab4e-8f9fd85e49a9}</Project>
-      <Name>qshine.database.oracle</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="config\mysql\bin\qshine.database.mysql.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\oracle\bin\Oracle.ManagedDataAccess.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\oracle\bin\qshine.database.oracle.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\Npgsql.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\Npgsql.pdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\Npgsql.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\System.Net.NameResolution.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\System.Net.NetworkInformation.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\System.Net.Ping.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\System.Net.Primitives.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\System.Net.Requests.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\System.Net.Security.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\System.Net.Sockets.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\System.Runtime.CompilerServices.Unsafe.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\System.Threading.Tasks.Extensions.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\postgresql\bin\net45\System.Threading.Tasks.Extensions.xml" />
-    <Content Include="config\postgresql\bin\qshine.database.postgresql.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="config\sqlserver\bin\qshine.database.sqlserver.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(SolutionDir)config\*.*" "$(TargetDir)config\"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>if exist "$(TargetPath).locked" del "$(TargetPath).locked"
-if exist "$(TargetPath)" if not exist "$(TargetPath).locked" move "$(TargetPath)" "$(TargetPath).locked"
-xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)System.Data.SQLite.dll" "$(ProjectDir)config\sqlite\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)System.Data.SQLite.xml" "$(ProjectDir)config\sqlite\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)System.Data.SQLite.EF6.dll" "$(ProjectDir)config\sqlite\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)System.Data.SQLite.Linq.dll" "$(ProjectDir)config\sqlite\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)x64\SQLite.Interop.dll" "$(ProjectDir)config\sqlite\bin\net45\x64"
-xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)x86\SQLite.Interop.dll" "$(ProjectDir)config\sqlite\bin\net45\x86"
-xcopy  /F /R /Y /D "$(ProjectDir)..\sqlite\qshine.database.sqlite\$(OutDir)qshine.database.sqlite.dll" "$(ProjectDir)config\sqlite\bin"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.NetworkInformation.dll" "$(ProjectDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Threading.Tasks.Extensions.dll" "$(ProjectDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Security.dll" "$(ProjectDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Sockets.dll" "$(ProjectDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Runtime.CompilerServices.Unsafe.dll" "$(ProjectDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Requests.dll" "$(ProjectDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)Npgsql.dll" "$(ProjectDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)Npgsql.pdb" "$(ProjectDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)Npgsql.xml" "$(ProjectDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Ping.dll" "$(ProjectDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Primitives.dll" "$(ProjectDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.NameResolution.dll" "$(ProjectDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\postgresql\qshine.database.postgresql\$(OutDir)qshine.database.postgresql.dll" "$(ProjectDir)config\postgresql\bin"
-xcopy  /F /R /Y /D "$(ProjectDir)..\mysql\qshine.database.mysql\$(OutDir)qshine.database.mysql.dll" "$(ProjectDir)config\mysql\bin"
-xcopy  /F /R /Y /D "$(ProjectDir)..\sqlserver\qshine.database.sqlserver\$(OutDir)qshine.database.sqlserver.dll" "$(ProjectDir)config\sqlserver\bin"
-xcopy  /F /R /Y /D "$(ProjectDir)..\oracle\qshine.database.oracle\$(OutDir)Oracle.ManagedDataAccess.dll" "$(ProjectDir)config\oracle\bin"
-xcopy  /F /R /Y /D "$(ProjectDir)..\oracle\qshine.database.oracle\$(OutDir)qshine.database.oracle.dll" "$(ProjectDir)config\oracle\bin"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\qshine.extension\qshine.LogInspector\$(OutDir)qshine.LogInspector.dll" "$(ProjectDir)config\bin\"
-
-
-</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
 </Project>

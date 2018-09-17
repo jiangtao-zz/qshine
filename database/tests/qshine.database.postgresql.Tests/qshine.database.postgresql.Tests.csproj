@@ -57,9 +57,6 @@
     <None Include="App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="config\postgresql\connectionStrings.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -79,22 +76,10 @@
   </Target>
   <Import Project="..\..\..\packages\MSTest.TestAdapter.1.3.2\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\..\..\packages\MSTest.TestAdapter.1.3.2\build\net45\MSTest.TestAdapter.targets')" />
   <PropertyGroup>
-    <PreBuildEvent>xcopy  /F /E /R /Y /D /i $(SolutionDir)database\config $(TargetDir)config</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.NetworkInformation.dll" "$(TargetDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)System.Threading.Tasks.Extensions.dll" "$(TargetDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Security.dll" "$(TargetDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Sockets.dll" "$(TargetDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)System.Runtime.CompilerServices.Unsafe.dll" "$(TargetDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Requests.dll" "$(TargetDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)Npgsql.dll" "$(TargetDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)Npgsql.pdb" "$(TargetDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)Npgsql.xml" "$(TargetDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Ping.dll" "$(TargetDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.Primitives.dll" "$(TargetDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)System.Net.NameResolution.dll" "$(TargetDir)config\postgresql\bin\net45"
-xcopy  /F /R /Y /D "$(ProjectDir)..\..\postgresql\qshine.database.postgresql\$(OutDir)qshine.database.postgresql.dll" "$(TargetDir)config\postgresql\bin"
-</PostBuildEvent>
+    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(SolutionDir)config\*.*" "$(TargetDir)config\"</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -1126,7 +1126,7 @@ namespace qshine.database.sqlserver.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("FK test failed"));
+                    Assert.IsTrue(ex.Message.Contains("conflicted with the FOREIGN KEY constraint"));
                 }
 
                 table2 = new SqlDDLTable(testTable2, "test", "test table 15_1", "testspace1", "testindex1", 3, "NewTest");
@@ -1233,7 +1233,7 @@ namespace qshine.database.sqlserver.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("FK test failed"));
+                    Assert.IsTrue(ex.Message.Contains("conflicted with the FOREIGN KEY constraint"));
                 }
 
             }
@@ -1243,7 +1243,8 @@ namespace qshine.database.sqlserver.Tests
         }
 
         [TestMethod]
-        public void TableUpdate_autoIncrease_remove()
+        [ExpectedException(typeof(NotSupportedException))]
+        public void TableUpdate_autoIncrease_remove_DO_NOT_SUPPORT()
         {
             var testTable = "table17";
 
@@ -1298,7 +1299,13 @@ namespace qshine.database.sqlserver.Tests
                     dbclient.Sql(string.Format("insert into {0}(T1) values('AAA2')", testTable));
                     Assert.Fail("Failed to remove auto increase clause.");
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("Assert.Fail"))
+                    {
+                        throw;
+                    }
+                }
 
                 trackingTable = new TrackingTable(table);
 

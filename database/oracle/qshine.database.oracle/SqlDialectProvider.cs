@@ -122,58 +122,6 @@ namespace qshine.database.oracle
             get { return ""; }
         }
 
-        ///// <summary>
-        ///// Get column default value keyword
-        ///// </summary>
-        ///// <param name="defaultValue"></param>
-        ///// <returns></returns>
-        //public override string ColumnDefaultKeyword(string defaultValue)
-        //{
-        //    return string.Format("default {0}", defaultValue);
-        //}
-
-        /// <summary>
-        /// Get a keyword to set column Foreign key.
-        /// </summary>
-        /// <param name="referenceTable">foreign key table</param>
-        /// <param name="referenceColumn">foreign key table column</param>
-        /// <returns></returns>
-        //public override string ColumnReferenceKeyword(string referenceTable, string referenceColumn)
-        //{
-        //    return string.Format("references {0}({1})", referenceTable, referenceColumn);
-        //}
-
-        //public override string CreateIndexClause(SqlDDLIndex index)
-        //{
-        //    return base.CreateIndexClause(index);
-        //}
-
-        /// <summary>
-        /// Get a sql statement to rename a column and set new column definition
-        /// </summary>
-        /// <param name="tableName">table name</param>
-        /// <param name="oldColumnName">old column name</param>
-        /// <param name="newColumnName">new column name</param>
-        /// <param name="column">column definition</param>
-        /// <returns></returns>
-        //public override string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
-        //{
-        //    return string.Format("alter table {0} rename column {1} to {2}{3}", tableName, oldColumnName, newColumnName
-        //        , SqlCommandSeparator);
-        //}
-
-        ///// <summary>
-        ///// Get a sql statement to rename a table
-        ///// </summary>
-        ///// <param name="oldTableName">old table name</param>
-        ///// <param name="newTableName">new table name</param>
-        ///// <returns></returns>
-        //public override string TableRenameClause(string oldTableName, string newTableName)
-        //{
-        //    return string.Format("alter table {0} rename to {1}{2}", oldTableName, newTableName
-        //        , SqlCommandSeparator);
-        //}
-
 
         /// <summary>
         /// Get add new column statement
@@ -186,22 +134,6 @@ namespace qshine.database.oracle
         {
             return string.Format("alter table {0} add {1} {2}", tableName, column.Name, ColumnDefinition(column));
         }
-
-        ///// <summary>
-        ///// Add additional clause in end of table creation statement
-        ///// </summary>
-        ///// <param name="table"></param>
-        ///// <returns></returns>
-        ///// <remarks>It is useful to add additional statements in end of table creation sql statement</remarks>
-        //public override string TableCreateSqlAddition(SqlDDLTable table)
-        //{
-        //    var additionalClause = base.TableCreateSqlAddition(table);
-        //    if (table.PkColumn != null)
-        //    {
-        //       // additionalClause+=string.Format(",constraint {0} primary key({1})", GetConstraintPkName(table.TableName), table.PkColumn.Name);
-        //    }
-        //    return additionalClause;
-        //}
 
         /// <summary>
         /// Get table PK constraint name
@@ -240,8 +172,11 @@ begin
     end if;
 end;", GetAutoIncreaseTriggerName(tableName), tableName, columnName, sequenceName);
         }
+
         public override List<string> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
+            //Remove the trigger only
+            //keep the auto increment sequence for future re-use.
             return new List<string> { string.Format(@"drop trigger {0}", GetAutoIncreaseTriggerName(tableName)) };
         }
 
@@ -341,10 +276,10 @@ end;", GetAutoIncreaseTriggerName(tableName), tableName, columnName, sequenceNam
                     return string.Format("VARCHAR2({0})", size);
 
                 case "Int64":
-                    return "NUMBER(19)";
+                    return "NUMBER";
 
                 case "UInt64":
-                    return "NUMBER(19)";
+                    return "NUMBER";
 
                 case "Int32":
                     return "NUMBER(10)";

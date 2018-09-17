@@ -68,4 +68,7 @@
     <Content Include="readme.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)*.*" "$(SolutionDir)config\component\database\postgresql\bin\"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

@@ -6,15 +6,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine", "qshine\qshine.csp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9815AB74-82AC-463A-B740-B1D78CE5E6FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.UnitTests", "Tests\qshine.UnitTests\qshine.UnitTests.csproj", "{35C33326-EFDF-44D2-A247-6CB1B7B37125}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "qshine.extension", "qshine.extension", "{CCF4C5FB-952E-4D9B-B081-B9D693A56276}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.ioc.autofac", "qshine.extension\qshine.ioc.autofac\qshine.ioc.autofac.csproj", "{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D82665D7-65D6-4788-A427-DCC973C267B0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.ioc.autofac.UnitTests", "qshine.extension\qshine.ioc.autofac.UnitTests\qshine.ioc.autofac.UnitTests.csproj", "{791CE255-66C3-4D07-8DF5-93654E3141B7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.log.nlog", "qshine.extension\qshine.log.nlog\qshine.log.nlog.csproj", "{77E94174-61DC-4BBD-8F4F-48F6F14E1D98}"
 EndProject
@@ -22,7 +18,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.LogInterceptor", "qs
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "database", "database", "{52DF755E-9402-4382-A8F5-BB6E3819B321}"
 	ProjectSection(SolutionItems) = preProject
-		config.bat = config.bat
 		readme.txt = readme.txt
 	EndProjectSection
 EndProject
@@ -58,67 +53,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{6E12E003
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testsqlite", "database\tests\testsqlite\testsqlite.csproj", "{F93AC11B-0034-4345-9F86-F1DDE72D6911}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{FA46BCB6-7D11-4E4D-8C9E-712C253E630C}"
-	ProjectSection(SolutionItems) = preProject
-		database\config\readme.txt = database\config\readme.txt
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sqlite", "sqlite", "{1DBCCCC3-4388-4FF2-B85F-ED6FAEBBE626}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bin", "bin", "{DC11D8CE-B2DC-478E-AD4A-4B393FF1E2D3}"
-	ProjectSection(SolutionItems) = preProject
-		database\config\sqlite\bin\qshine.database.sqlite.dll = database\config\sqlite\bin\qshine.database.sqlite.dll
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "net45", "net45", "{C9FEDBAA-DACD-4251-A4BA-8E5E54FAC40A}"
-	ProjectSection(SolutionItems) = preProject
-		database\config\sqlite\bin\net45\System.Data.SQLite.dll = database\config\sqlite\bin\net45\System.Data.SQLite.dll
-		database\config\sqlite\bin\net45\System.Data.SQLite.EF6.dll = database\config\sqlite\bin\net45\System.Data.SQLite.EF6.dll
-		database\config\sqlite\bin\net45\System.Data.SQLite.Linq.dll = database\config\sqlite\bin\net45\System.Data.SQLite.Linq.dll
-		database\config\sqlite\bin\net45\System.Data.SQLite.xml = database\config\sqlite\bin\net45\System.Data.SQLite.xml
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "x86", "x86", "{4A017706-7539-4022-BE73-1F6334B40177}"
-	ProjectSection(SolutionItems) = preProject
-		database\config\sqlite\bin\net45\x86\SQLite.Interop.dll = database\config\sqlite\bin\net45\x86\SQLite.Interop.dll
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "x64", "x64", "{6D15FAC6-DD5C-4215-9125-8324DADAACC7}"
-	ProjectSection(SolutionItems) = preProject
-		database\config\sqlite\bin\net45\x64\SQLite.Interop.dll = database\config\sqlite\bin\net45\x64\SQLite.Interop.dll
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "oracle", "oracle", "{4C50CC92-B5E0-4CFD-81F9-79EC980DAF9E}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bin", "bin", "{2A557F32-7B49-4514-87C0-B00A85291198}"
-	ProjectSection(SolutionItems) = preProject
-		database\config\oracle\bin\Oracle.ManagedDataAccess.dll = database\config\oracle\bin\Oracle.ManagedDataAccess.dll
-		database\config\oracle\bin\qshine.database.oracle.dll = database\config\oracle\bin\qshine.database.oracle.dll
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "postgresql", "postgresql", "{433A48DA-6D75-4F50-A3ED-8346201BEB9F}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bin", "bin", "{98AEE80F-0D42-4E6D-A81B-266C456534DC}"
-	ProjectSection(SolutionItems) = preProject
-		database\config\postgresql\bin\System.Net.NameResolution.dll = database\config\postgresql\bin\System.Net.NameResolution.dll
-		database\config\postgresql\bin\System.Net.Ping.dll = database\config\postgresql\bin\System.Net.Ping.dll
-		database\config\postgresql\bin\System.Net.Primitives.dll = database\config\postgresql\bin\System.Net.Primitives.dll
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "net45", "net45", "{9C888C66-CEF5-4390-A23E-DB66E881F309}"
-	ProjectSection(SolutionItems) = preProject
-		database\config\postgresql\bin\net45\Npgsql.dll = database\config\postgresql\bin\net45\Npgsql.dll
-		database\config\postgresql\bin\net45\System.Net.NameResolution.dll = database\config\postgresql\bin\net45\System.Net.NameResolution.dll
-		database\config\postgresql\bin\net45\System.Net.NetworkInformation.dll = database\config\postgresql\bin\net45\System.Net.NetworkInformation.dll
-		database\config\postgresql\bin\net45\System.Net.Ping.dll = database\config\postgresql\bin\net45\System.Net.Ping.dll
-		database\config\postgresql\bin\net45\System.Net.Primitives.dll = database\config\postgresql\bin\net45\System.Net.Primitives.dll
-		database\config\postgresql\bin\net45\System.Net.Requests.dll = database\config\postgresql\bin\net45\System.Net.Requests.dll
-		database\config\postgresql\bin\net45\System.Net.Security.dll = database\config\postgresql\bin\net45\System.Net.Security.dll
-		database\config\postgresql\bin\net45\System.Net.Sockets.dll = database\config\postgresql\bin\net45\System.Net.Sockets.dll
-		database\config\postgresql\bin\net45\System.Runtime.CompilerServices.Unsafe.dll = database\config\postgresql\bin\net45\System.Runtime.CompilerServices.Unsafe.dll
-		database\config\postgresql\bin\net45\System.Threading.Tasks.Extensions.dll = database\config\postgresql\bin\net45\System.Threading.Tasks.Extensions.dll
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.oracle.Tests", "database\tests\qshine.database.oracle.Tests\qshine.database.oracle.Tests.csproj", "{FC8EDE17-435F-4336-BA8E-36B957F588E2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.mysql.Tests", "database\tests\qshine.database.mysql.Tests\qshine.database.mysql.Tests.csproj", "{08446864-3445-451C-ABFB-8585A86C5855}"
@@ -126,8 +60,61 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.postgresql.Tests", "database\tests\qshine.database.postgresql.Tests\qshine.database.postgresql.Tests.csproj", "{532CBFF1-45CD-4760-A1F9-E3269A8C6A39}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "input", "input", "{2CAD8C2F-BA02-45B2-BAB3-0D75E67D2C70}"
+	ProjectSection(SolutionItems) = preProject
+		input\readme.txt = input\readme.txt
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.sqlserver.Tests", "database\tests\qshine.database.sqlserver.Tests\qshine.database.sqlserver.Tests.csproj", "{06F0EB6E-99FE-4D2C-B26B-FC51782194A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.Tests", "Tests\qshine.Tests\qshine.Tests.csproj", "{AD0005FD-DAFF-43EB-811C-8702457D6576}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{FB1831D0-46DE-41AA-92A9-8C88A5541D4D}"
+	ProjectSection(SolutionItems) = preProject
+		config\database.config = config\database.config
+		config\ioc.config = config\ioc.config
+		config\logger.config = config\logger.config
+		config\main.config = config\main.config
+		config\readme.txt = config\readme.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "component", "component", "{27E75B89-DDB0-435C-9E21-2E62A95D2CFD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "database", "database", "{D07B6218-D672-4915-AE21-2588DC576302}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ioc", "ioc", "{AC044C5F-9137-42A7-81C1-D9F74F42D43E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "logger", "logger", "{84511206-4ABD-4114-ADDC-9BF60478778C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sqlite", "sqlite", "{5517EE4D-F1BF-40F5-A889-B82E8C0CC3D0}"
+	ProjectSection(SolutionItems) = preProject
+		config\component\database\sqlite\sqlite.config = config\component\database\sqlite\sqlite.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mysql", "mysql", "{7B0A57A1-FEEC-4F27-BF68-4DFB27FE5D10}"
+	ProjectSection(SolutionItems) = preProject
+		config\component\database\mysql\mysql.config = config\component\database\mysql\mysql.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "postgresql", "postgresql", "{1367ED42-A828-40A7-96EF-3F5015D0EAA5}"
+	ProjectSection(SolutionItems) = preProject
+		config\component\database\postgresql\postgresql.config = config\component\database\postgresql\postgresql.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "oracle", "oracle", "{F2AF1A5F-CB02-4AB8-98FE-D8A22BF57EFC}"
+	ProjectSection(SolutionItems) = preProject
+		config\component\database\oracle\oracle.config = config\component\database\oracle\oracle.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sqlserver", "sqlserver", "{34771691-E542-4A8A-8DA0-A02C8D8D98F4}"
+	ProjectSection(SolutionItems) = preProject
+		config\component\database\sqlserver\sqlserver.config = config\component\database\sqlserver\sqlserver.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "autofac", "autofac", "{39E6736C-0573-4F43-80D7-430D2C4410B3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nlog", "nlog", "{3883D6BB-183E-4B9F-8BC6-62234C8B3205}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.autofac.Tests", "qshine.extension\Tests\qshine.autofac.Tests\qshine.autofac.Tests.csproj", "{3B13425E-25AA-4C91-8140-EB401D89BDC1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -142,24 +129,12 @@ Global
 		{05162FC4-73A3-4190-A336-568E2289302C}.Default|Any CPU.Build.0 = Debug|Any CPU
 		{05162FC4-73A3-4190-A336-568E2289302C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{05162FC4-73A3-4190-A336-568E2289302C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{35C33326-EFDF-44D2-A247-6CB1B7B37125}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{35C33326-EFDF-44D2-A247-6CB1B7B37125}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{35C33326-EFDF-44D2-A247-6CB1B7B37125}.Default|Any CPU.ActiveCfg = Debug|Any CPU
-		{35C33326-EFDF-44D2-A247-6CB1B7B37125}.Default|Any CPU.Build.0 = Debug|Any CPU
-		{35C33326-EFDF-44D2-A247-6CB1B7B37125}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{35C33326-EFDF-44D2-A247-6CB1B7B37125}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}.Default|Any CPU.ActiveCfg = Debug|Any CPU
 		{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}.Default|Any CPU.Build.0 = Debug|Any CPU
 		{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}.Release|Any CPU.Build.0 = Release|Any CPU
-		{791CE255-66C3-4D07-8DF5-93654E3141B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{791CE255-66C3-4D07-8DF5-93654E3141B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{791CE255-66C3-4D07-8DF5-93654E3141B7}.Default|Any CPU.ActiveCfg = Debug|Any CPU
-		{791CE255-66C3-4D07-8DF5-93654E3141B7}.Default|Any CPU.Build.0 = Debug|Any CPU
-		{791CE255-66C3-4D07-8DF5-93654E3141B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{791CE255-66C3-4D07-8DF5-93654E3141B7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{77E94174-61DC-4BBD-8F4F-48F6F14E1D98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{77E94174-61DC-4BBD-8F4F-48F6F14E1D98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77E94174-61DC-4BBD-8F4F-48F6F14E1D98}.Default|Any CPU.ActiveCfg = Debug|Any CPU
@@ -244,15 +219,25 @@ Global
 		{06F0EB6E-99FE-4D2C-B26B-FC51782194A1}.Default|Any CPU.Build.0 = Debug|Any CPU
 		{06F0EB6E-99FE-4D2C-B26B-FC51782194A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{06F0EB6E-99FE-4D2C-B26B-FC51782194A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD0005FD-DAFF-43EB-811C-8702457D6576}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD0005FD-DAFF-43EB-811C-8702457D6576}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD0005FD-DAFF-43EB-811C-8702457D6576}.Default|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD0005FD-DAFF-43EB-811C-8702457D6576}.Default|Any CPU.Build.0 = Debug|Any CPU
+		{AD0005FD-DAFF-43EB-811C-8702457D6576}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD0005FD-DAFF-43EB-811C-8702457D6576}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B13425E-25AA-4C91-8140-EB401D89BDC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B13425E-25AA-4C91-8140-EB401D89BDC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B13425E-25AA-4C91-8140-EB401D89BDC1}.Default|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B13425E-25AA-4C91-8140-EB401D89BDC1}.Default|Any CPU.Build.0 = Debug|Any CPU
+		{3B13425E-25AA-4C91-8140-EB401D89BDC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B13425E-25AA-4C91-8140-EB401D89BDC1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{35C33326-EFDF-44D2-A247-6CB1B7B37125} = {9815AB74-82AC-463A-B740-B1D78CE5E6FA}
 		{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60} = {CCF4C5FB-952E-4D9B-B081-B9D693A56276}
 		{D82665D7-65D6-4788-A427-DCC973C267B0} = {CCF4C5FB-952E-4D9B-B081-B9D693A56276}
-		{791CE255-66C3-4D07-8DF5-93654E3141B7} = {D82665D7-65D6-4788-A427-DCC973C267B0}
 		{77E94174-61DC-4BBD-8F4F-48F6F14E1D98} = {CCF4C5FB-952E-4D9B-B081-B9D693A56276}
 		{EBA60DCA-6B98-4874-92E8-245499E32776} = {CCF4C5FB-952E-4D9B-B081-B9D693A56276}
 		{2C44E2C2-3D68-4D91-AA6B-8024E537BAB3} = {52DF755E-9402-4382-A8F5-BB6E3819B321}
@@ -269,21 +254,23 @@ Global
 		{DDFB91FB-2A90-4632-AB4E-8F9FD85E49A9} = {46374253-6732-43FD-91C3-535E70FECCB0}
 		{6E12E003-1C6F-4F04-8B81-77B1C5FB2D71} = {52DF755E-9402-4382-A8F5-BB6E3819B321}
 		{F93AC11B-0034-4345-9F86-F1DDE72D6911} = {6E12E003-1C6F-4F04-8B81-77B1C5FB2D71}
-		{FA46BCB6-7D11-4E4D-8C9E-712C253E630C} = {52DF755E-9402-4382-A8F5-BB6E3819B321}
-		{1DBCCCC3-4388-4FF2-B85F-ED6FAEBBE626} = {FA46BCB6-7D11-4E4D-8C9E-712C253E630C}
-		{DC11D8CE-B2DC-478E-AD4A-4B393FF1E2D3} = {1DBCCCC3-4388-4FF2-B85F-ED6FAEBBE626}
-		{C9FEDBAA-DACD-4251-A4BA-8E5E54FAC40A} = {DC11D8CE-B2DC-478E-AD4A-4B393FF1E2D3}
-		{4A017706-7539-4022-BE73-1F6334B40177} = {C9FEDBAA-DACD-4251-A4BA-8E5E54FAC40A}
-		{6D15FAC6-DD5C-4215-9125-8324DADAACC7} = {C9FEDBAA-DACD-4251-A4BA-8E5E54FAC40A}
-		{4C50CC92-B5E0-4CFD-81F9-79EC980DAF9E} = {FA46BCB6-7D11-4E4D-8C9E-712C253E630C}
-		{2A557F32-7B49-4514-87C0-B00A85291198} = {4C50CC92-B5E0-4CFD-81F9-79EC980DAF9E}
-		{433A48DA-6D75-4F50-A3ED-8346201BEB9F} = {FA46BCB6-7D11-4E4D-8C9E-712C253E630C}
-		{98AEE80F-0D42-4E6D-A81B-266C456534DC} = {433A48DA-6D75-4F50-A3ED-8346201BEB9F}
-		{9C888C66-CEF5-4390-A23E-DB66E881F309} = {98AEE80F-0D42-4E6D-A81B-266C456534DC}
 		{FC8EDE17-435F-4336-BA8E-36B957F588E2} = {6E12E003-1C6F-4F04-8B81-77B1C5FB2D71}
 		{08446864-3445-451C-ABFB-8585A86C5855} = {6E12E003-1C6F-4F04-8B81-77B1C5FB2D71}
 		{532CBFF1-45CD-4760-A1F9-E3269A8C6A39} = {6E12E003-1C6F-4F04-8B81-77B1C5FB2D71}
 		{06F0EB6E-99FE-4D2C-B26B-FC51782194A1} = {6E12E003-1C6F-4F04-8B81-77B1C5FB2D71}
+		{AD0005FD-DAFF-43EB-811C-8702457D6576} = {9815AB74-82AC-463A-B740-B1D78CE5E6FA}
+		{27E75B89-DDB0-435C-9E21-2E62A95D2CFD} = {FB1831D0-46DE-41AA-92A9-8C88A5541D4D}
+		{D07B6218-D672-4915-AE21-2588DC576302} = {27E75B89-DDB0-435C-9E21-2E62A95D2CFD}
+		{AC044C5F-9137-42A7-81C1-D9F74F42D43E} = {27E75B89-DDB0-435C-9E21-2E62A95D2CFD}
+		{84511206-4ABD-4114-ADDC-9BF60478778C} = {27E75B89-DDB0-435C-9E21-2E62A95D2CFD}
+		{5517EE4D-F1BF-40F5-A889-B82E8C0CC3D0} = {D07B6218-D672-4915-AE21-2588DC576302}
+		{7B0A57A1-FEEC-4F27-BF68-4DFB27FE5D10} = {D07B6218-D672-4915-AE21-2588DC576302}
+		{1367ED42-A828-40A7-96EF-3F5015D0EAA5} = {D07B6218-D672-4915-AE21-2588DC576302}
+		{F2AF1A5F-CB02-4AB8-98FE-D8A22BF57EFC} = {D07B6218-D672-4915-AE21-2588DC576302}
+		{34771691-E542-4A8A-8DA0-A02C8D8D98F4} = {D07B6218-D672-4915-AE21-2588DC576302}
+		{39E6736C-0573-4F43-80D7-430D2C4410B3} = {AC044C5F-9137-42A7-81C1-D9F74F42D43E}
+		{3883D6BB-183E-4B9F-8BC6-62234C8B3205} = {84511206-4ABD-4114-ADDC-9BF60478778C}
+		{3B13425E-25AA-4C91-8140-EB401D89BDC1} = {D82665D7-65D6-4788-A427-DCC973C267B0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {68E665BD-64B6-4223-85AE-2936717945D7}

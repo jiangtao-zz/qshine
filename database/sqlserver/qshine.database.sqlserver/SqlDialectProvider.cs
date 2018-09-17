@@ -204,6 +204,36 @@ namespace qshine.database.sqlserver
                 );
         }
 
+        public override string ColumnRemoveIndexClause(string tableName, SqlDDLColumn column)
+        {
+            var indexName = SqlDDLTable.GetIndexName(tableName, column);
+
+            return
+                FormatCommandSqlLine("drop index {0} on {1}",
+                indexName, column.TableName);
+        }
+
+        public override List<string> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        {
+            throw new NotSupportedException(
+@"Sql Server do not support modifying column to auto increment.
+To add auto increment you need manually perform below actions:
+ (a) Rename the column to a temp column
+ (b) Add a new auto increment column
+ (c) Copy the temp column data to new created column
+ (d) Drop the temp column.");
+        }
+
+        public override List<string> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        {
+            throw new NotSupportedException(
+@"Sql Server do not support column auto increment dropping.
+To drop auto increment you need manually perform below actions:
+ (a) Rename auto increment column to a temp column
+ (b) Add a new non auto increment column
+ (c) Copy temp column data to new created column
+ (d) Drop temp column. (may re-link the FK before column dropping).");
+        }
 
 
         public override string ColumnNotNullClause(string tableName, SqlDDLColumn column)

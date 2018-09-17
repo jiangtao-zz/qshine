@@ -63,4 +63,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\..\packages\System.Data.SQLite.Core.1.0.109.1\build\net45\System.Data.SQLite.Core.targets" Condition="Exists('..\..\..\packages\System.Data.SQLite.Core.1.0.109.1\build\net45\System.Data.SQLite.Core.targets')" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)*.*" "$(SolutionDir)config\component\database\sqlite\bin\"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

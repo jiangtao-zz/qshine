@@ -20,8 +20,8 @@ namespace qshine.ioc.autofac
     {
         #region Fields
 
-        private ContainerBuilder builder;
-        private IContainer container;
+        private ContainerBuilder _builder;
+        private IContainer _container;
 
         #endregion
 
@@ -29,7 +29,7 @@ namespace qshine.ioc.autofac
 
         public Container()
         {
-            builder = new ContainerBuilder();
+            _builder = new ContainerBuilder();
         }
 
         #endregion
@@ -60,13 +60,13 @@ namespace qshine.ioc.autofac
 				var scope = LifeTimeScope;
 				if (scope == null)
 				{
-					return string.IsNullOrEmpty(name)
-						 ? AutofacContainer.ResolveNamed(name, requestedType)
-						 : AutofacContainer.Resolve(requestedType);
+                    return string.IsNullOrEmpty(name)
+                         ? AutofacContainer.Resolve(requestedType)
+                         : AutofacContainer.ResolveNamed(name, requestedType);
 				}
 				return string.IsNullOrEmpty(name)
-					 ? scope.ResolveNamed(name, requestedType)
-					 : scope.Resolve(requestedType);
+					 ? scope.Resolve(requestedType)
+                     : scope.ResolveNamed(name, requestedType);
             }
             catch (Exception ex)
             {
@@ -91,17 +91,26 @@ namespace qshine.ioc.autofac
         {
             try
             {
+                if (actualType == null)
+                {
+                    actualType = requestedType;
+                }
+
                 if (requestedType.IsGenericTypeDefinition)
                 {
                     IRegistrationBuilder<object, ReflectionActivatorData, DynamicRegistrationStyle> dynamicInstanceScope;
-                    dynamicInstanceScope = builder.RegisterGeneric(actualType);
-                    if (String.IsNullOrEmpty(name))
+                    dynamicInstanceScope = _builder.RegisterGeneric(actualType);
+                    if (requestedType != actualType)
                     {
-                        dynamicInstanceScope = dynamicInstanceScope.As(requestedType);
-                    }
-                    else
-                    {
-                        dynamicInstanceScope = dynamicInstanceScope.Named(name, requestedType);
+
+                        if (String.IsNullOrEmpty(name))
+                        {
+                            dynamicInstanceScope = dynamicInstanceScope.As(requestedType);
+                        }
+                        else
+                        {
+                            dynamicInstanceScope = dynamicInstanceScope.Named(name, requestedType);
+                        }
                     }
                     if(constructorParameters.Length>0){
                         dynamicInstanceScope = dynamicInstanceScope.WithParameters(AutofacNamedParameters(constructorParameters));
@@ -111,14 +120,17 @@ namespace qshine.ioc.autofac
                 else
                 {
                     IRegistrationBuilder<object, ConcreteReflectionActivatorData, SingleRegistrationStyle> instanceScope;
-                    instanceScope = builder.RegisterType(actualType);
-                    if (String.IsNullOrEmpty(name))
+                    instanceScope = _builder.RegisterType(actualType);
+                    if (requestedType != actualType)
                     {
-                        instanceScope = instanceScope.As(requestedType);
-                    }
-                    else
-                    {
-                        instanceScope = instanceScope.Named(name, requestedType);
+                        if (String.IsNullOrEmpty(name))
+                        {
+                            instanceScope = instanceScope.As(requestedType);
+                        }
+                        else
+                        {
+                            instanceScope = instanceScope.Named(name, requestedType);
+                        }
                     }
                     if (constructorParameters.Length > 0)
                     {
@@ -156,11 +168,11 @@ namespace qshine.ioc.autofac
                 IRegistrationBuilder<object,SimpleActivatorData, SingleRegistrationStyle> instanceScope;
                 if (String.IsNullOrEmpty(name))
                 {
-                    instanceScope = builder.RegisterInstance(instance).As(requestedType);
+                    instanceScope = _builder.RegisterInstance(instance).As(requestedType);
                 }
                 else
                 {
-                    instanceScope = builder.RegisterInstance(instance).Named(name, requestedType);
+                    instanceScope = _builder.RegisterInstance(instance).Named(name, requestedType);
                 }
                 return this;
             }
@@ -213,9 +225,9 @@ namespace qshine.ioc.autofac
 
 		public override void Dispose()
         {
-            if (container != null)
+            if (_container != null)
             {
-                container.Dispose();
+                _container.Dispose();
             }
         }
 
@@ -229,7 +241,7 @@ namespace qshine.ioc.autofac
         {
             get
             {
-                return this.builder;
+                return this._builder;
             }
         }
 
@@ -244,12 +256,12 @@ namespace qshine.ioc.autofac
         {
             get
             {
-                if (container == null)
+                if (_container == null)
                 {
                     //Build top container
-                    container = builder.Build();
+                    _container = _builder.Build();
                 }
-                return container;
+                return _container;
             }
         }
 

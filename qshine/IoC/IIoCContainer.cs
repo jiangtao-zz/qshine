@@ -96,15 +96,28 @@ namespace qshine
 		/// <param name="constructorParameters">Optional constructor parameters for class instanciate</param>
         IIocContainer RegisterType(Type requestedType, Type actualType, params NamedValue[] constructorParameters);
 
-		/// <summary>
-		/// Register a named requested type (interface) and implementation class type association with a lifetime option.
-		/// </summary>
-		/// <typeparam name="IT">requested type or interface</typeparam>
-		/// <typeparam name="T">Actual type of implementation class to be instanciated later by Resolve()</typeparam>
-		/// <param name="name">A name associate to particular registration of interface and type calss association. null or String.Empty for default registration</param>
-		/// <param name="lifetimeOption">Option to manage the life time of IoC instance creation.</param>
-		/// <param name="constructorParameters">Optional constructor parameters for class instanciate</param>
-		/// <returns>Current container instance</returns>
+        /// <summary>
+        /// Register type that consume contructor injection interface
+        /// </summary>
+        /// <param name="actualType">Actual type of implementation class to be instanciated with other interface</param>
+		/// <param name="constructorParameters">Optional constructor parameters for class. 
+        /// The registered interface parameters will be injected automatically</param>
+        /// <returns></returns>
+        IIocContainer RegisterType(Type actualType, params NamedValue[] constructorParameters);
+        IIocContainer RegisterType<T>(params NamedValue[] constructorParameters);
+
+        IIocContainer RegisterPropertyInjection<T>(string );
+
+
+        /// <summary>
+        /// Register a named requested type (interface) and implementation class type association with a lifetime option.
+        /// </summary>
+        /// <typeparam name="IT">requested type or interface</typeparam>
+        /// <typeparam name="T">Actual type of implementation class to be instanciated later by Resolve()</typeparam>
+        /// <param name="name">A name associate to particular registration of interface and type calss association. null or String.Empty for default registration</param>
+        /// <param name="lifetimeOption">Option to manage the life time of IoC instance creation.</param>
+        /// <param name="constructorParameters">Optional constructor parameters for class instanciate</param>
+        /// <returns>Current container instance</returns>
         IIocContainer RegisterType<IT, T>(string name, IocInstanceScope lifetimeOption, params NamedValue[] constructorParameters)
             where IT : class
             where T : class, IT;
@@ -188,7 +201,6 @@ namespace qshine
         IIocContainer RegisterType<IT>(Type actualType, params NamedValue[] constructorParameters)
             where IT : class;
 
-
         /// <summary>
 		/// Register a requested type (interface) mapping to an actual implementation class instance.
         /// </summary>
@@ -225,6 +237,7 @@ namespace qshine
         /// <returns>Current container</returns>
         IIocContainer RegisterInstance(Type requestedType, object instance,string name);
 
+        
         /// <summary>
         /// Register required types and implementation classes from a separated module insatnce
         /// </summary>

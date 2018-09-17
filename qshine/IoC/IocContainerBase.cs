@@ -90,11 +90,22 @@ namespace qshine
 			return Resolve(requestedType, String.Empty);
 		}
 
-		#endregion
+        #endregion
 
-		#region RegisterType
+        #region RegisterType
 
-		public virtual IIocContainer RegisterType<IT, T>(params NamedValue[] constructorParameters)
+        public virtual IIocContainer RegisterType(Type actualType, params NamedValue[] constructorParameters)
+        {
+            return RegisterType(actualType, null, string.Empty, constructorParameters);
+        }
+
+        public virtual IIocContainer RegisterType<T>(params NamedValue[] constructorParameters)
+        {
+            return RegisterType(typeof(T), constructorParameters);
+        }
+
+
+        public virtual IIocContainer RegisterType<IT, T>(params NamedValue[] constructorParameters)
 			where IT : class
 			where T : class, IT
 		{

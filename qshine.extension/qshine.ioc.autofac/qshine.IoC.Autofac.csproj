@@ -57,4 +57,7 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)*.*" "$(SolutionDir)config\component\ioc\autofac\bin\"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

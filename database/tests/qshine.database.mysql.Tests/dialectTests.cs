@@ -286,7 +286,7 @@ namespace qshine.database.mysql.Tests
 
             using (var dbclient = new DbClient(_testDb))
             {
-                var result = dbclient.Sql(true, sqls);
+                var result = dbclient.Sql(false, sqls);
                 Assert.IsTrue(result);
 
 
@@ -336,7 +336,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                var result = dbclient.Sql(true, sqls);
+                var result = dbclient.Sql(false, sqls);
                 Assert.IsTrue(result);
 
 
@@ -411,7 +411,7 @@ namespace qshine.database.mysql.Tests
             {
 
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 //insert data for compare
@@ -436,7 +436,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 var data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='AAA'", testTable));
@@ -490,7 +490,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 //insert data for compare
@@ -557,7 +557,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 //insert data for compare
@@ -696,7 +696,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 //insert data for compare
@@ -722,7 +722,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 //check for index
@@ -824,7 +824,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 //insert data for compare
@@ -847,7 +847,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 try
@@ -890,7 +890,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 //insert data for compare
@@ -912,7 +912,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 dbclient.Sql(string.Format("insert into {0}(T2) values('BBB')", testTable));
@@ -953,7 +953,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
                 //insert data for compare
                 dbclient.Sql(string.Format("insert into {0}(T2,T3) values({1}p1,15)", testTable, dialect.ParameterPrefix)
@@ -1036,7 +1036,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
                 //insert data for compare
                 dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix)
@@ -1054,7 +1054,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
 
                 dbclient.Sql(string.Format("insert into {0}(T2) values('BBB')", testTable));
@@ -1296,13 +1296,11 @@ namespace qshine.database.mysql.Tests
                 dbclient.Sql(false, sqls);
 
 
-                try
-                {
-                    //insert record 3 throw exception without auto increase
-                    dbclient.Sql(string.Format("insert into {0}(T1) values('AAA2')", testTable));
-                    Assert.Fail("Failed to remove auto increase clause.");
-                }
-                catch { }
+                //insert record 3 throw exception without auto increase
+                dbclient.Sql(string.Format("insert into {0}(id, T1) values(99,'AAA2')", testTable));
+
+                var id3 = dbclient.SqlSelect(string.Format("select id from {0} where T1='AAA2'", testTable));
+                Assert.AreEqual(99UL, id3);
 
                 trackingTable = new TrackingTable(table);
 
@@ -1315,11 +1313,12 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(false, sqls);
 
                 //insert record 3 should not throw exception
                 dbclient.Sql(string.Format("insert into {0}(T1) values('AAA4')", testTable));
-
+                var id4 = dbclient.SqlSelect(string.Format("select id from {0} where T1='AAA4'", testTable));
+                Assert.AreEqual(100UL, id4);
             }
             DropTable(testTable);
 
