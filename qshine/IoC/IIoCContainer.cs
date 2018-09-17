@@ -5,40 +5,49 @@ using qshine.Configuration;
 namespace qshine
 
 {
-	/// <summary>
-	/// IoC container interface
-	/// </summary>	
+    /// <summary>
+    /// IoC container interface for Dependancy Injection.
+    /// 
+    /// NOTE: IoC may come with anti-pattern when it overly uses in programming without understanding the concept. 
+    /// Be cautions for case IoC may not necessary or need extra care, such as simple implementation, circular dependency, mix with primitive injection.
+    /// </summary>	
     public interface IIocContainer:IDisposable
     {
         /// <summary>
         /// Get an instance of the requested type with the given name.
         /// </summary>
         /// <param name="requestedType">Requested type of object. usually, a interface or high level class</param>
-        /// <param name="name">The name of the object to be retrieved from container. Different named requested type can instantiate different type of class instance.</param>
+        /// <param name="name">The name of the object to be retrieved from the container. 
+        /// Different named requested type can instantiate a different type of implementation class,
+        /// or a different parameterized class constructor.</param>
         /// <returns>The instance object to be return</returns>
         /// <remarks>
-        /// The same requested type could be associated to many different actual types. Each of them are named differently.
+        /// The same requested type could be associated to many different actual types (polymorphism, class implementation). 
+        /// Each of them should be named differently.
         /// For example:
         ///  In a multi-tenants application, most tenants consume a common service, but certain tenants require a special service. 
         ///  We create a interface ITenantService and implement two CommonTenantService and SpecialTenantService. 
-        ///  IoC registered two service type registration, one is default and other is "specialService".
-        ///  Now, we can consume the class instance through container: container.Resolve&lt;ITenantService&gt;(specialTenantKey). 
-        ///  The specialTenantKey is null for common tenants.
+        ///  IoC registered two service type registration, one is default and other is named "specialService".
+        ///  Now, we can consume named service for special service: 
+        ///     var specialService = container.Resolve&lt;ITenantService&gt;(specialTenantKey).
+        ///  or, just get default service without name:
+        ///     var service = container.Resolve&lt;ITenantService&gt;().
         ///  
-        /// If no any matched type found, it raised exception. The instance could be a singleton or transient object
+        /// If no any registered type found, it raised exception. The returned instance could be a singleton or transient object depend on registered type lifescope.
         /// </remarks>
 		object Resolve(Type requestedType, string name);
-		/// <summary>
-		/// Get actual implementation class instance of the requested type (interface) from the container
-		/// </summary>
-		/// <param name="requestedType">Requested type of object. usually, a interface or class</param>
-		/// <returns>The actual implementation class instance object to be return</returns>
+
+        /// <summary>
+        /// Get an instance of the requested type from the container.
+        /// </summary>
+        /// <param name="requestedType">Requested type of object. The requested type could be an interface or class</param>
+        /// <returns>The instance object to be return</returns>
         object Resolve(Type requestedType);
 
         /// <summary>
-		/// Get actual implementation class instance of the requested type (interface) from the container
+        /// Get an instance of the requested type from the container.
         /// </summary>
-        /// <typeparam name="T">Requested type of object. usually, a interface or class</typeparam>
+        /// <typeparam name="T">Requested type of object. The requested type could be an interface or class</typeparam>
         /// <returns>The instance object to be return</returns>
         /// <remarks>
         /// It's the most common way to get instance through IoC.
@@ -106,7 +115,7 @@ namespace qshine
         IIocContainer RegisterType(Type actualType, params NamedValue[] constructorParameters);
         IIocContainer RegisterType<T>(params NamedValue[] constructorParameters);
 
-        IIocContainer RegisterPropertyInjection<T>(string );
+        IIocContainer RegisterPropertyInjection<T>(string propertyName);
 
 
         /// <summary>
