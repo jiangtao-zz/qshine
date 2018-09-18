@@ -1,6 +1,8 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Autofac;
+using qshine.Configuration;
+
 namespace qshine.autofac.Tests
 {
     [TestClass]
@@ -29,16 +31,22 @@ namespace qshine.autofac.Tests
         }
 
         [TestMethod]
-        public void PropertyInjection_Test()
+        public void Named_ConstructorInjection_Test()
         {
             var provider = new qshine.ioc.autofac.Provider();
             var container = provider.CreateContainer();
-            container.RegisterType<IIoCTest, TestIoC>();
-            container.RegisterType<ConsumeTestComponent>();
+            //container.RegisterType<IIoCTest, TestIoC>();
+            container.RegisterType<IIoCTest, TestIoC2>();
 
-            var instance = container.Resolve<ConsumeTestComponent>();
+           // var r = container.Resolve<IIoCTest>("n1");
+            //Assert.AreEqual(4, r.SaveData("123"));
+
+
+            container.RegisterType<ConsumeTestComponent, ConsumeTestComponent>("n1");
+
+            var instance = container.Resolve<ConsumeTestComponent>("n1");
             var result = instance.ConsumeMethod("123");
-            Assert.AreEqual(3, result);
+            Assert.AreEqual(4, result);
         }
 
     }
@@ -56,7 +64,19 @@ namespace qshine.autofac.Tests
         }
     }
 
-    public class ConsumeTestComponent
+    public class TestIoC2 : IIoCTest
+    {
+        public int SaveData(string data)
+        {
+            return data.Length+1;
+        }
+    }
+
+    public interface IDummy
+    {
+
+    }
+    public class ConsumeTestComponent: IDummy
     {
         IIoCTest _Instance;
         public ConsumeTestComponent(IIoCTest constructorInjection)
@@ -70,13 +90,17 @@ namespace qshine.autofac.Tests
         }
     }
 
-    public class ConsumeTestComponent2
+    public class ConsumeTestComponent2: IDummy
     {
-        IIoCTest Instance { get; set; }
+        int _x;
+        public ConsumeTestComponent2(int x)
+        {
+            _x = x;
+        }
 
         public int ConsumeMethod(string data)
         {
-            return Instance.SaveData(data);
+            return _x;
         }
     }
 }

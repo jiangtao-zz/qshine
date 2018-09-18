@@ -131,7 +131,11 @@ namespace qshine.ioc.autofac
                         {
                             instanceScope = instanceScope.Named(name, requestedType);
                         }
+                    }else if (!String.IsNullOrEmpty(name))
+                    {
+                        instanceScope = instanceScope.Named(name, requestedType);
                     }
+
                     if (constructorParameters.Length > 0)
                     {
                         instanceScope = instanceScope.WithParameters(AutofacNamedParameters(constructorParameters));
