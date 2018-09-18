@@ -18,17 +18,41 @@ namespace qshine.database
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:qshine.database.SqlDDLBuilder"/> class.
+        /// Create a new SqlDDLBuilder instance by given sql dialect provider and connection string
         /// </summary>
-        /// <param name="connectionStringName">Database name.</param>
+        /// <param name="sqlDialectProvider">Specific SQL dialect provider</param>
+        /// <param name="connectionStringName">Database connection string name</param>
+        public SqlDDLBuilder(ISqlDialectProvider sqlDialectProvider, string connectionStringName)
+        {
+            Initialize(sqlDialectProvider, connectionStringName);
+        }
+
+        /// <summary>
+        /// Create a new SqlDDLBuilder instance by connection string with default sql sialect provider
+        /// </summary>
+        /// <param name="sqlDialectProvider">Specific SQL dialect provider</param>
+        /// <param name="connectionStringName">Database connection string name</param>
         public SqlDDLBuilder(string connectionStringName)
 		{
+            var sqlDialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            if (sqlDialectProvider == null)
+            {
+                throw new NotImplementedException("Couldn't load Sql database provider from environment configuration.");
+            }
+            Initialize(sqlDialectProvider, connectionStringName);
+        }
+        /// <summary>
+        /// Class initialization
+        /// </summary>
+        /// <param name="sqlDialectProvider">Specific SQL dialect provider</param>
+        /// <param name="connectionStringName">Database connection string name</param>
+        void Initialize(ISqlDialectProvider sqlDialectProvider, string connectionStringName)
+        {
+            _sqlDialectProvider = sqlDialectProvider;
             _database = new Database(connectionStringName);
-
-			//ConnectionStringName = connectionStringName;
-			_tables = new List<SqlDDLTable>();
-			LoadSqlDialect(_database.ConnectionString);
-		}
+            _tables = new List<SqlDDLTable>();
+            _sqlDialect = _sqlDialectProvider.GetSqlDialect(_database.ConnectionString);
+        }
 
         SqlDDLTracking _trackingTable;
         SqlDDLTracking TrackingTable
@@ -158,7 +182,7 @@ namespace qshine.database
             return true;
         }
 
-        public void BatchSql(List<string> sqls)
+        void BatchSql(List<string> sqls)
         {
             DBClient.Sql(true, sqls);
         }
@@ -169,7 +193,7 @@ namespace qshine.database
         /// Get database client instance for database access.
         /// DBClient access database through .NET ADO.
         /// </summary>
-        public DbClient DBClient
+        DbClient DBClient
         {
             get
             {
@@ -299,24 +323,6 @@ namespace qshine.database
         public string LastErrorMessage
 		{
             get;set;
-		}
-
-		/// <summary>
-		/// Gets the database instance.
-		/// </summary>
-		/// <returns>The database instance.</returns>
-		/// <param name="connectionString">Connection string name.</param>
-		public void LoadSqlDialect(string connectionString)
-		{
-			if (_sqlDialectProvider == null)
-			{
-				_sqlDialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
-				if (_sqlDialectProvider == null)
-				{
-					throw new NotImplementedException("Couldn't load Sql database provider from environment configuration.");
-				}				
-			}
-			_sqlDialect = _sqlDialectProvider.GetSqlDialect(connectionString);
 		}
 
 		static bool _internalTableExists = false;
