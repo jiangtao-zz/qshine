@@ -17,9 +17,9 @@ namespace qshine
     ///     4. Abuse interface-concrete class DI
     /// As a best practice:
     /// 1. Keep IoC in high level program (composition root or close to root) 
-    ///    or, in low level infrastructure component (bootstrap or config file) to avoid coupling with your class implementation.
-    /// 2. Use constructor injection only. (use in final class, avoid for class hierarchies)
-    /// 3. Avoid setter or property injection (optional dependencies)
+    ///    or, in low level infrastructure component (bootstrap or config file) to avoid coupling with your application class.
+    /// 2. Use constructor injection if possible. (use in final class, avoid for class hierarchies)
+    /// 3. Avoid setter or property injection (optional dependencies, beware the side effects)
     /// 4. Avoid to use DI if it has only one interface implementation.
     /// </summary>	
     public interface IIocContainer:IDisposable

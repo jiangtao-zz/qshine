@@ -1,0 +1,74 @@
+﻿@startuml
+!include <tupadr3/common>
+!include <office/Servers/database_server>
+!include <office/Servers/application_server>
+!include <office/Concepts/firewall_orange>
+!include <office/Clouds/cloud>
+!include <office/Devices/device_tablet_ipad>
+!include <office/Users/online_user>
+
+
+skinparam {
+	backgroundColor white
+	titleFontSize 32
+	titleBorderRoundCorner 30
+	titleBorderThickness 0
+	titleBorderColor white
+	titleBackgroundColor Aqua-CadetBlue
+	}
+
+left header
+Web application is built on top of application service layer. The application service response to take request to perform domain data read or state change from persistent storage.
+Application Domain Core perform business domain logic based on the request.
+The infrastructure component provides common services helping application to deal with cross cutting concerns. 
+Replaceable service components could be plugged in to application.  
+endheader
+
+title Web Application Architechture
+
+frame " " as fr {
+
+[Application Domain Core] <<project>> as dcore
+
+[Plug\nInfrastructure] <<system>> as Infs
+() "Register/Config" as Plugin
+
+Infs -right- Plugin
+
+[Application Service] <<project>>
+
+[Application Service] .down..> dcore 
+
+[ORM] as ORM
+[Application Persistence \nImplementation] as Persistence
+[Database] as Db
+
+rectangle "Cross Cutting Concerns" <<Concept>> as ct {
+	rectangle "components" <<Concept>>
+}
+
+Plugin ..(0.. ct:Plugin
+Plugin .up0). Persistence:Plugin
+Persistence .right..> ORM
+ORM .right..> Db
+
+Plugin ..right(0.. [Service Providers ...]:Plugin
+
+dcore .right..>Infs
+[Application Service] ..>Infs
+
+[Web UI] ..> [Application Service]
+[Web APIs] .left--> [Application Service]
+[Web UI] ..> [Web APIs]
+
+OFF_CLOUD(cloud1)
+OFF_ONLINE_USER(user, "Online User")
+
+OFF_DEVICE_TABLET_IPAD(ipad1, "web client apps")
+
+ipad1 ..left..>cloud1
+cloud1 ..left--> [Web APIs]
+user ..left..>[Web UI]
+}
+
+@enduml

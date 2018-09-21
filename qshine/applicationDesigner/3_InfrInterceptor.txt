@@ -1,0 +1,66 @@
+﻿@startuml
+!include <tupadr3/common>
+!include <office/Servers/database_server>
+!include <office/Servers/application_server>
+!include <office/Concepts/firewall_orange>
+!include <office/Clouds/cloud>
+!include <office/Devices/device_tablet_ipad>
+!include <office/Users/online_user>
+
+
+skinparam {
+	backgroundColor white
+	titleFontSize 32
+	titleBorderRoundCorner 30
+	titleBorderThickness 0
+	titleBorderColor white
+	titleBackgroundColor Aqua-CadetBlue
+	}
+
+left header
+The infrastructure Interceptor provide mechanism for those methods that may require extrnal plugin compoenet perform message/action filter before or after calling method.
+endheader
+
+title Plug-in infrastructure: Interceptor
+
+
+frame "Interceptor Class and Use" as intcpt {
+
+rectangle "Any class method" <<Concept>> {
+	rectangle "Method" <<Concept>> as interceptMethod
+}
+
+[Interceptor]
+
+[interceptMethod] ..>JoinPoint:use
+
+JoinPoint -Interceptor 
+() OnEnter
+() OnSuccess
+() OnExit
+() OnException
+
+Interceptor --OnEnter:Event
+Interceptor --OnSuccess:Event
+Interceptor --OnExit:Event
+Interceptor --OnException:Event
+
+}
+
+frame "Plugable Method Interceptor" as plugin {
+
+rectangle InterceptMethodOnExit
+rectangle InterceptMethodOnException
+rectangle InterceptMethodOnSuccess
+rectangle InterceptMethodOnEnter
+
+OnExit <.down..InterceptMethodOnExit :Post-call
+OnException <.down. InterceptMethodOnException : Call raise exception
+OnSuccess<.down.InterceptMethodOnSuccess :Call sucess
+OnEnter<.down.InterceptMethodOnEnter: Pre-call
+
+
+}
+
+@enduml
+

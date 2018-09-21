@@ -159,7 +159,11 @@
     <Compile Include="Messaging\CommandBus.cs" />
     <Compile Include="Utility\SafeDictionary.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="applicationDesigner\1_ServiceBasedWebApplication.txt" />
+    <Content Include="applicationDesigner\1_WebApplication.txt" />
+    <Content Include="applicationDesigner\3_InfrInterceptor.txt" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Resource.resx" />
     <None Include="sampleEnvironment\myApplicationFolder\app.config" />
@@ -170,7 +174,7 @@
     <None Include="IoC\0-readme.txt" />
     <None Include="Context\0-readme.txt" />
     <None Include="Configuration\0-readme.txt" />
-    <None Include="applicationDesigner\1_highLevel.txt" />
+    <None Include="applicationDesigner\2_InfrastructureConfig.txt" />
     <None Include="applicationDesigner\0_readme.txt" />
     <None Include="applicationDesigner\configStructure.txt" />
     <None Include="applicationDesigner\configureTypicApplication.txt" />

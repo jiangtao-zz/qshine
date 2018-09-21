@@ -1,0 +1,82 @@
+﻿@startuml
+!include <tupadr3/common>
+!include <office/Servers/database_server>
+!include <office/Servers/application_server>
+!include <office/Concepts/firewall_orange>
+!include <office/Clouds/cloud>
+!include <office/Devices/device_tablet_ipad>
+!include <office/Users/online_user>
+
+
+skinparam {
+	backgroundColor white
+	titleFontSize 32
+	titleBorderRoundCorner 30
+	titleBorderThickness 0
+	titleBorderColor white
+	titleBackgroundColor Aqua-CadetBlue
+	frame center
+	}
+left header
+Service based web application will use service APIs to communicate with different service modules. The service API is provided by API Gateway. Each domain module service APIs must be register or configure in API Gateway server.
+The service module could be a RESTful Web APIs provider or be a web application (see next page) with both web UI and web APIs available.
+endheader
+
+title Service based Web Application Architechture
+
+frame " " as fr {
+
+[Web Apps,\nClient Web Apps,\nMobile Apps] as app
+OFF_CLOUD(cloud)
+[API Gateway] as gateway
+() "Register/Config" as injectPoint
+app .right.. cloud
+cloud .down.> gateway
+injectPoint -up- gateway
+
+
+OFF_CLOUD(cloud1)
+ cloud1 .right.> injectPoint:plugin
+frame "Web Service \n Module 1" {
+	[Web APIs] as api1
+	[Web UI] as ui1
+	[Application Service/Domain] as domain1
+	[Plugin\nInfrastructure] as infr1
+	api1 ..up. cloud1
+	api1 -down-> domain1
+	ui1 -down-> domain1
+	ui1 .right.>api1
+}
+
+OFF_CLOUD(cloud2)
+ cloud2 .up.> injectPoint:plugin
+frame "Web Service \n Module 2" {
+	[Web APIs] as api2
+	[Web UI] as ui2
+	[Application Service/Domain] as domain2
+	[Plugin\nInfrastructure] as infr2
+	api2 .up. cloud2
+	api2 -down-> domain2
+	ui2 -down-> domain2
+	ui2 .left.>api2
+}
+
+OFF_CLOUD(cloud3)
+cloud3 .left.> injectPoint:plugin
+frame "Web Service \n Module N" {
+	[Web APIs] as api3
+	[Web UI] as ui3
+	[Application Service/Domain] as domain3
+	[Plugin\nInfrastructure] as infr3
+	api3 ..up. cloud3
+	api3 -down-> domain3
+	ui3 -down-> domain3
+	ui3 .left.>api3
+}
+}
+
+
+
+footer 1
+
+@enduml

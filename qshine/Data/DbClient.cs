@@ -115,37 +115,39 @@ namespace qshine
 		/// <param name="parameters">input parameters and output parameters</param>
 		public int ExecuteNonQuery(CommandType commandType, string commandString, DbParameters parameters=null)
 		{
-			return _interceptor.JoinPoint<int>(() =>
-			{
-				var result = 0;
-				using (var command = ActiveConnection.CreateCommand())
-				{
-					command.CommandType = commandType;
-					command.CommandText = commandString;
-					if (parameters != null && parameters.Params != null && parameters.Params.Count > 0)
-					{
-						AddCommandParameters(command, parameters.Params);
-					}
-					result = command.ExecuteNonQuery();
-					if (parameters != null && parameters.Params != null && parameters.Params.Count > 0)
-					{
-						RetrieveCommandParameterValues(command, parameters.Params);
-					}
-				}
-				return result;
-			}, this, "ExecuteNonQuery",commandType,commandString,parameters);
+            Func<int> method = () =>
+               {
+                   var result = 0;
+                   using (var command = ActiveConnection.CreateCommand())
+                   {
+                       command.CommandType = commandType;
+                       command.CommandText = commandString;
+                       if (parameters != null && parameters.Params != null && parameters.Params.Count > 0)
+                       {
+                           AddCommandParameters(command, parameters.Params);
+                       }
+                       result = command.ExecuteNonQuery();
+                       if (parameters != null && parameters.Params != null && parameters.Params.Count > 0)
+                       {
+                           RetrieveCommandParameterValues(command, parameters.Params);
+                       }
+                   }
+                   return result;
+               };
+
+            return _interceptor.JoinPoint(method, this, "ExecuteNonQuery", commandType, commandString, parameters);
 		}
 
-		/// <summary>
-		/// Execute Sql statement or a stored procedure
-		/// 
-		/// ExecuteScalar(CommandType.Text,"select 1 from tb1 where name=:p1 and age=:p2", DbParameters.New.Input("p1",name).Input("p2",age).Output<int>("p3"))
-		/// </summary>
-		/// <param name="commandType">A CommandType object to indicate a Sql command or a storedprocedure command</param>
-		/// <param name="commandString">SQL statement or stored procedure</param>
-		/// <param name="parameters">input parameters and output parameters</param>
-		/// <returns>Return first selected value from query</returns>
-		public object ExecuteScalar(CommandType commandType, string commandString, DbParameters parameters=null)
+        /// <summary>
+        /// Execute Sql statement or a stored procedure
+        /// 
+        /// ExecuteScalar(CommandType.Text,"select 1 from tb1 where name=:p1 and age=:p2", DbParameters.New.Input("p1",name).Input("p2",age).Output<int>("p3"))
+        /// </summary>
+        /// <param name="commandType">A CommandType object to indicate a Sql command or a storedprocedure command</param>
+        /// <param name="commandString">SQL statement or stored procedure</param>
+        /// <param name="parameters">input parameters and output parameters</param>
+        /// <returns>Return first selected value from query</returns>
+        public object ExecuteScalar(CommandType commandType, string commandString, DbParameters parameters=null)
 		{
 			return _interceptor.JoinPoint<object>(() =>
 			 {

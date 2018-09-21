@@ -1,0 +1,94 @@
+﻿@startuml
+!include <tupadr3/common>
+!include <office/Servers/database_server>
+!include <office/Servers/application_server>
+!include <office/Concepts/firewall_orange>
+!include <office/Clouds/cloud>
+!include <office/Devices/device_tablet_ipad>
+!include <office/Users/online_user>
+
+
+skinparam {
+	backgroundColor white
+	titleFontSize 32
+	titleBorderRoundCorner 30
+	titleBorderThickness 0
+	titleBorderColor white
+	titleBackgroundColor Aqua-CadetBlue
+	}
+
+left header
+The infrastructure Environment manager component provide a common service to allow plug-in component or modules be added into application running environment.
+It support muti-level configuration setting. Each plug-in component and setting could be in a shared folder or individual folder upon overall system deployment structure.
+endheader
+
+title Plug-in infrastructure: Environment Manager
+
+frame "Environment Manager" as fr {
+[EnvironmentManager] <<static>>
+
+() "Boot" as Boot
+() "IProvider" as Provider
+
+
+Boot - [EnvironmentManager]
+[EnvironmentManager] -up- Provider
+
+
+package "Environment Config Files" as configureFiles #LightGoldenRodYellow {
+	file "config file"
+	folder "config files"
+}
+
+EnvironmentManager -down-> configureFiles:Load plug-in components and settings
+
+[Logging] <<Provider>> as log
+[Audit] <<Provider>> as audit
+[Caching] <<Provider>> as cache 
+[Security] <<Provider>> as security
+[Globalization] as glb
+[Messaging and\nCommunication] as msg
+[Email and\nNotification] as notify
+[Workflow] as wfl
+[ContextManager] <<Provider>> as ctx
+[ORM] <<Provider>> as orm
+[IoC] <<Provider>> as ioc
+[DbClient] <<Class>> as dbclient
+
+log ..0).. Provider
+audit ..0).. Provider
+cache ..0).. Provider
+security ..0).. Provider 
+msg ..0).. Provider
+glb ..0).. Provider
+notify ..0).. Provider
+wfl ..0).. Provider
+ctx ..0).. Provider
+orm ..0).. Provider
+ioc ..0).. Provider
+Provider ..right(0.. [Service Providers ...]:Plugin
+
+dbclient .up.> configureFiles:ConnectionStrings
+}
+
+frame "Utility" as ut {
+[Utility]
+
+
+[Utility] -right.>>Extensions
+}
+
+frame "Interceptor" as intcpt {
+
+rectangle "Any class method" <<Concept>> {
+	rectangle "Method" <<Concept>> as interceptMethod
+}
+
+[Interceptor] <<static\nper class>>
+
+[interceptMethod] ..>JoinPoint:use
+
+JoinPoint -[Interceptor] 
+}
+
+@enduml

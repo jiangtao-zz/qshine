@@ -1,4 +1,5 @@
-﻿using System;
+﻿using qshine.Utility;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -26,8 +27,8 @@ namespace qshine
 		/// <summary>
 		/// The registry of interceptor.
 		/// </summary>
-		static Dictionary<Type, Interceptor> _typeRegistry = new Dictionary<Type, Interceptor>();
-		static Dictionary<Type, IInterceptorHandler> _handlerRegistry = new Dictionary<Type, IInterceptorHandler>();
+		static SafeDictionary<Type, Interceptor> _typeRegistry = new SafeDictionary<Type, Interceptor>();
+		static SafeDictionary<Type, IInterceptorHandler> _handlerRegistry = new SafeDictionary<Type, IInterceptorHandler>();
 
 		/// <summary>
 		/// Register one type of interceptor
@@ -79,7 +80,7 @@ namespace qshine
 			return Registry[type];
 		}
 
-		public static Dictionary<Type, Interceptor> Registry
+		public static SafeDictionary<Type, Interceptor> Registry
 		{
 			get
 			{
