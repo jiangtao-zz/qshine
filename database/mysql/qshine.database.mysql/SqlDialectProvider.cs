@@ -377,9 +377,13 @@ namespace qshine.database.mysql
 
                 case "AnsiString":
                 case "String":
-                    if(size> 65530)
+                    if (size> 65530 && size<16*1024*1024)
                     {
                         return "MEDIUMTEXT";
+                    }
+                    else if (size <= 0)
+                    {
+                        return "LONGTEXT";
                     }
                     return string.Format("VARCHAR({0})", size);
 

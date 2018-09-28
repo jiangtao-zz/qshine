@@ -307,9 +307,9 @@ To drop auto increment you need manually perform below actions:
 
                 case "AnsiString":
                 case "String":
-                    if (size > 8000)
+                    if (size > 8000 ||size<=0)
                     {
-                        return "VARCHAR(MAX)";
+                        return "TEXT";
                     }
                     return string.Format("VARCHAR({0})", size);
 

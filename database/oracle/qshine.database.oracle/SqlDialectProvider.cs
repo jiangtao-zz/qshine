@@ -269,7 +269,7 @@ end;", GetAutoIncreaseTriggerName(tableName), tableName, columnName, sequenceNam
 
                 case "AnsiString":
                 case "String":
-                    if (size > 2000)
+                    if (size > 2000 ||size<=0)
                     {
                         return "CLOB";
                     }

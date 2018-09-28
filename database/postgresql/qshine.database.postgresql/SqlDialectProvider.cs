@@ -323,6 +323,10 @@ namespace qshine.database.postgresql
 
                 case "AnsiString":
                 case "String":
+                    if (size == 0)
+                    {
+                        return "TEXT";
+                    }
                     return string.Format("VARCHAR({0})", size);
 
                 case "Int64":
