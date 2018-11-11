@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace qshine
 {
@@ -117,5 +118,12 @@ namespace qshine
 		/// 	General
 		/// </remarks>
 		string Category { get; set; }
-	}
+
+        /// <summary>
+        /// Enable logging
+        /// </summary>
+        /// <param name="logLevel"></param>
+        void EnableLogging(TraceEventType logLevel);
+
+    }
 }

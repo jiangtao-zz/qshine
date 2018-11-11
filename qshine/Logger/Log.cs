@@ -113,7 +113,7 @@ namespace qshine
 				if (_logerProvider == null || _logerProvider == SysLoggerProvider)
 				{
 					//Try to load log provider from a plugable logger provider.
-					_logerProvider = Configuration.EnvironmentManager.GetProvider<ILoggerProvider>()
+					_logerProvider = Configuration.ApplicationEnvironment.GetProvider<ILoggerProvider>()
 												  ?? SysLoggerProvider;
 				}
 				return _logerProvider;
@@ -130,7 +130,7 @@ namespace qshine
 		/// Log system message
 		/// </summary>
 
-		static ILoggerProvider _systemLoggerProvider = new TraceLoggerProvider();
+		static ILoggerProvider _systemLoggerProvider;
 		/// <summary>
 		/// Gets the system logger provider.
 		/// The system logger provider use .NET diagnostics Trace component to write logging message
@@ -146,6 +146,10 @@ namespace qshine
 				}
 				return _systemLoggerProvider;
 			}
+            set
+            {
+                _systemLoggerProvider = value;
+            }
 		}
 
 		static ILogger _syslogger;

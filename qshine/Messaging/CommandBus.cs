@@ -70,7 +70,7 @@ namespace qshine
 
 			if (!_factories.ContainsKey(name))
 			{
-				var factory = EnvironmentManager.GetProvider<ICommandBusFactory>(name);
+				var factory = ApplicationEnvironment.GetProvider<ICommandBusFactory>(name);
 				if (factory == null)
 				{
 					return null;
@@ -133,7 +133,7 @@ namespace qshine
 				lock (_commandHandlerLock)
 				{
 					//Try to register all ICommandHandlers
-					var types = EnvironmentManager.SafeGetInterfacedTypes(typeof(ICommandHandler));
+					var types = ApplicationEnvironment.SafeGetInterfacedTypes(typeof(ICommandHandler));
 					foreach (var type in types)
 					{
 						var typeArguments = type.GetOpenGenericTypes(typeof(ICommandHandler<>));

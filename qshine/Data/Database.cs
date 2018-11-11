@@ -39,9 +39,9 @@ namespace qshine
 		{
 			//Load default database from configure manager
 
-			for (int i = 0; i<EnvironmentManager.Configure.ConnectionStrings.Count;i++)
+			for (int i = 0; i<ApplicationEnvironment.Configure.ConnectionStrings.Count;i++)
 			{
-				var connectionStringSetting = EnvironmentManager.Configure.ConnectionStrings[i];
+				var connectionStringSetting = ApplicationEnvironment.Configure.ConnectionStrings[i];
 				if (connectionStringSetting.Name == configedConnectionName ||
 				    (string.IsNullOrEmpty(configedConnectionName) && (string.IsNullOrEmpty(connectionStringSetting.Name) || "default".Equals(connectionStringSetting.Name, StringComparison.InvariantCultureIgnoreCase)))
 				   )
@@ -51,10 +51,10 @@ namespace qshine
 					break;
 				}
 			}
-			if (string.IsNullOrEmpty(configedConnectionName) && EnvironmentManager.Configure.ConnectionStrings.Count>0 && string.IsNullOrEmpty(_providerName))
+			if (string.IsNullOrEmpty(configedConnectionName) && ApplicationEnvironment.Configure.ConnectionStrings.Count>0 && string.IsNullOrEmpty(_providerName))
 			{
-				_providerName = EnvironmentManager.Configure.ConnectionStrings[0].ProviderName;
-				_connectionString = EnvironmentManager.Configure.ConnectionStrings[0].ConnectionString;
+				_providerName = ApplicationEnvironment.Configure.ConnectionStrings[0].ProviderName;
+				_connectionString = ApplicationEnvironment.Configure.ConnectionStrings[0].ConnectionString;
 			}
 			if (string.IsNullOrEmpty(_providerName) || string.IsNullOrEmpty(_connectionString))
 			{
@@ -143,9 +143,16 @@ namespace qshine
 
 		private static string ParseDataSource(string connectionString)
 		{
-			var builder = new OleDbConnectionStringBuilder(connectionString);
-			return builder.DataSource;
+            var builder = new DbConnectionStringBuilder();
+            builder.ConnectionString = connectionString;
+            object dataSource;
+            if (builder.TryGetValue("Data Source", out dataSource))
+            {
+                return dataSource.ToString();
+            }
+            return "";
 		}
 
 	}
+
 }

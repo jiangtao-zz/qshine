@@ -1,0 +1,63 @@
+﻿@startuml
+!include <tupadr3/common>
+!include <office/Servers/database_server>
+!include <office/Servers/application_server>
+!include <office/Concepts/firewall_orange>
+!include <office/Clouds/cloud>
+!include <office/Devices/device_tablet_ipad>
+!include <office/Users/online_user>
+
+skinparam {
+	backgroundColor white
+	titleFontSize 32
+	titleBorderRoundCorner 30
+	titleBorderThickness 0
+	titleBorderColor white
+	titleBackgroundColor Aqua-CadetBlue
+	frame center
+	}
+left header
+Web application security structure.
+endheader
+
+title Web application Security - ADFS
+
+frame " " as fr {
+
+rectangle "Application Service Provider Org Domain" <<org>> as o1  {
+
+    rectangle "Web Apps/Mobile Apps\n (RP)" <<web site>> as apps {
+        [App Security Providers] as app
+        [Application]
+        app ..[Application]
+    }
+
+    [Application User Account\n and IAM] as rpuac
+    [RP/STS\n(RP STS)] as rpsts
+
+    app ..left..rpsts:trusted
+    app .down..> rpuac: 7.0: Map\napp permissions
+    rpsts .right..>rpuac:4.2: -->Verify app user account
+}
+
+rectangle "3rd-party Organization Domain" <<org>>  as o2 {
+    [Web App Clients,\nMobile App Clients\n (Browser)] as browser
+    [IDP/STS (IP STS)\n(User registration\nUser Login\nUser Profile)] as idp
+    [Identity Store] as ids
+
+    idp .up..>ids :4: -->Authenctiation\n5: <-- return token
+}
+    rpsts ...idp:trusted and Fed policy
+
+
+browser --->app:1: -->Try Access App\n2: <--redirect to STS\n7: Access Granted with token
+browser --->idp:3. -->Login (post login credencials)\n6: <--return token
+browser ...>rpsts:3.0 -->Failed \nif select wrong domain
+
+}
+
+
+
+footer 1
+
+@enduml

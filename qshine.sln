@@ -2,17 +2,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2003
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine", "qshine\qshine.csproj", "{05162FC4-73A3-4190-A336-568E2289302C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine", "qshine\qshine.csproj", "{05162FC4-73A3-4190-A336-568E2289302C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9815AB74-82AC-463A-B740-B1D78CE5E6FA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "qshine.extension", "qshine.extension", "{CCF4C5FB-952E-4D9B-B081-B9D693A56276}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.ioc.autofac", "qshine.extension\qshine.ioc.autofac\qshine.ioc.autofac.csproj", "{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.ioc.autofac", "qshine.extension\qshine.ioc.autofac\qshine.ioc.autofac.csproj", "{AB7870DA-3E71-4B68-B7CB-1D5DD5DAEB60}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D82665D7-65D6-4788-A427-DCC973C267B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.log.nlog", "qshine.extension\qshine.log.nlog\qshine.log.nlog.csproj", "{77E94174-61DC-4BBD-8F4F-48F6F14E1D98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.log.nlog", "qshine.extension\qshine.log.nlog\qshine.log.nlog.csproj", "{77E94174-61DC-4BBD-8F4F-48F6F14E1D98}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.LogInterceptor", "qshine.extension\qshine.LogInspector\qshine.LogInterceptor.csproj", "{EBA60DCA-6B98-4874-92E8-245499E32776}"
 EndProject
@@ -22,51 +22,45 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "database", "database", "{52
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sqlite", "sqlite", "{2C44E2C2-3D68-4D91-AA6B-8024E537BAB3}"
-	ProjectSection(SolutionItems) = preProject
-		database\sqlite3.def = database\sqlite3.def
-		database\sqlite3.dll = database\sqlite3.dll
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sqliteSample", "database\sqliteSample\sqliteSample.csproj", "{28A298F2-5C83-4D95-9B29-F370DF753533}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database", "database\qshine.database\qshine.database.csproj", "{74834B06-5E20-4A45-9705-B715FC7FAA68}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.sqlite", "database\sqlite\qshine.database.sqlite\qshine.database.sqlite.csproj", "{5F46C5DA-C877-44D5-AF89-89E32D16532E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.database.sqlite", "database\sqlite\qshine.database.sqlite\qshine.database.sqlite.csproj", "{5F46C5DA-C877-44D5-AF89-89E32D16532E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mysql", "mysql", "{41106C33-DBC3-471A-8C31-79C6EC02B235}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.mysql", "database\mysql\qshine.database.mysql\qshine.database.mysql.csproj", "{B237847E-4CCC-4EA1-A57C-2A85545B2539}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.database.mysql", "database\mysql\qshine.database.mysql\qshine.database.mysql.csproj", "{B237847E-4CCC-4EA1-A57C-2A85545B2539}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "postgresql", "postgresql", "{DDFDB1D8-2259-4E38-A0AE-FAACEC4D61E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.postgresql", "database\postgresql\qshine.database.postgresql\qshine.database.postgresql.csproj", "{DA00DC12-D360-40B4-9B58-4BB7C009E799}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.database.postgresql", "database\postgresql\qshine.database.postgresql\qshine.database.postgresql.csproj", "{DA00DC12-D360-40B4-9B58-4BB7C009E799}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sqlserver", "sqlserver", "{7B5BB103-32F4-49C9-9825-993CD5923B48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.sqlserver", "database\sqlserver\qshine.database.sqlserver\qshine.database.sqlserver.csproj", "{DAC2DA88-01FD-4D40-B162-5CA1F3BE7F5D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.database.sqlserver", "database\sqlserver\qshine.database.sqlserver\qshine.database.sqlserver.csproj", "{DAC2DA88-01FD-4D40-B162-5CA1F3BE7F5D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "oracle", "oracle", "{46374253-6732-43FD-91C3-535E70FECCB0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.oracle", "database\oracle\qshine.database.oracle\qshine.database.oracle.csproj", "{DDFB91FB-2A90-4632-AB4E-8F9FD85E49A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.database.oracle", "database\oracle\qshine.database.oracle\qshine.database.oracle.csproj", "{DDFB91FB-2A90-4632-AB4E-8F9FD85E49A9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{6E12E003-1C6F-4F04-8B81-77B1C5FB2D71}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testsqlite", "database\tests\testsqlite\testsqlite.csproj", "{F93AC11B-0034-4345-9F86-F1DDE72D6911}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.database.sqlite.Tests", "database\tests\qshine.database.sqlite.Tests\qshine.database.sqlite.Tests.csproj", "{F93AC11B-0034-4345-9F86-F1DDE72D6911}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.oracle.Tests", "database\tests\qshine.database.oracle.Tests\qshine.database.oracle.Tests.csproj", "{FC8EDE17-435F-4336-BA8E-36B957F588E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.database.oracle.Tests", "database\tests\qshine.database.oracle.Tests\qshine.database.oracle.Tests.csproj", "{FC8EDE17-435F-4336-BA8E-36B957F588E2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.mysql.Tests", "database\tests\qshine.database.mysql.Tests\qshine.database.mysql.Tests.csproj", "{08446864-3445-451C-ABFB-8585A86C5855}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.database.mysql.Tests", "database\tests\qshine.database.mysql.Tests\qshine.database.mysql.Tests.csproj", "{08446864-3445-451C-ABFB-8585A86C5855}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.postgresql.Tests", "database\tests\qshine.database.postgresql.Tests\qshine.database.postgresql.Tests.csproj", "{532CBFF1-45CD-4760-A1F9-E3269A8C6A39}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.database.postgresql.Tests", "database\tests\qshine.database.postgresql.Tests\qshine.database.postgresql.Tests.csproj", "{532CBFF1-45CD-4760-A1F9-E3269A8C6A39}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "input", "input", "{2CAD8C2F-BA02-45B2-BAB3-0D75E67D2C70}"
 	ProjectSection(SolutionItems) = preProject
 		input\readme.txt = input\readme.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.database.sqlserver.Tests", "database\tests\qshine.database.sqlserver.Tests\qshine.database.sqlserver.Tests.csproj", "{06F0EB6E-99FE-4D2C-B26B-FC51782194A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.database.sqlserver.Tests", "database\tests\qshine.database.sqlserver.Tests\qshine.database.sqlserver.Tests.csproj", "{06F0EB6E-99FE-4D2C-B26B-FC51782194A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.Tests", "Tests\qshine.Tests\qshine.Tests.csproj", "{AD0005FD-DAFF-43EB-811C-8702457D6576}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.Tests", "Tests\qshine.Tests\qshine.Tests.csproj", "{AD0005FD-DAFF-43EB-811C-8702457D6576}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{FB1831D0-46DE-41AA-92A9-8C88A5541D4D}"
 	ProjectSection(SolutionItems) = preProject
@@ -114,7 +108,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "autofac", "autofac", "{39E6
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nlog", "nlog", "{3883D6BB-183E-4B9F-8BC6-62234C8B3205}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.autofac.Tests", "qshine.extension\Tests\qshine.autofac.Tests\qshine.autofac.Tests.csproj", "{3B13425E-25AA-4C91-8140-EB401D89BDC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.autofac.Tests", "qshine.extension\Tests\qshine.autofac.Tests\qshine.autofac.Tests.csproj", "{3B13425E-25AA-4C91-8140-EB401D89BDC1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.log.nlog.Tests", "qshine.extension\Tests\qshine.log.nlog.Tests\qshine.log.nlog.Tests.csproj", "{B377C46A-0ED6-40FB-ADF4-FBC43B77F6B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComponentDirectReferenceTest", "database\Tests\ComponentDirectReferenceTest\ComponentDirectReferenceTest.csproj", "{7AE5AA1B-A7E2-47A8-8AE6-396B61823AA2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -147,12 +145,6 @@ Global
 		{EBA60DCA-6B98-4874-92E8-245499E32776}.Default|Any CPU.Build.0 = Debug|Any CPU
 		{EBA60DCA-6B98-4874-92E8-245499E32776}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBA60DCA-6B98-4874-92E8-245499E32776}.Release|Any CPU.Build.0 = Release|Any CPU
-		{28A298F2-5C83-4D95-9B29-F370DF753533}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{28A298F2-5C83-4D95-9B29-F370DF753533}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{28A298F2-5C83-4D95-9B29-F370DF753533}.Default|Any CPU.ActiveCfg = Debug|Any CPU
-		{28A298F2-5C83-4D95-9B29-F370DF753533}.Default|Any CPU.Build.0 = Debug|Any CPU
-		{28A298F2-5C83-4D95-9B29-F370DF753533}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{28A298F2-5C83-4D95-9B29-F370DF753533}.Release|Any CPU.Build.0 = Release|Any CPU
 		{74834B06-5E20-4A45-9705-B715FC7FAA68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{74834B06-5E20-4A45-9705-B715FC7FAA68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74834B06-5E20-4A45-9705-B715FC7FAA68}.Default|Any CPU.ActiveCfg = Debug|Any CPU
@@ -231,6 +223,18 @@ Global
 		{3B13425E-25AA-4C91-8140-EB401D89BDC1}.Default|Any CPU.Build.0 = Debug|Any CPU
 		{3B13425E-25AA-4C91-8140-EB401D89BDC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B13425E-25AA-4C91-8140-EB401D89BDC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B377C46A-0ED6-40FB-ADF4-FBC43B77F6B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B377C46A-0ED6-40FB-ADF4-FBC43B77F6B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B377C46A-0ED6-40FB-ADF4-FBC43B77F6B5}.Default|Any CPU.ActiveCfg = Debug|Any CPU
+		{B377C46A-0ED6-40FB-ADF4-FBC43B77F6B5}.Default|Any CPU.Build.0 = Debug|Any CPU
+		{B377C46A-0ED6-40FB-ADF4-FBC43B77F6B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B377C46A-0ED6-40FB-ADF4-FBC43B77F6B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AE5AA1B-A7E2-47A8-8AE6-396B61823AA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AE5AA1B-A7E2-47A8-8AE6-396B61823AA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AE5AA1B-A7E2-47A8-8AE6-396B61823AA2}.Default|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AE5AA1B-A7E2-47A8-8AE6-396B61823AA2}.Default|Any CPU.Build.0 = Debug|Any CPU
+		{7AE5AA1B-A7E2-47A8-8AE6-396B61823AA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AE5AA1B-A7E2-47A8-8AE6-396B61823AA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -241,7 +245,6 @@ Global
 		{77E94174-61DC-4BBD-8F4F-48F6F14E1D98} = {CCF4C5FB-952E-4D9B-B081-B9D693A56276}
 		{EBA60DCA-6B98-4874-92E8-245499E32776} = {CCF4C5FB-952E-4D9B-B081-B9D693A56276}
 		{2C44E2C2-3D68-4D91-AA6B-8024E537BAB3} = {52DF755E-9402-4382-A8F5-BB6E3819B321}
-		{28A298F2-5C83-4D95-9B29-F370DF753533} = {2C44E2C2-3D68-4D91-AA6B-8024E537BAB3}
 		{74834B06-5E20-4A45-9705-B715FC7FAA68} = {52DF755E-9402-4382-A8F5-BB6E3819B321}
 		{5F46C5DA-C877-44D5-AF89-89E32D16532E} = {2C44E2C2-3D68-4D91-AA6B-8024E537BAB3}
 		{41106C33-DBC3-471A-8C31-79C6EC02B235} = {52DF755E-9402-4382-A8F5-BB6E3819B321}
@@ -271,6 +274,8 @@ Global
 		{39E6736C-0573-4F43-80D7-430D2C4410B3} = {AC044C5F-9137-42A7-81C1-D9F74F42D43E}
 		{3883D6BB-183E-4B9F-8BC6-62234C8B3205} = {84511206-4ABD-4114-ADDC-9BF60478778C}
 		{3B13425E-25AA-4C91-8140-EB401D89BDC1} = {D82665D7-65D6-4788-A427-DCC973C267B0}
+		{B377C46A-0ED6-40FB-ADF4-FBC43B77F6B5} = {D82665D7-65D6-4788-A427-DCC973C267B0}
+		{7AE5AA1B-A7E2-47A8-8AE6-396B61823AA2} = {6E12E003-1C6F-4F04-8B81-77B1C5FB2D71}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {68E665BD-64B6-4223-85AE-2936717945D7}

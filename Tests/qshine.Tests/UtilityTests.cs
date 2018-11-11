@@ -314,7 +314,50 @@ namespace qshine.UnitTests
 			Assert.AreEqual("12", v2.V1);
 		}
 
-		void CustomJsonInterceptor(object sender, InterceptorEventArgs e)
+        [TestMethod()]
+        public void DynamicXml()
+        {
+            var xml =
+                @"<system.data>
+    <!-- !!!!!   -->
+    <DbProviderFactories>
+      <!--Sqlite Data provider-->
+      <remove invariant=""System.Data.SQLite.EF6""/>
+      <add name = ""SQLite Data Provider (Entity Framework 6)"" 
+            invariant = ""System.Data.SQLite.EF6""
+           description = "".NET Framework Data Provider for SQLite (Entity Framework 6)""
+           type = ""System.Data.SQLite.EF6.SQLiteProviderFactory, System.Data.SQLite.EF6"" />
+      <remove invariant = ""System.Data.SQLite"" />
+ 
+       <add name = ""SQLite Data Provider"" invariant = ""System.Data.SQLite""
+           type = ""System.Data.SQLite.SQLiteFactory, System.Data.SQLite"" />
+      <!--MySQL Data provider-->Text Value</DbProviderFactories >
+  </system.data > ";
+
+
+            var xmlHelper = new XmlHelper(xml);
+            var result = xmlHelper.XmlSection;
+            Assert.AreEqual("system.data", result.Name);
+            Assert.AreEqual("DbProviderFactories", result.Items[0].Name);
+            Assert.AreEqual("Text Value", result.Items[0].Value);
+            Assert.AreEqual("remove", result.Items[0].Items[0].Name);
+            Assert.AreEqual("System.Data.SQLite.EF6", result.Items[0].Items[0]["invariant"]);
+            Assert.AreEqual("add", result.Items[0].Items[1].Name);
+            Assert.AreEqual("SQLite Data Provider (Entity Framework 6)", result.Items[0].Items[1]["name"]);
+            Assert.AreEqual("System.Data.SQLite.EF6", result.Items[0].Items[1]["invariant"]);
+            Assert.AreEqual(".NET Framework Data Provider for SQLite (Entity Framework 6)", result.Items[0].Items[1]["description"]);
+            Assert.AreEqual("System.Data.SQLite.EF6.SQLiteProviderFactory, System.Data.SQLite.EF6", result.Items[0].Items[1]["type"]);
+            Assert.AreEqual("remove", result.Items[0].Items[2].Name);
+            Assert.AreEqual("System.Data.SQLite", result.Items[0].Items[2]["invariant"]);
+            Assert.AreEqual("add", result.Items[0].Items[3].Name);
+            Assert.AreEqual("SQLite Data Provider", result.Items[0].Items[3]["name"]);
+            Assert.IsNull(result.Items[0].Items[3]["NotExists"]);
+            var name = result.Name;
+
+        }
+
+
+            void CustomJsonInterceptor(object sender, InterceptorEventArgs e)
 		{
 			if (e.MethodName == "Deserialize" && (ulong)e.Args[2] == (ulong)JsonFormat.CustomDateFormat)
 			{

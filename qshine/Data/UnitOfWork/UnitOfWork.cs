@@ -16,7 +16,7 @@ namespace qshine
 		public static IUnitOfWorkProvider Provider {
 			get{
 				if(_provider==null){
-					_provider = EnvironmentManager.GetProvider<IUnitOfWorkProvider>();
+					_provider = ApplicationEnvironment.GetProvider<IUnitOfWorkProvider>();
 					if (_provider == null)
 					{
 						lock(lockObject)

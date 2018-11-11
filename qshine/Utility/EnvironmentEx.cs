@@ -2,20 +2,11 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Web;
 
 namespace qshine
 {
-	public static class EnvironmentEx
-	{
-		public static bool IsWebApplication
-		{
-			get
-			{
-				return (HttpRuntime.AppDomainAppId != null);
-			}
-		}
-
+    public static partial class EnvironmentEx
+    {
 		static string _ip;
 		public static string MachineIp
 		{
@@ -27,11 +18,23 @@ namespace qshine
 			}
 		}
 
+        /// <summary>
+        /// Return current application running platform x86 or x64.
+        /// Note: qshine builder target on Any CPU. It can load component from x86 
+        /// </summary>
 		public static string CpuArchitecture
 		{
 			get
 			{
-				return Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
+                if (Environment.Is64BitProcess)
+                {
+                    return "x64";
+                }
+                else
+                {
+                    return "x86";
+                    //return Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
+                }
 			}
 		}
 	}

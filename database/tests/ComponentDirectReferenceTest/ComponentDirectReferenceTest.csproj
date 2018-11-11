@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\oracle\qshine.database.oracle\qshine.database.oracle.csproj" />
+    <ProjectReference Include="..\..\sqlite\qshine.database.sqlite\qshine.database.sqlite.csproj" />
+  </ItemGroup>
+
+</Project>

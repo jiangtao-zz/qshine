@@ -11,7 +11,7 @@ namespace qshine.database
 	{
 		public static void Main()
 		{
-			EnvironmentManager.Boot();
+			ApplicationEnvironment.Build();
             //Interceptor.RegisterHandlerType(typeof(DbClientLog));
 
             using (var db = new SqlDDLBuilder("testDatabase"))

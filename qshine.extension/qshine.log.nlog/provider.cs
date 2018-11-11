@@ -5,18 +5,33 @@ namespace qshine.log.nlog
 {
 	public class Provider:ILoggerProvider
 	{
-		static Provider()
-		{
-			//Find nlog.config file from first level config folder.
-			const string nlogConfigFileName = "nlog.config";
+        public Provider()
+        {
+            //Find nlog.config file from one of the application environment config folder.
+            const string nlogConfigFileName = "nlog.config";
 
-			var filePath = EnvironmentManager.GetConfigFilePathIfAny(nlogConfigFileName);
-			if(!string.IsNullOrEmpty(filePath)){
-				NLog.LogManager.Configuration = new NLog.Config.XmlLoggingConfiguration(filePath);
-			}
-		}
+            var filePath = ApplicationEnvironment.Current.GetConfigFilePathIfAny(nlogConfigFileName);
+            //load config if file found
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                NLog.LogManager.Configuration = new NLog.Config.XmlLoggingConfiguration(filePath);
+            }
+            //else use default NLog.config in executing folder
+        }
 
-		public ILogger GetLogger(string category)
+        /// <summary>
+        /// Ctor:: Initialize NLog from a specific config file
+        /// </summary>
+        /// <param name="fileName">NLog config file</param>
+        public Provider(string fileName)
+        {
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                NLog.LogManager.Configuration = new NLog.Config.XmlLoggingConfiguration(fileName);
+            }
+        }
+
+        public ILogger GetLogger(string category)
 		{
 			return new Logger(category);
 		}
@@ -28,7 +43,14 @@ namespace qshine.log.nlog
 		public Logger(string category)
 			:base(category)
 		{
-			_logger = NLog.LogManager.GetLogger(category);
+            if (string.IsNullOrEmpty(category))
+            {
+                _logger = NLog.LogManager.GetCurrentClassLogger();
+            }
+            else
+            {
+                _logger = NLog.LogManager.GetLogger(category);
+            }
 		}
 
 		public override bool IsDebugEnabled

@@ -84,7 +84,7 @@ namespace qshine
 			{
 				if (_jsonProvider == null)
 				{
-					var provider = EnvironmentManager.GetProvider<IJsonProvider>();
+					var provider = ApplicationEnvironment.GetProvider<IJsonProvider>();
 					if (provider == null)
 					{
 						provider = new DotNetJsonSerializerProvider();
@@ -172,7 +172,7 @@ namespace qshine
             object result = null;
             if (!string.IsNullOrEmpty(jsonString) && !string.IsNullOrEmpty(typeName))
             {
-                var type = EnvironmentManager.GetNamedType(typeName);
+                var type = ApplicationEnvironment.GetNamedType(typeName);
                 result = Deserialize(jsonString, type, jsonFormat);
             }
             return result;

@@ -34,7 +34,7 @@ namespace qshine.database
         /// <param name="connectionStringName">Database connection string name</param>
         public SqlDDLBuilder(string connectionStringName)
 		{
-            var sqlDialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var sqlDialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             if (sqlDialectProvider == null)
             {
                 throw new NotImplementedException("Couldn't load Sql database provider from environment configuration.");

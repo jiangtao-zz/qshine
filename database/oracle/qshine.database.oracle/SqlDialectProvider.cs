@@ -349,6 +349,7 @@ end;", GetAutoIncreaseTriggerName(tableName), tableName, columnName, sequenceNam
                     return "DATE";
 
                 case "Xml":
+                    //Oracle support this type after version 4.122.
                     return "XMLTYPE";
 
                 default:

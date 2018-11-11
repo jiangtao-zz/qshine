@@ -47,18 +47,6 @@ namespace qshine
 		}
 
 		/// <summary>
-		/// Gets a value indicating whether this <see cref="T:qshine.TraceLogger"/> is logging enabled.
-		/// </summary>
-		/// <value><c>true</c> if is logging enabled; otherwise, <c>false</c>.</value>
-		public override bool IsLoggingEnabled
-		{
-			get
-			{
-				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Critical);
-			}
-		}
-
-		/// <summary>
 		/// Gets a value indicating whether this <see cref="T:qshine.TraceLogger"/> is fatal enabled.
 		/// </summary>
 		/// <value><c>true</c> if is fatal enabled; otherwise, <c>false</c>.</value>
@@ -66,7 +54,8 @@ namespace qshine
 		{
 			get
 			{
-				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Critical);
+				return base.IsFatalEnabled ||
+                    (TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Critical));
 			}
 		}
 
@@ -78,7 +67,8 @@ namespace qshine
 		{
 			get
 			{
-				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Error);
+				return base.IsErrorEnabled ||
+                    (TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Error));
 			}
 		}
 
@@ -90,7 +80,8 @@ namespace qshine
 		{
 			get
 			{
-				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Warning);
+				return base.IsWarnEnabled ||
+                    (TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Warning));
 			}
 		}
 
@@ -102,7 +93,8 @@ namespace qshine
 		{
 			get
 			{
-				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Information);
+				return base.IsInfoEnabled ||
+                    (TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Information));
 			}
 		}
 
@@ -114,7 +106,8 @@ namespace qshine
 		{
 			get
 			{
-				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Verbose);
+				return base.IsInfoEnabled ||
+                    (TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Verbose));
 			}
 		}
 
@@ -126,21 +119,33 @@ namespace qshine
 		{
 			get
 			{
-				return TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Verbose);
+				return base.IsDebugEnabled ||
+                    (TraceSource.Switch != null && TraceSource.Switch.ShouldTrace(TraceEventType.Verbose));
 			}
 		}
 
-		/// <summary>
-		/// Log the specified severity, message, ex and properties.
-		/// </summary>
-		/// <returns>The log.</returns>
-		/// <param name="severity">Severity.</param>
-		/// <param name="message">Message.</param>
-		/// <param name="ex">Ex.</param>
-		/// <param name="properties">Properties.</param>
-		public override void Log(TraceEventType severity, string message, Exception ex = null, params object[] properties)
+        bool LoggingEnabled(TraceEventType severity)
+        {
+            return
+                (severity == TraceEventType.Critical && IsFatalEnabled) ||
+                (severity == TraceEventType.Error && IsErrorEnabled) ||
+                (severity == TraceEventType.Warning && IsWarnEnabled) ||
+                (severity == TraceEventType.Information && IsInfoEnabled) ||
+                (severity == TraceEventType.Verbose && (IsDebugEnabled || IsTraceEnabled))
+                ;
+        }
+
+        /// <summary>
+        /// Log the specified severity, message, ex and properties.
+        /// </summary>
+        /// <returns>The log.</returns>
+        /// <param name="severity">Severity.</param>
+        /// <param name="message">Message.</param>
+        /// <param name="ex">Ex.</param>
+        /// <param name="properties">Properties.</param>
+        public override void Log(TraceEventType severity, string message, Exception ex = null, params object[] properties)
 		{
-			if (TraceSource.Switch.ShouldTrace(severity))
+			if (LoggingEnabled(severity))
 			{
 				var formattedMessage = string.Format("{0}", string.IsNullOrEmpty(message) ? string.Empty :
 					string.Format(message, properties));
@@ -156,7 +161,10 @@ namespace qshine
 
 //				_source.TraceEvent(severity, 0, formattedMessage);
 #endif
-				_source.Close();
+                if (_source != null)
+                {
+                    _source.Close();
+                }
 			}
 		}
 

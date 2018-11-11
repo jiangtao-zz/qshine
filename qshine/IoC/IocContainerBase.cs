@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.Globalization;
 using qshine.Configuration;
 using qshine.Globalization;
-using System.Runtime.Remoting.Messaging;
+//using System.Runtime.Remoting.Messaging;
 
 namespace qshine
 

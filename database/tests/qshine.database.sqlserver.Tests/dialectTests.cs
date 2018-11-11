@@ -53,7 +53,9 @@ namespace qshine.database.sqlserver.Tests
         [ClassInitialize()]
         public static void ClassInit(TestContext context)
         {
-            EnvironmentManager.Boot("app.config");
+            Log.SysLoggerProvider = new TraceLoggerProvider();
+            Log.SysLogger.EnableLogging(System.Diagnostics.TraceEventType.Verbose);
+            ApplicationEnvironment.Build("app.config");
             _testDb = new Database("testdb");
         }
 
@@ -66,7 +68,7 @@ namespace qshine.database.sqlserver.Tests
         public void CreateDatabase_BestCase()
         {
 
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             Assert.IsFalse(dialect.CanCreate);
@@ -78,7 +80,7 @@ namespace qshine.database.sqlserver.Tests
         [TestMethod]
         public void TableNotExists()
         {
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var sql = dialect.TableExistSql("table0");
@@ -95,7 +97,7 @@ namespace qshine.database.sqlserver.Tests
         {
             var testTable = "table1";
 
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 1", "testspace1", "testindex1", 2, "NewTest");
@@ -186,7 +188,7 @@ namespace qshine.database.sqlserver.Tests
         public void TableUpdate_Rename_column_add_new_column()
         {
             var testTable = "table2";
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 2", "testspace1", "testindex1", 2, "NewTest");
@@ -263,7 +265,7 @@ namespace qshine.database.sqlserver.Tests
         public void TableUpdate_Rename_table()
         {
             var testTable = "table3";
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 3", "testspace1", "testindex1", 2, "NewTest");
@@ -310,7 +312,7 @@ namespace qshine.database.sqlserver.Tests
         public void TableUpdate_default_remove()
         {
             var testTable = "table4";
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 4", "testspace1", "testindex1", 2, "NewTest");
@@ -385,7 +387,7 @@ namespace qshine.database.sqlserver.Tests
         public void TableUpdate_index_add_and_notnull()
         {
             var testTable = "table5";
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 5", "testspace1", "testindex1", 2, "NewTest");
@@ -464,7 +466,7 @@ namespace qshine.database.sqlserver.Tests
         public void TableUpdate_CheckConstraint_add()
         {
             var testTable = "table6";
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 6", "testspace1", "testindex1", 2, "NewTest");
@@ -531,7 +533,7 @@ namespace qshine.database.sqlserver.Tests
         public void TableUpdate_not_null_remove()
         {
             var testTable = "table7";
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 7", "testspace1", "testindex1", 2, "NewTest");
@@ -601,7 +603,7 @@ namespace qshine.database.sqlserver.Tests
         public void TableUpdate_CheckConstraint_remove()
         {
             var testTable = "table8";
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 8", "testspace1", "testindex1", 2, "NewTest");
@@ -671,7 +673,7 @@ namespace qshine.database.sqlserver.Tests
         public void TableUpdate_index_remove()
         {
             var testTable = "table9";
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 9", "testspace1", "testindex1", 1, "NewTest");
@@ -735,7 +737,7 @@ namespace qshine.database.sqlserver.Tests
         public void TableUpdate_unique_index_remove()
         {
             var testTable = "table10";
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 10", "testspace1", "testindex1", 1, "NewTest");
@@ -799,7 +801,7 @@ namespace qshine.database.sqlserver.Tests
         {
             var testTable = "table11";
 
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 11", "testspace1", "testindex1", 1, "NewTest");
@@ -865,7 +867,7 @@ namespace qshine.database.sqlserver.Tests
         {
             var testTable = "table12";
 
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 12", "testspace1", "testindex1", 1, "NewTest");
@@ -927,7 +929,7 @@ namespace qshine.database.sqlserver.Tests
         public void TableUpdate_CheckConstraint_modify()
         {
             var testTable = "table13";
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 13", "testspace1", "testindex1", 2, "NewTest");
@@ -1014,7 +1016,7 @@ namespace qshine.database.sqlserver.Tests
         {
             var testTable = "table14";
 
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 14", "testspace1", "testindex1", 1, "NewTest");
@@ -1071,7 +1073,7 @@ namespace qshine.database.sqlserver.Tests
             var testTable = "table15";
             var testTable2 = "table15_1";
 
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 15", "testspace1", "testindex1", 1, "NewTest");
@@ -1162,7 +1164,7 @@ namespace qshine.database.sqlserver.Tests
             var testTable = "table16";
             var testTable2 = "table16_1";
 
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 16", "testspace1", "testindex1", 1, "NewTest");
@@ -1248,7 +1250,7 @@ namespace qshine.database.sqlserver.Tests
         {
             var testTable = "table17";
 
-            var dialectProvider = EnvironmentManager.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(_testDb.ConnectionString);
 
             var table = new SqlDDLTable(testTable, "test", "test table 17", "testspace1", "testindex1", 1, "NewTest");

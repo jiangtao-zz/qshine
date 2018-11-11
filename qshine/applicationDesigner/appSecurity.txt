@@ -1,0 +1,55 @@
+﻿@startuml
+!include <tupadr3/common>
+!include <office/Servers/database_server>
+!include <office/Servers/application_server>
+!include <office/Concepts/firewall_orange>
+!include <office/Clouds/cloud>
+!include <office/Devices/device_tablet_ipad>
+!include <office/Users/online_user>
+
+skinparam {
+	backgroundColor white
+	titleFontSize 32
+	titleBorderRoundCorner 30
+	titleBorderThickness 0
+	titleBorderColor white
+	titleBackgroundColor Aqua-CadetBlue
+	frame center
+	}
+left header
+Web application security structure.
+endheader
+
+title Web application Security Architecture
+
+frame " " as fr {
+
+
+rectangle "Web Apps/Mobile Apps\n (RP)" <<web site>> as apps {
+[App Security Providers] as app
+[Application]
+app ..[Application]
+}
+[Web App Clients,\nMobile App Clients\n (Browser)] as browser
+[IDP/STS (IP STS)\n(User registration\nUser Login\nUser Profile)] as idp
+[RP/STS\n(RP STS)] as rpsts
+[Application User Account\n and IAM] as rpuac
+[AD/ADFS/Identity Store] as ids
+idp .right..>ids :5: -->Authenctiation\n6: <-- return token
+rpsts -right-->idp:4.1: -->Authentication\n7: <--return token
+rpsts .down..>rpuac:4.2: -->Verify app user account
+app ..left..rpsts:trusted
+app .down..> rpuac: 9.0: Map\napp permissions
+
+browser -left->app:1: -->Try Access App\n2: <--redirect to STS\n9: Access Granted
+browser -down->rpsts:3. -->Login (post login credencials)\n8: <--set seesion token
+
+
+
+}
+
+
+
+footer 1
+
+@enduml

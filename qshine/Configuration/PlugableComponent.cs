@@ -42,11 +42,15 @@ namespace qshine
 		/// <value>The parameters.</value>
 		public IDictionary<string, string> Parameters { get { return _parameters; } }
 
-		/// <summary>
-		/// Indicates whether the component has been registered and ready
-		/// </summary>
-		/// <value><c>true</c> if is registered; otherwise, <c>false</c>.</value>
-		public bool hasRegistered { get; set; }
+        /// <summary>
+        /// Defines a life scope of the component.
+        /// The valid scopes are:
+        ///     Singleton,
+        ///     Transient
+        ///     
+        /// The value could be mapped to IocInstanceScope.
+        /// </summary>
+        public string Scope { get; set; }
 
 	}
 }

@@ -37,49 +37,68 @@ namespace qshine
 			} 
 		}
 
+        protected TraceEventType _logLevel;
+        public virtual void EnableLogging(TraceEventType logLevel)
+        {
+            _logLevel = logLevel;
+
+        }
+
 		/// <summary>
 		/// Gets a value indicating whether this <see cref="T:qshine.LoggerBase"/> is fatal enabled.
 		/// </summary>
 		/// <value><c>true</c> if is fatal enabled; otherwise, <c>false</c>.</value>
-		public abstract bool IsFatalEnabled { get; }
+		public virtual bool IsFatalEnabled {
+            get { return _logLevel >= TraceEventType.Critical;}
+        }
 
 		/// <summary>
 		/// Gets a value indicating whether this <see cref="T:qshine.LoggerBase"/> is error enabled.
 		/// </summary>
 		/// <value><c>true</c> if is error enabled; otherwise, <c>false</c>.</value>
-		public abstract bool IsErrorEnabled { get; }
+		public virtual bool IsErrorEnabled {
+            get { return _logLevel >= TraceEventType.Error; }
+        }
 
-		/// <summary>
-		/// Gets a value indicating whether this <see cref="T:qshine.LoggerBase"/> is warn enabled.
-		/// </summary>
-		/// <value><c>true</c> if is warn enabled; otherwise, <c>false</c>.</value>
-		public abstract bool IsWarnEnabled { get; }
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="T:qshine.LoggerBase"/> is warn enabled.
+        /// </summary>
+        /// <value><c>true</c> if is warn enabled; otherwise, <c>false</c>.</value>
+        public virtual bool IsWarnEnabled {
+            get { return _logLevel >= TraceEventType.Warning; }
+        }
 
-		/// <summary>
-		/// Gets a value indicating whether this <see cref="T:qshine.LoggerBase"/> is info enabled.
-		/// </summary>
-		/// <value><c>true</c> if is info enabled; otherwise, <c>false</c>.</value>
-		public abstract bool IsInfoEnabled { get; }
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="T:qshine.LoggerBase"/> is info enabled.
+        /// </summary>
+        /// <value><c>true</c> if is info enabled; otherwise, <c>false</c>.</value>
+        public virtual bool IsInfoEnabled {
+            get { return _logLevel >= TraceEventType.Information; }
+        }
 
-		/// <summary>
-		/// Gets a value indicating whether this <see cref="T:qshine.LoggerBase"/> is trace enabled.
-		/// </summary>
-		/// <value><c>true</c> if is trace enabled; otherwise, <c>false</c>.</value>
-		public abstract bool IsTraceEnabled { get; }
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="T:qshine.LoggerBase"/> is trace enabled.
+        /// </summary>
+        /// <value><c>true</c> if is trace enabled; otherwise, <c>false</c>.</value>
+        public virtual bool IsTraceEnabled {
+            get { return _logLevel >= TraceEventType.Verbose; }
+        }
 
-		/// <summary>
-		/// Gets a value indicating whether this <see cref="T:qshine.LoggerBase"/> is debug enabled.
-		/// </summary>
-		/// <value><c>true</c> if is debug enabled; otherwise, <c>false</c>.</value>
-		public abstract bool IsDebugEnabled { get; }
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="T:qshine.LoggerBase"/> is debug enabled.
+        /// </summary>
+        /// <value><c>true</c> if is debug enabled; otherwise, <c>false</c>.</value>
+        public virtual bool IsDebugEnabled {
+            get { return _logLevel >= TraceEventType.Verbose; }
+        }
 
-		/// <summary>
-		/// Debug the specified message and properties.
-		/// </summary>
-		/// <returns>The debug.</returns>
-		/// <param name="message">Message.</param>
-		/// <param name="properties">Properties.</param>
-		public virtual void Debug(string message, params object[] properties)
+        /// <summary>
+        /// Debug the specified message and properties.
+        /// </summary>
+        /// <returns>The debug.</returns>
+        /// <param name="message">Message.</param>
+        /// <param name="properties">Properties.</param>
+        public virtual void Debug(string message, params object[] properties)
 		{
 			Log(TraceEventType.Verbose, message, null, properties);
 		}

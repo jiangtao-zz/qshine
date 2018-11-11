@@ -75,7 +75,7 @@ namespace qshine
 					lock(_providerLockObject){
 						if(_provider==null || _provider == _internalIoCProvider){
 							//try to load a plugable IoC provider
-							_provider = EnvironmentManager.GetProvider<IIocProvider>()??_internalIoCProvider;
+							_provider = ApplicationEnvironment.GetProvider<IIocProvider>()??_internalIoCProvider;
 						}
 					}
 				}

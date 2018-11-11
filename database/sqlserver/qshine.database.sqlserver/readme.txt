@@ -20,4 +20,7 @@
 4. Get the connectionstring
 	Data Source=(LocalDb)\sampledbinstance;Initial Catalog=sampledb;Integrated Security=True
 
+For .NET Core, 
+a. Need install NUGet System.Data.SqlClient package in project build.
+b. LocalDb may not work. Change it to pipe connection.
 

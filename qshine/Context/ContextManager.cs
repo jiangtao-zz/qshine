@@ -1,27 +1,63 @@
 ﻿using qshine.Configuration;
+using qshine.Utility;
+using System;
 
 namespace qshine
 {
 	/// <summary>
-	/// The context is used to hold a set of data within a particular operation.
+	/// The context is used to hold a set of data within a particular operation scope.
 	/// The context data is accessable from different layers without pass a reference.
-	/// The operation period lifecycle could be a request, thread, session or others which bound to one given execution path.
+	/// The operation period lifecycle could be a request, thread, session or others which bound to one given execution path. 
 	/// The well-known context has: HttpContext, OperationContext, CallContext.
+	/// The static context is a global storage accross running application.
+    /// 
+	/// The context manager provider service to access current context store object based on initial setting. 
+    /// It also allow access different context store by a given context type unique name 
 	/// 
-	/// The context manager can only access current context object accessable by the thread. (The same context may pass around between threads)
-	/// 
+    ///     ContextManager.Current.SetData(key, data);
+    ///     ContextManager.Current.GetData(key);
+    ///     IContextStore contextStore = ContextManager.GetContextStore(ContextStoreType.Static);
+    ///     contextStore.SetData(key,data)
 	/// 
 	/// 
 	/// </summary>
 	public class ContextManager
 	{
-		static IContextStore _currentContextStore;
-		static object lockObject = new object();
+        static SafeDictionary<ContextStoreType, Type> _registry = new SafeDictionary<ContextStoreType, Type>();
+        static IContextStore _currentContextStore;
+        static object lockObject = new object();
+        static ContextManager()
+        {
+            _registry[ContextStoreType.Static] = typeof(StaticContextStore);
+            _registry[ContextStoreType.CallLocal] = typeof(CallContextLocalStore);
+            _registry[ContextStoreType.CallLogic] = typeof(CallContextLogicStore);
+        }
+
+        /// <summary>
+        /// Get a specific type of context store
+        /// </summary>
+        /// <param name="storeType">type of context store</param>
+        /// <returns></returns>
+        public static IContextStore GetContextStore(ContextStoreType storeType)
+        {
+            Type type;
+            if(_registry.TryGetValue(storeType, out type))
+            {
+                return Activator.CreateInstance(type) as IContextStore;
+            }
+
+            throw new NotImplementedException(string.Format("The context of ContextStoreType {0} is not implemented.", storeType));
+        }
+
 		/// <summary>
 		/// Gets or sets the name of the context type.
 		/// </summary>
 		/// <value>The name of the context type.</value>
-		static IContextStore Current
+        /// <remarks>
+        /// It should only one type of Current context exists in application execution path.
+        /// Othere type context store can be found using GetContextStore()
+        /// </remarks>
+		public static IContextStore Current
 		{
 			get
 			{
@@ -32,12 +68,16 @@ namespace qshine
 						if (_currentContextStore == null)
 						{
 							//Load from configure
-							_currentContextStore = EnvironmentManager.GetProvider<IContextStore>();
+							_currentContextStore = ApplicationEnvironment.GetProvider<IContextStore>();
 							if (_currentContextStore == null)
 							{
 								//load default
 								_currentContextStore = new CallContextLocalStore();
-							}
+                            }
+                            else
+                            {
+                                _registry[_currentContextStore.ContextType] = _currentContextStore.GetType();
+                            }
 						}
 					}
 				}
@@ -77,5 +117,27 @@ namespace qshine
 			Current.FreeData(name);
 		}
 
-	}
+        /// <summary>
+        /// Get call context
+        /// </summary>
+        public static IContextStore CallContext
+        {
+            get
+            {
+                return GetContextStore(ContextStoreType.CallLocal);
+            }
+        }
+
+        /// <summary>
+        /// Get Static context
+        /// </summary>
+        public static IContextStore StaticContext
+        {
+            get
+            {
+                return GetContextStore(ContextStoreType.Static);
+            }
+        }
+
+    }
 }

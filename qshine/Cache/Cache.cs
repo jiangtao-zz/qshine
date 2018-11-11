@@ -29,7 +29,7 @@ namespace qshine
 					{
 						if (_cacheProvider == null)
 						{
-							_cacheProvider = EnvironmentManager.GetProvider<ICacheProvider>();
+							_cacheProvider = ApplicationEnvironment.GetProvider<ICacheProvider>();
 							if (_cacheProvider == null)
 							{
 								_cacheProvider = _defaultCacheProvider;

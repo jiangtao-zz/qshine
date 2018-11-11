@@ -20,5 +20,10 @@ namespace qshine
 		/// </summary>
 		/// <param name="name">Name.</param>
 		void FreeData(string name);
+
+        /// <summary>
+        /// Get context type
+        /// </summary>
+        ContextStoreType ContextType { get; }
 	}
 }

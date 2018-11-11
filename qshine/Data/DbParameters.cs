@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.OleDb;
 
 namespace qshine
@@ -37,8 +38,8 @@ namespace qshine
 
 		public DbParameters Input<T>(string name, T value)
 		{
-			_currentParameter = new OleDbParameter
-			{
+			_currentParameter = new CommonDbParameter
+            {
 				ParameterName = name,
 				Direction = ParameterDirection.Input,
 				Value = ToDbValue(value),
@@ -46,6 +47,10 @@ namespace qshine
             if (value is bool)
             {
                 _currentParameter.DbType = DbType.Boolean;
+            }
+            else
+            {
+                _currentParameter.DbType = ToDbType(typeof(T));
             }
 
 			_dbParameters.Add(_currentParameter);
@@ -67,8 +72,8 @@ namespace qshine
 
 		public DbParameters Output(string name, DbType dbType, int size=-1)
 		{
-			_currentParameter = new OleDbParameter
-			{
+			_currentParameter = new CommonDbParameter
+            {
 				ParameterName = name,
 				Direction = ParameterDirection.Output,
 				DbType = dbType,
@@ -195,4 +200,21 @@ namespace qshine
             }
         }
 	}
+
+    public class CommonDbParameter : DbParameter
+    {
+        public override DbType DbType { get; set; }
+        public override ParameterDirection Direction { get; set; }
+        public override bool IsNullable { get; set; }
+        public override string ParameterName { get; set; }
+        public override int Size { get; set; }
+        public override string SourceColumn { get; set; }
+        public override bool SourceColumnNullMapping { get; set; }
+        public override object Value { get; set; }
+
+        public override void ResetDbType()
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

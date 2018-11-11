@@ -1,5 +1,8 @@
 ﻿using System;
+#if NETCORE
+#else 
 using System.Runtime.Remoting.Messaging;
+#endif
 
 namespace qshine
 {
@@ -42,11 +45,11 @@ namespace qshine
 		/// Gets the name of the context type.
 		/// </summary>
 		/// <value>The name of the context type.</value>
-		public string ContextTypeName
+		public ContextStoreType ContextType
 		{
 			get
 			{
-				return "callLogic";
+				return ContextStoreType.CallLogic;
 			}
 		}
 	}
