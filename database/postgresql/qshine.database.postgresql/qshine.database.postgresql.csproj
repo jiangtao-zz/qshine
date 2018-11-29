@@ -73,7 +73,14 @@
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="4.0.3" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="plugin.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\database\postgresql\bin\"</PostBuildEvent>
+    <PostBuildEvent>xcopy  /F /R /Y "$(TargetDir)plugin.config" "$(SolutionDir)config\component\database\postgresql\"
+del /q "$(TargetDir)plugin.config"
+xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\database\postgresql\bin\"</PostBuildEvent>
   </PropertyGroup>
 </Project>

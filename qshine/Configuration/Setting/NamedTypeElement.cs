@@ -1,8 +1,8 @@
 ﻿using System.Configuration;
 
-namespace qshine.Configuration
+namespace qshine.Configuration.Setting
 {
-	public class NamedTypeElement : NamedConfigurationElement
+    public class NamedTypeElement : NamedConfigurationElement
 	{
 		const string TypeAttributeName = "type";
 

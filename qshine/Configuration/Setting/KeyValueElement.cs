@@ -1,5 +1,5 @@
 ﻿using System.Configuration;
-namespace qshine.Configuration
+namespace qshine.Configuration.Setting
 {
 	public class KeyValueElement: ConfigurationElement
 	{
@@ -11,7 +11,7 @@ namespace qshine.Configuration
 		/// </summary>
 		/// <value>The key.</value>
 		[ConfigurationProperty(KeyAttributeName, IsRequired = true)]
-		public string Key
+        public string Key
 		{
 			get { return (string)this[KeyAttributeName]; }
 			set { this[KeyAttributeName] = value; }

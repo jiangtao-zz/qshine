@@ -14,8 +14,15 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp2.1;</TargetFrameworks>
+    <!--<TargetFrameworks>net461;netcoreapp2.1;</TargetFrameworks>-->
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <!--<TargetFramework>net461</TargetFramework>-->
     <PreserveCompilationContext>false</PreserveCompilationContext>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
@@ -29,6 +36,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
+    <Compile Include="DatabaseBuilder.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -81,7 +89,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="applicationDesign\0_readme.txt" />
-    <None Include="App.config" />
+    <None Include="App.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="tables\queue\idm.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>idm.sql</LastGenOutput>
@@ -109,5 +119,8 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(SolutionDir)config\*.*" "$(TargetDir)config\"</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 </Project>

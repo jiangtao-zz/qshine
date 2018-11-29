@@ -8,7 +8,7 @@ namespace qshine.LogInterceptor
 	public class DbClientLog
 		:IInterceptorHandler
 	{
-		public void LoadInspectHandler()
+		public void LoadInterceptorHandler()
 		{
 			var interceptor = Interceptor.Get<DbClient>();
 			if (interceptor != null)

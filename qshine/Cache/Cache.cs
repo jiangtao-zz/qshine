@@ -82,7 +82,7 @@ namespace qshine
 		/// <param name="key">The cache key.</param>
 		public static object Get(string key)
 		{
-			Check.IsNotEmpty(key, "Cache.Get=>key");
+			Check.HaveValue(key, "Cache.Get=>key");
 			return Current.Get(key);
 		}
 		#endregion
@@ -109,7 +109,7 @@ namespace qshine
 		/// are removed from the cache before objects with a higher cost.</param>
 		public static void Add(string key, object value, DateTime absoluteExpiration, TimeSpan slidingExpiration, IEnumerable<string> dependentSets = null, CacheItemPriority priority = CacheItemPriority.Normal)
 		{
-			Check.IsNotEmpty(key, "Cache.Add=>key");
+			Check.HaveValue(key, "Cache.Add=>key");
 			Current.Add(key, value, absoluteExpiration, slidingExpiration, dependentSets, priority);
 		}
 
@@ -170,7 +170,7 @@ namespace qshine
 		/// <returns>True if item referenced by the key is in the cache</returns>
 		public static bool Contains(string key)
 		{
-			Check.IsNotEmpty(key, "Cache.Contains=>key");
+			Check.HaveValue(key, "Cache.Contains=>key");
 			return Current.Contains(key);
 		}
 		#endregion

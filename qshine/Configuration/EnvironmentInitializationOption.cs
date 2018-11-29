@@ -68,13 +68,13 @@ namespace qshine
         /// Specifies a custom function to find candidate assembly.
         /// It will be used to filter the assembly which does not want to loaded into mapping list. 
         /// </summary>
-        public Func<Assembly, bool> IsCandidateAssembly { get; set; }
+        static public Func<Assembly, bool> IsCandidateAssembly { get; set; }
         /// <summary>
         /// Specifies a system run-time assemblies get from current application.
         /// As default, the RuntimeComponents will be get from AppDomain. For many reasons, it may not be available in AppDomain.
         /// In this case, it need be loaded by application manually before build ApplicationEnvironment.
         /// </summary>
-        public Assembly[] RuntimeComponents { get; set; }
+        static public Assembly[] RuntimeComponents { get; set; }
 
 
     }

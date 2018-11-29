@@ -46,7 +46,14 @@
   <ItemGroup>
     <Content Include="readme.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="plugin.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\database\oracle\bin\"</PostBuildEvent>
+    <PostBuildEvent>xcopy  /F /R /Y "$(TargetDir)plugin.config" "$(SolutionDir)config\component\database\oracle\"
+del /q "$(TargetDir)plugin.config"
+xcopy  /F /E /R /Y /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\database\oracle\bin\"</PostBuildEvent>
   </PropertyGroup>
 </Project>

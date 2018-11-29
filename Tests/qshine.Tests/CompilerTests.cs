@@ -3,7 +3,7 @@ using qshine.Configuration;
 using qshine;
 using System;
 using qshine.Compiler;
-namespace qshine.UnitTests
+namespace qshine.Tests
 {
 	[TestClass]
 	public class ScriptCompilerTest

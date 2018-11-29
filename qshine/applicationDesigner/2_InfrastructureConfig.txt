@@ -18,21 +18,23 @@ skinparam {
 	}
 
 left header
-The infrastructure Environment manager component provide a common service to allow plug-in component or modules be added into application running environment.
+The infrastructure application environment component provide a common service to allow plug-in components (module or provider) be added into application runtime environment.
 It support muti-level configuration setting. Each plug-in component and setting could be in a shared folder or individual folder upon overall system deployment structure.
+The provider is a type of component which implemented a specific interface. The provider will be loaded on-demand through provider interafce.
+The module can be any type of component which will be loaded (instantiated) automatically through environment setting.
 endheader
 
 title Plug-in infrastructure: Environment Manager
 
-frame "Environment Manager" as fr {
-[EnvironmentManager] <<static>>
+frame "Application Environment" as fr {
+[ApplicationEnvironment] <<static>>
 
 () "Boot" as Boot
 () "IProvider" as Provider
 
 
-Boot - [EnvironmentManager]
-[EnvironmentManager] -up- Provider
+Build - [ApplicationEnvironment]
+[ApplicationEnvironment] -up- Provider
 
 
 package "Environment Config Files" as configureFiles #LightGoldenRodYellow {
@@ -40,7 +42,7 @@ package "Environment Config Files" as configureFiles #LightGoldenRodYellow {
 	folder "config files"
 }
 
-EnvironmentManager -down-> configureFiles:Load plug-in components and settings
+ApplicationEnvironment -down-> configureFiles:Load plug-in components and settings
 
 [Logging] <<Provider>> as log
 [Audit] <<Provider>> as audit

@@ -1,3 +1,4 @@
+using qshine.Configuration;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,43 +10,67 @@ using System.Threading;
 
 namespace qshine
 {
-	/// <summary>
-	/// Logger API.
-	/// 	1. Get logger instance from .NET trace logger provider for system logging message
-	/// 	2. Get logger instance from a plug-in logger provider for application logging message
-	/// 	3. Provide general logger instance for application logging message
-	/// 	4. Provide debugging methods for DEBUG version only
-	/// 	
-	/// Before the application logger provider initialized, a .NET trace logger will be used for message logging.
-	/// The framewrok code will use .NET trace logger to log message based on application configure setting.
-	/// To enable trace logger you need configure application diagnostics section for particular source.
-	/// The defult source name is "General" for SysLogger
-	/// 	var systemLogger = Log.TraceLoggerProvider.GetLogger(category);
-	/// 	systemLogger.Error(ex);
-	/// 	or Log.SysLogger.Error(ex);
-	/// 
-	/// The application use Log.GetLogger(category) to get a logger instance for specific category (source).
-	/// 	var logger = Log.GetLogger("database");
-	/// 	logger.Info("ExecuteSql({0})",sql);
-	/// 
-	/// Log methods are available only for developer to view the detail code information during DEBUG mode. 
-	/// All those DevDebug() code will be removed in release mode.
-	/// 	Log.DevDebug("Method begin")
-	/// 	Log.DevDebug("Method end"
-	/// </summary>
-	public class Log
+    /// <summary>
+    /// Logger API.
+    /// 	1. Get logger instance from .NET trace logger provider for system logging message.
+    /// 	We have two type log provider:Plugin log provider and system log provider. 
+    /// 	The system log provider is dotnet native tracing diagnostics logger. It is a default logger for system.
+    /// 	When a plugin logger provider added in application environment, it will be loaded automatically and replace
+    /// 	the default one.
+    /// 	2. Get logger instance from a plug-in logger provider for application logging message
+    /// 	3. Provide general logger instance for application logging message
+    /// 	4. Provide debugging methods for DEBUG version only
+    /// 	
+    /// Before the application logger provider initialized, a .NET trace logger will be used for message logging.
+    /// The framewrok code will use .NET trace logger to log message based on application dotnet diagnostics configure setting.
+    /// To enable trace logger you need configure application diagnostics section for particular source.
+    /// The defult source name is "General" for SysLogger
+    /// 	var systemLogger = Log.TraceLoggerProvider.GetLogger(category);
+    /// 	systemLogger.Error(ex);
+    /// 	or Log.SysLogger.Error(ex);
+    /// 
+    /// The application use Log.GetLogger(category) to get a logger instance for specific category (source).
+    /// 	var logger = Log.GetLogger("database");
+    /// 	logger.Info("ExecuteSql({0})",sql);
+    /// 
+    /// Log methods are available only for developer to view the detail code information during DEBUG mode. 
+    /// All those DevDebug() code will be removed in release mode.
+    /// 	Log.DevDebug("Method begin")
+    /// 	Log.DevDebug("Method end")
+    /// 	
+    /// The plugin log will take affect after plug-in logger loaded by application environment build process.
+    /// </summary>
+    public class Log:IStartupInitializer
 	{
-		#region fields
+        #region static ctor for IStartupInitializer
+        static Log()
+        {
+            var interceptor = Interceptor.Get<ApplicationEnvironment>();
+            interceptor.OnSuccess += reloadLogProvider;
+        }
+        static void reloadLogProvider(object sender, InterceptorEventArgs args)
+        {
+            if (args.MethodName == "Init")
+            {
+                var provider = Configuration.ApplicationEnvironment.GetProvider<ILoggerProvider>();
+                if (provider != null)
+                {
+                    LoggerProvider = provider;
+                    SysLoggerProvider = provider;
+                }
+            }
+        }
+        #endregion
 
-		static IDictionary<string, ILogger> _logInstances = new Dictionary<string, ILogger>();
+        #region fields
+
+        static IDictionary<string, ILogger> _logInstances = new Dictionary<string, ILogger>();
 		static object lockObject = new object();
 
 		#endregion
 
 		#region GetLogger
 
-		//[ThreadStatic]
-		static ILogger _currentLogger;
 		/// <summary>
 		/// Gets the logger for a specified category.
 		/// </summary>
@@ -53,6 +78,8 @@ namespace qshine
 		/// <returns>logger</returns>
 		public static ILogger GetLogger(string category)
 		{
+            
+            //cache plugin logger instance
 			if (!_logInstances.ContainsKey(category))
 			{
 				lock (lockObject)
@@ -64,8 +91,8 @@ namespace qshine
 					}
 				}
 			}
-			_currentLogger = _logInstances[category];
-			return _currentLogger;
+			var currentLogger = _logInstances[category];
+			return currentLogger;
 		}
 
 		/// <summary>
@@ -110,17 +137,25 @@ namespace qshine
 		{
 			get
 			{
-				if (_logerProvider == null || _logerProvider == SysLoggerProvider)
-				{
-					//Try to load log provider from a plugable logger provider.
-					_logerProvider = Configuration.ApplicationEnvironment.GetProvider<ILoggerProvider>()
-												  ?? SysLoggerProvider;
-				}
+                if (_logerProvider == null)
+                {
+                    _logerProvider = SysLoggerProvider;
+                }
 				return _logerProvider;
 			}
 			set
 			{
-				_logerProvider = value;
+                if (_logerProvider != value)
+                {
+                    lock (lockObject)
+                    {
+                        if (_logerProvider != value)
+                        {
+                            _logerProvider = value;
+                            _logInstances.Clear();
+                        }
+                    }
+                }
 			}
 		}
 		#endregion
@@ -149,6 +184,8 @@ namespace qshine
             set
             {
                 _systemLoggerProvider = value;
+                _syslogger = null;
+                _devLogger = null;
             }
 		}
 

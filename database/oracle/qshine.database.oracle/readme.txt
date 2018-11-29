@@ -12,3 +12,13 @@
 			to sampledb;
 	5.SQL> exit;
 5. If you use Oracle ManagedDataAccess you need Remove the section with oracle.manageddataaccess.client from your machine.config.
+
+
+==================================
+Plugin location:
+
+	<qshine>
+		<environments>
+			<environment name="oracle" path="config/component/database/oracle"/>
+		</environments>   
+	</qshine>

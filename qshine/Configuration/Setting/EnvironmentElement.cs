@@ -1,8 +1,8 @@
 ﻿using System.Configuration;
 
-namespace qshine.Configuration
+namespace qshine.Configuration.Setting
 {
-	public class EnvironmentElement : NamedConfigurationElement
+    public class EnvironmentElement : NamedConfigurationElement
 	{
 		const string PathAttributeName = "path";
 		const string BinAttributeName = "bin";

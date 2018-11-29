@@ -164,7 +164,7 @@ namespace qshine.database
         /// <returns></returns>
 		public SqlDDLTable AddIndex(string columnNames, string indexName, bool isUnique=false)
 		{
-            Check.IsNotEmpty(indexName, "indexName");
+            Check.HaveValue(indexName, "indexName");
 
 			if (!_indexes.ContainsKey(indexName))
 			{

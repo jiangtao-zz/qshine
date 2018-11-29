@@ -7,64 +7,38 @@ using System.Xml.Linq;
 
 namespace qshine
 {
+    /// <summary>
+    /// Defines a configuration XML Section.
+    /// Work with XmlHelper to load config section from config file
+    /// <![CDATA[
+    ///     <system.data>
+    ///        <!-- !!!!!   -->
+    ///        <DbProviderFactories>
+    ///            <!--Sqlite Data provider-->
+    ///            <remove invariant="System.Data.SQLite.EF6"/>
+    ///            <add name = "SQLite Data Provider (Entity Framework 6)" 
+    ///                  invariant = "System.Data.SQLite.EF6"
+    ///                  description = ".NET Framework Data Provider for SQLite (Entity Framework 6)"
+    ///                  type = "System.Data.SQLite.EF6.SQLiteProviderFactory, System.Data.SQLite.EF6" />
+    ///           <remove invariant = "System.Data.SQLite" />
+    ///           <add name = "SQLite Data Provider" invariant = "System.Data.SQLite"
+    ///                  type = "System.Data.SQLite.SQLiteFactory, System.Data.SQLite" />
+    ///           <!--MySQL Data provider-->Text Value
+    ///        </DbProviderFactories >
+    ///     </system.data >
+    /// ]]>
+    /// </summary>
     public class XmlSection
     {
-        public string Name { get; set; }
-        public string Value { get; set; }
+        public XmlSection() { }
 
-        public List<XmlSection> Items { get; set; }
-
-        // The inner dictionary.
-        Dictionary<string, string> dictionary
-            = new Dictionary<string, string>();
-
-        // This property returns the number of elements
-        // in the inner dictionary.
-        public int Count
-        {
-            get
-            {
-                return dictionary.Count;
-            }
-        }
-
-        public string this[string name]
-        {
-            get
-            {
-                string result;
-                if(dictionary.TryGetValue(name, out result))
-                {
-                    return result;
-                }
-                return null;
-            }
-            set
-            {
-                dictionary[name] = value;
-            }
-        }
-    }
-    public class XmlHelper
-    {
-        XmlSection _dynamicObject;
-
-        public XmlHelper(string rawXml)
+        public XmlSection(string rawXml)
         {
             var node = XDocument.Parse(rawXml);
-            _dynamicObject = new XmlSection();
             XElement topNode = node.Elements().First();
-            Parse(_dynamicObject, topNode);
+            Parse(this, topNode);
         }
-
-        public XmlSection XmlSection
-        {
-            get
-            {
-                return _dynamicObject;
-            }
-        }
-        public static bool Parse(XmlSection parent, XElement node)
+        private bool Parse(XmlSection parent, XElement node)
         {
             parent.Name = node.Name.LocalName;
             parent.Value = node.Value;
@@ -89,6 +63,42 @@ namespace qshine
                 }
             }
             return true;
+        }
+
+        public string Name { get; set; }
+        public string Value { get; set; }
+
+        public List<XmlSection> Items { get; set; }
+
+        // The inner dictionary.
+        Dictionary<string, string> dictionary
+            = new Dictionary<string, string>();
+
+        // This property returns the number of elements
+        // in the inner dictionary.
+        public int Count
+        {
+            get
+            {
+                return dictionary.Count;
+            }
+        }
+
+        public string this[string name]
+        {
+            get
+            {
+                string result;
+                if (dictionary.TryGetValue(name, out result))
+                {
+                    return result;
+                }
+                return null;
+            }
+            set
+            {
+                dictionary[name] = value;
+            }
         }
     }
 }

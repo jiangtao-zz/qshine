@@ -2,6 +2,9 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+#if NETCORE
+using System.Runtime.InteropServices;
+#endif
 
 namespace qshine
 {
@@ -19,13 +22,17 @@ namespace qshine
 		}
 
         /// <summary>
-        /// Return current application running platform x86 or x64.
-        /// Note: qshine builder target on Any CPU. It can load component from x86 
+        /// Return current application running platform x86, x64, arm or arm64.
+        /// Note: qshine builder target on Any CPU. It could load component from x86 or x64 
         /// </summary>
 		public static string CpuArchitecture
 		{
 			get
 			{
+#if NETCORE
+                //return x86,x64,arm or arm64
+                return RuntimeInformation.OSArchitecture.ToString().ToLower();
+#else
                 if (Environment.Is64BitProcess)
                 {
                     return "x64";
@@ -35,7 +42,37 @@ namespace qshine
                     return "x86";
                     //return Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
                 }
-			}
+#endif
+            }
 		}
-	}
+
+        /// <summary>
+        /// Get current operation system code
+        /// </summary>
+        public static string OSPlatform
+        {
+            get
+            {
+#if NETCORE
+                if (RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+                {
+                    return "win";
+                }
+                if (RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
+                {
+                    return "linux";
+                }
+                if (RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX))
+                {
+                    return "osx";
+                }
+                return "any";
+#else
+                return "win";
+#endif
+            }
+        }
+
+
+    }
 }

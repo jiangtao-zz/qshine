@@ -22,7 +22,7 @@ namespace qshine
 		/// <param name="name">Name.</param>
 		public object GetData(string name)
 		{
-			return CallContext.GetData(name);
+			return CallContext.LogicalGetData(name);
 		}
 
 		/// <summary>
@@ -32,7 +32,7 @@ namespace qshine
 		/// <param name="data">Data.</param>
 		public void SetData(string name, object data)
 		{
-			CallContext.SetData(name, data);
+			CallContext.LogicalSetData(name, data);
 		}
 
 		/// <summary>
@@ -94,7 +94,11 @@ namespace qshine
             SetData(name, value);
         }
 
-        public static void FreeNamedDataSlot(string name) { }
+        public static void FreeNamedDataSlot(string name)
+        {
+            object value;
+            _state.TryRemove(name, out value);
+        }
     }
 #endif
 }

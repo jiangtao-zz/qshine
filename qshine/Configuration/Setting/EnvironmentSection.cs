@@ -1,13 +1,12 @@
-﻿using System;
-using System.Configuration;
-using System.Xml;
+﻿using System.Configuration;
+using qshine.Configuration.Setting;
 
 namespace qshine.Configuration
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public class EnvironmentSection : ConfigurationSection
+    /// <summary>
+    /// 
+    /// </summary>
+    public class EnvironmentSection : ConfigurationSection
 	{
 		public const string EnvironmentsAttributeName = "environments";
 		public const string ComponentsAttributeName = "components";

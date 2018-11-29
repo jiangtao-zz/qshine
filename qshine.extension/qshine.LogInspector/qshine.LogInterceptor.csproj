@@ -24,7 +24,7 @@
 
 
   <ItemGroup>
-    <Compile Include="..\..\qshineAssemblyInfo.cs" />
+    <Compile Include="..\..\qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
     <Compile Include="DbClientLog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -36,6 +36,6 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\interceptor\bin\"</PostBuildEvent>
+    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\interceptor\logInterceptor\bin\"</PostBuildEvent>
   </PropertyGroup>
 </Project>

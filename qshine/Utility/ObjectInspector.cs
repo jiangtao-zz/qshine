@@ -94,87 +94,92 @@ namespace qshine
 		{
 			const int MAXIMUM_LEVEL = 10;
 
-			var tp = obj.GetType();
-			var sb = new StringBuilder();
+            if (obj == null)
+            {
+                return "null";
+            }
 
-			//output property type name
-			if (level == 0)
-			{
-				sb.Append(tp.Name);
-			}
-			//Set maximum level to 10 to avoid unexpected overflow just in case.
-			else if (level > MAXIMUM_LEVEL)
-			{
-				return "...";
-			}
+            var tp = obj.GetType();
+            var sb = new StringBuilder();
 
-			sb.AppendLine(" {");
+            //output property type name
+            if (level == 0)
+            {
+                sb.Append(tp.Name);
+            }
+            //Set maximum level to 10 to avoid unexpected overflow just in case.
+            else if (level > MAXIMUM_LEVEL)
+            {
+                return "...";
+            }
 
-			//Exception
-			var exceptionObject = obj as Exception;
-			if (exceptionObject != null)
-			{
-				sb.Append(GetExceptionCallStack(exceptionObject));
-			}
-			//formatting array
-			else if (tp.IsArray)
-			{
-				FormattingArray(obj, sb, level);
-			}
-			//formatting generic
-			else if (tp.IsGenericType && IsSystemType(tp))
-			{
-				//IDictionary
-				if (obj is IDictionary)
-				{
-					FormattingDictionary(obj, sb, level);
-				}
-				//IList
-				else if (obj is IList)
-				{
-					FormattingList(obj, sb, level);
-				}
-				//Other unknown structure
-				else
-				{
-					FormattingSimpleObject(obj, sb, level);
-				}
-			}
-			//formatting class
-			else if (tp.IsClass)
-			{
-				//formating system type
-				if (IsSystemType(tp))
-				{
-					FormattingSimpleObject(obj, sb, level);
-				}
-				//formatting user class
-				else
-				{
-					//formatting all properties
-					foreach (var pinfo in tp.GetProperties())
-					{
-						//only formatting readable properties
-						if (pinfo.CanRead)
-						{
-							FormatObjectValue(pinfo.GetValue(obj, null), pinfo.Name, pinfo.PropertyType, sb, level);
-						}
-					}
-					//formatting all fields
-					foreach (var finfo in tp.GetFields())
-					{
-						//only for public fields
-						if (finfo.IsPublic)
-						{
-							FormatObjectValue(finfo.GetValue(obj), finfo.Name, finfo.FieldType, sb, level);
-						}
-					}
-				}
-			}
-			else
-			{
-				FormattingSimpleObject(obj, sb, level);
-			}
+            sb.AppendLine(" {");
+
+            //Exception
+            var exceptionObject = obj as Exception;
+            if (exceptionObject != null)
+            {
+                sb.Append(GetExceptionCallStack(exceptionObject));
+            }
+            //formatting array
+            else if (tp.IsArray)
+            {
+                FormattingArray(obj, sb, level);
+            }
+            //formatting generic
+            else if (tp.IsGenericType && IsSystemType(tp))
+            {
+                //IDictionary
+                if (obj is IDictionary)
+                {
+                    FormattingDictionary(obj, sb, level);
+                }
+                //IList
+                else if (obj is IList)
+                {
+                    FormattingList(obj, sb, level);
+                }
+                //Other unknown structure
+                else
+                {
+                    FormattingSimpleObject(obj, sb, level);
+                }
+            }
+            //formatting class
+            else if (tp.IsClass)
+            {
+                //formating system type
+                if (IsSystemType(tp))
+                {
+                    FormattingSimpleObject(obj, sb, level);
+                }
+                //formatting user class
+                else
+                {
+                    //formatting all properties
+                    foreach (var pinfo in tp.GetProperties())
+                    {
+                        //only formatting readable properties
+                        if (pinfo.CanRead)
+                        {
+                            FormatObjectValue(pinfo.GetValue(obj, null), pinfo.Name, pinfo.PropertyType, sb, level);
+                        }
+                    }
+                    //formatting all fields
+                    foreach (var finfo in tp.GetFields())
+                    {
+                        //only for public fields
+                        if (finfo.IsPublic)
+                        {
+                            FormatObjectValue(finfo.GetValue(obj), finfo.Name, finfo.FieldType, sb, level);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                FormattingSimpleObject(obj, sb, level);
+            }
 			sb.Append(indent, level + 1);
 			sb.AppendLine("}");
 			return sb.ToString();

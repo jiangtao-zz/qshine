@@ -15,11 +15,7 @@ namespace qshine.database.sqlite.Tests
         public static void AssemblyInit(TestContext context)
         {
 
-            Log.SysLoggerProvider = new TraceLoggerProvider();
-            Log.SysLogger.EnableLogging(System.Diagnostics.TraceEventType.Verbose);
 
-            //This is only running once. Ignore subsequently call ApplicationEnvironment.Boot().
-            ApplicationEnvironment.Build("app.config");
         }
     }
 
@@ -30,6 +26,11 @@ namespace qshine.database.sqlite.Tests
         [ClassInitialize()]
         public static void ClassInit(TestContext context)
         {
+            Log.SysLoggerProvider = new TraceLoggerProvider();
+            Log.SysLogger.EnableLogging(System.Diagnostics.TraceEventType.Verbose);
+
+            //This is only running once. Ignore subsequently call ApplicationEnvironment.Boot().
+            ApplicationEnvironment.Build("app.config");
         }
 
         [ClassCleanup()]

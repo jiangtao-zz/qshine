@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;net461;</TargetFrameworks>
-    <!--<TargetFramework>netcoreapp2.1</TargetFramework>-->
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -26,14 +25,18 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>  
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="CommandBusTests.cs" />
     <Compile Include="CompilerTests.cs" />
     <Compile Include="ConfigurationTests.cs" />
     <Compile Include="ContextStoreTests.cs" />
+    <Compile Include="DatabaseTests.cs" />
     <Compile Include="InterceptorTests.cs" />
+    <Compile Include="IStartupInitializerTests.cs" />
+    <Compile Include="jsonTests.cs" />
+    <Compile Include="logTests.cs" />
     <Compile Include="ObjectExtenstionTests.cs" />
     <Compile Include="UtilityTests.cs" />
   </ItemGroup>
@@ -41,7 +44,6 @@
     <None Include="app.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\qshine\qshine.csproj">
@@ -51,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+    <Folder Include="unitTest\unitTestC1\" />
   </ItemGroup>
   <ItemGroup>
     <None Update="sampleEnvironment\myApplicationFolder\config\ioc.config">
@@ -64,6 +67,12 @@
     </None>
     <None Update="sampleEnvironment\mySystemFolder\config\main.config">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="unitTest\test_app1.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="unitTest\unitTestC1\test_app1_overwrite.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

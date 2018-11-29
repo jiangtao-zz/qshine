@@ -4,3 +4,13 @@ https://www.enterprisedb.com/downloads/postgres-postgresql-downloads
 3. Run pgAdmin to run database management application.
 4. Create a database "sampledb"
 5. 
+
+
+==================================
+Plugin location:
+
+	<qshine>
+		<environments>
+			<environment name="postgresql" path="config/component/database/postgresql"/>
+		</environments>   
+	</qshine>

@@ -1,5 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;net461;</TargetFrameworks>
@@ -54,7 +53,21 @@
     </ProjectReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="plugin.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\ioc\autofac\bin\"</PostBuildEvent>
+    <!--set below variable to allow MSBUild or dotnet command running-->
+    <SolutionDir>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))\..\</SolutionDir>
+    <ProjectDir>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))\</ProjectDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>
+      xcopy  /F /E /R /Y /D /i "$(TargetDir)plugin.config" "$(SolutionDir)config\component\ioc\autofac\"
+      del /q "$(TargetDir)plugin.config"
+      xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\ioc\autofac\bin\"
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>

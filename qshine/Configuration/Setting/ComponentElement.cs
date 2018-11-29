@@ -1,6 +1,6 @@
 ﻿using System.Configuration;
 
-namespace qshine.Configuration
+namespace qshine.Configuration.Setting
 {
 	public class ComponentElement : NamedConfigurationElement
 	{

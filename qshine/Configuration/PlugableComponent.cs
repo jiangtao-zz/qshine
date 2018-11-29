@@ -4,6 +4,10 @@ namespace qshine
 {
 	public class PlugableComponent
 	{
+        /// <summary>
+        /// Component configure file path. 
+        /// </summary>
+        public string ConfigureFilePath { get; set; }
 		/// <summary>
 		/// Gets or sets the name.
 		/// </summary>

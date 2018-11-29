@@ -28,6 +28,10 @@
   <ItemGroup>
     <Compile Include="dialectTests.cs" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\sqlserver\qshine.database.sqlserver\readme.txt" Link="readme.txt" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

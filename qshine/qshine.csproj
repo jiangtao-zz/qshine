@@ -79,6 +79,7 @@
     <Compile Include="Data\netcoreDataExtension.cs" />
     <Compile Include="Data\Sql\SqlDDLIndex.cs" />
     <Compile Include="Data\Sql\SqlDialectStandard.cs" />
+    <Compile Include="IStartupInitializer.cs" />
     <Compile Include="Logger\ConsoleLoggerProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IoC\IIocContainer.cs" />
@@ -107,13 +108,13 @@
     <Compile Include="Configuration\Setting\NamedConfigurationElement.cs" />
     <Compile Include="Configuration\Setting\NamedElementCollection.cs" />
     <Compile Include="Configuration\Setting\NamedTypeElement.cs" />
-    <Compile Include="Configuration\Setting\NamedValue.cs" />
+    <Compile Include="Configuration\NamedValue.cs" />
     <Compile Include="Configuration\Setting\NamedValueElement.cs" />
     <Compile Include="Configuration\Setting\ParameterElementCollection.cs" />
     <Compile Include="Configuration\Setting\SectionHandler.cs" />
     <Compile Include="Configuration\ApplicationEnvironment.cs" />
     <Compile Include="Configuration\PlugableComponent.cs" />
-    <Compile Include="Configuration\Setting\PlugableAssembly.cs" />
+    <Compile Include="Configuration\PlugableAssembly.cs" />
     <Compile Include="Logger\ILoggerProvider.cs" />
     <Compile Include="Logger\Log.cs" />
     <Compile Include="Logger\ILogger.cs" />
@@ -132,7 +133,6 @@
     <Compile Include="Context\CallContextLogicStore.cs" />
     <Compile Include="Context\CallContextLocalStore.cs" />
     <Compile Include="Context\IContextStore.cs" />
-    <Compile Include="IModuleLoader.cs" />
     <Compile Include="IProvider.cs" />
     <Compile Include="Cache\ICacheProvider.cs" />
     <Compile Include="Cache\CacheItemPriority.cs" />
@@ -158,7 +158,6 @@
     <Compile Include="Messaging\DefaultCommandBus\DefaultCommandBusFactory.cs" />
     <Compile Include="Messaging\DefaultCommandBus\NetCommandBus.cs" />
     <Compile Include="Messaging\MessageEnvelope.cs" />
-    <Compile Include="Utility\Json\JsonProvider.cs" />
     <Compile Include="Utility\Json\IJsonProvider.cs" />
     <Compile Include="Utility\Json\DotNetJsonSerializer.cs" />
     <Compile Include="Utility\Json\JsonExtension.cs" />
@@ -226,6 +225,11 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation">
+      <HintPath>..\..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.1.0\ref\netcoreapp2.1\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />

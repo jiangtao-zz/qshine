@@ -67,6 +67,10 @@ namespace qshine.Tests
             var x = new List<Task>(ts1);
             x.AddRange(ts2);
             Task.WaitAll(x.ToArray());
+
+            Assert.AreEqual(ContextStoreType.CallLogic, store.ContextType);
+            store.FreeData("test1");
+            Assert.IsTrue(store.GetData("test1") == null);
         }
 
         Task[] Tests_Logic_ContextStore_MultiTasks(string key, string expectedValue, string overwriteValue)
@@ -105,6 +109,10 @@ namespace qshine.Tests
             var x = new List<Task>(ts1);
             x.AddRange(ts2);
             Task.WaitAll(x.ToArray());
+            Assert.AreEqual(ContextStoreType.CallLocal, store.ContextType);
+            store.FreeData("test1");
+            Assert.IsTrue(store.GetData("test1") == null);
+
         }
 
         Task[] Tests_Local_ContextStore_MultiTasks(string key, string expectedValue, string overwriteValue)
@@ -154,6 +162,13 @@ namespace qshine.Tests
             Assert.AreEqual("value4", store1.GetData("test11").ToString());
             Assert.AreEqual("value4", store2.GetData("test11").ToString());
             Assert.AreEqual("value3", store3.GetData("test11").ToString());
+
+
+            ContextManager.FreeData("test11");
+            Assert.IsTrue(ContextManager.GetData("test11") == null);
+
+            ContextManager.Current = new StaticContextStore();
+            Assert.AreEqual(ContextStoreType.CallLocal, ContextManager.CallContext.ContextType);
         }
 
 

@@ -1,11 +1,29 @@
-﻿QShine environment contains many level configuration and binary folders. lower level configuration overwrite higher level configure.
-Each level binary folder may contain different .NET framework version assembly dlls. Only the closest versionable folder dlls will be loaded 
-from each level. The common folder dlls always be loaded.
+﻿The application environment could contain many levels configuration setting files and plugable binary files in different folders(and sub-folders). 
+The lower level configuration setting could overload higher level setting if the name are same.
+Each level binary folder could contain different qshine version dlls or target .NET framework version dlls.
 
-The configure file may contain environment element which points to another level config.
-The application config file is a level zero file that will be loaded first. Others will be loaded later if the config element not exists.
+The loader will search for component start from current bin folder and then qshine version folder (version match start from major, minor then build). 
+It only load closest version folder dlls if multiple version sub-folders found.
+Some binary sub-folders contains components target to specific dotnet framework version. 
 
-Qshine environment configuration structured in below format:
+Only the environment targeted framework version folder component will be loaded if such folder found.
+The full qualified environment target framework version is identified by Microsoft Target Framework Moniker (TFM).  
+You can find full list of TFM from https://docs.microsoft.com/en-us/dotnet/standard/frameworks.
+
+
+
+The configure file may contain environment element which can point to another level configuration setting.
+As a default, the application configuration file is a level zero environment configure setting that will be loaded first. 
+Others will be loaded based on environment element setting.
+
+Restriction:
+The binary files under environment configuration folder should be .NET managed assembly. 
+The unmanaged assembly may not be located by plugin assembly resolver.
+You can copy the unmanaged assembly files into application base folder to resolve the issue.
+
+For dotnet core application, you can resolve same issue by merge related section from plugin dll deps.json to application deps.json.
+
+Below is a sample application environment configuration structure:
 
 applicationWorkingFolder (console/form/web):
       |
@@ -17,11 +35,14 @@ applicationWorkingFolder (console/form/web):
             |----bin/									//1 level bin folder
                   |--commonDll1.dll						//1 level common dll file
                   |--commonDll2.dll						//1 level common dll file
-                  |--4/ 								//1 level version 4.XX bin folder.
+                  |--4/ 								//1 level qshine version 4.XX bin folder.
                   |   |---version 4 dlls
                   |
-                  |--5.7/								//1 level version 5.7.XX bin folder.
-                  |   |---version 5.71 dlls 
+                  |--5.7/								//1 level qshine version 5.7.XX bin folder.
+                  |   |---version 5.71 dlls
+                  |
+                  |--net461/ 							//1 level target framework version 4.6.1 bin folder.
+                  |   |---build for dotnet target framework 4.6.1 dlls
 
 level2ConfigFolder/										//2 level configuration folder
             |----config21.config						//2 level configuration file. It may contain level 3 config folder

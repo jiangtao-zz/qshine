@@ -1,6 +1,6 @@
-﻿namespace qshine.Configuration
+﻿namespace qshine.Configuration.Setting
 {
-	public class EnvironmentElementCollection : ConfigurationElementCollection<EnvironmentElement>
+    public class EnvironmentElementCollection : ConfigurationElementCollection<EnvironmentElement>
 	{
 		public EnvironmentElementCollection()
 			: base("environment")

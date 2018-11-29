@@ -1,12 +1,12 @@
 ﻿using System.Configuration;
 
-namespace qshine.Configuration
+namespace qshine.Configuration.Setting
 {
-	/// <summary>
-	/// Represents a collection of <see cref="NamedConfigurationElement"/> objects.
-	/// </summary>
-	/// <typeparam name="T">A newable object that inherits from <see cref="NamedConfigurationElement"/>.</typeparam>
-	public class NamedElementCollection<T> : ConfigurationElementCollection<T>
+    /// <summary>
+    /// Represents a collection of <see cref="NamedConfigurationElement"/> objects.
+    /// </summary>
+    /// <typeparam name="T">A newable object that inherits from <see cref="NamedConfigurationElement"/>.</typeparam>
+    public class NamedElementCollection<T> : ConfigurationElementCollection<T>
 		where T : NamedConfigurationElement, new()
 	{
 		/// <summary>

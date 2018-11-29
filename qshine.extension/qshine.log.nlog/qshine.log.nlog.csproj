@@ -35,7 +35,20 @@
   <ItemGroup>
     <ProjectReference Include="..\..\qshine\qshine.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="plugin.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\logger\nlog\bin\"</PostBuildEvent>
+    <!--set below variable to allow MSBUild or dotnet command running-->
+    <SolutionDir>$([System.IO.Path]::GetDirectoryName($(MSBuildProjectDirectory)))\..\</SolutionDir>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)plugin.config" "$(SolutionDir)config\component\logger\nlog\"
+del /q "$(TargetDir)plugin.config"
+xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\logger\nlog\bin\"</PostBuildEvent>
   </PropertyGroup>
 </Project>

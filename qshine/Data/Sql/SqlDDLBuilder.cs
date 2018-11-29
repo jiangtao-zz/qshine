@@ -15,59 +15,46 @@ namespace qshine.database
         ISqlDialectProvider _sqlDialectProvider;
 		ISqlDialect _sqlDialect;
         Database _database;
+        SqlDDLTracking _trackingTable;
 
 
         /// <summary>
-        /// Create a new SqlDDLBuilder instance by given sql dialect provider and connection string
+        /// Create a new SqlDDLBuilder instance for given database using specific sql dialect provider
         /// </summary>
-        /// <param name="sqlDialectProvider">Specific SQL dialect provider</param>
-        /// <param name="connectionStringName">Database connection string name</param>
-        public SqlDDLBuilder(ISqlDialectProvider sqlDialectProvider, string connectionStringName)
-        {
-            Initialize(sqlDialectProvider, connectionStringName);
-        }
-
-        /// <summary>
-        /// Create a new SqlDDLBuilder instance by connection string with default sql sialect provider
-        /// </summary>
-        /// <param name="sqlDialectProvider">Specific SQL dialect provider</param>
-        /// <param name="connectionStringName">Database connection string name</param>
-        public SqlDDLBuilder(string connectionStringName)
-		{
-            var sqlDialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
-            if (sqlDialectProvider == null)
-            {
-                throw new NotImplementedException("Couldn't load Sql database provider from environment configuration.");
-            }
-            Initialize(sqlDialectProvider, connectionStringName);
-        }
-        /// <summary>
-        /// Class initialization
-        /// </summary>
-        /// <param name="sqlDialectProvider">Specific SQL dialect provider</param>
-        /// <param name="connectionStringName">Database connection string name</param>
-        void Initialize(ISqlDialectProvider sqlDialectProvider, string connectionStringName)
+        /// <param name="database">Specifies a database instance to be built</param>
+        /// <param name="sqlDialectProvider">Specifies a SQL dialect provider</param>
+        public SqlDDLBuilder(Database database, ISqlDialectProvider sqlDialectProvider)
         {
             _sqlDialectProvider = sqlDialectProvider;
-            _database = new Database(connectionStringName);
+            if (_sqlDialectProvider == null)
+            {
+                _sqlDialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+                Check.HaveValue(_sqlDialectProvider);
+            }
+            _database = database;
+
             _tables = new List<SqlDDLTable>();
             _sqlDialect = _sqlDialectProvider.GetSqlDialect(_database.ConnectionString);
         }
 
-        SqlDDLTracking _trackingTable;
-        SqlDDLTracking TrackingTable
-        {
-            get
-            {
-                if (_trackingTable == null)
-                {
-                    _trackingTable = new SqlDDLTracking(_sqlDialect, DBClient);
-                }
-                return _trackingTable;
-            }
+        /// <summary>
+        /// Create a new SqlDDLBuilder instance for given database connection (configure name) using default sql dialect provider
+        /// </summary>
+        /// <param name="connectionStringName">Specifies a database connection string configure name. 
+        /// The configed database connectionstring contains DB provider name and connection string.</param>
+        public SqlDDLBuilder(string connectionStringName)
+            :this(new Database(connectionStringName),null)
+		{
         }
 
-
+        /// <summary>
+        /// Create a new SqlDDLBuilder instance for given database using default sql dialect provider
+        /// </summary>
+        /// <param name="database">Database connection and provider</param>
+        public SqlDDLBuilder(Database database)
+            :this(database,null)
+        {
+        }
 
         #region IDisposable
         public void Dispose()
@@ -145,13 +132,13 @@ namespace qshine.database
 			}
 
 
-
-			//Build database
-			//Ensure internal tracking table created
-			EnsureTrackingTableExists();
+            _trackingTable = new SqlDDLTracking(_sqlDialect,DBClient);
+            //Build database
+            //Ensure internal tracking table created
+            EnsureTrackingTableExists();
 
             //Load tracking table information
-            TrackingTable.Load();
+            _trackingTable.Load();
 
 			//Go through each register table
 			foreach (var table in _tables)
@@ -162,7 +149,7 @@ namespace qshine.database
                     if (CreateTable(table))
                     {
                         //add to tracking table
-                        TrackingTable.AddToTrackingTable(table);
+                        _trackingTable.AddToTrackingTable(table);
                     }
 				}
 				else
@@ -211,7 +198,7 @@ namespace qshine.database
         /// <param name="table">Table.</param>
         void TryUpdateTable(SqlDDLTable table)
 		{
-			var trackingTable = TrackingTable.GetTrackingTable(table.TableName);
+			var trackingTable = _trackingTable.GetTrackingTable(table.TableName);
 			if (trackingTable != null)
 			{
 				//Table name changed?
@@ -224,12 +211,12 @@ namespace qshine.database
 						RenameTableName(trackingTable.ObjectName, table.TableName);
 
                         //update the tracking table
-                        TrackingTable.UpdateTrackingTable(trackingTable, table);
+                        _trackingTable.UpdateTrackingTable(trackingTable, table);
 					}
 				}
 
 				UpdateTable(table, trackingTable);
-                TrackingTable.UpdateTrackingTableColumns(trackingTable, table);
+                _trackingTable.UpdateTrackingTableColumns(trackingTable, table);
 			}
 		}
 
@@ -337,11 +324,11 @@ namespace qshine.database
 					{
 						if (!IsTableExists(SqlDDLTracking.TrackingTableName))
 						{
-							CreateTable(TrackingTable.TrackingTable);
+							CreateTable(_trackingTable.TrackingTable);
 						}
 						if (!IsTableExists(SqlDDLTracking.TrackingColumnTableName))
 						{
-							CreateTable(TrackingTable.TrackingColumnTable);
+							CreateTable(_trackingTable.TrackingColumnTable);
 						}
 
 						_internalTableExists = true;

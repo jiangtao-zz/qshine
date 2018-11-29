@@ -33,9 +33,21 @@
     <Content Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\qshine.snk" Link="qshine.snk" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="plugin.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\database\sqlserver\bin\"</PostBuildEvent>
+    <PostBuildEvent>xcopy  /F /R /Y "$(TargetDir)plugin.config" "$(SolutionDir)config\component\database\sqlserver\"
+del /q "$(TargetDir)plugin.config"
+xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\database\sqlserver\bin\"</PostBuildEvent>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>C:\Users\huj\source\repos\qshine\qshine.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 </Project>

@@ -18,25 +18,9 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
-    <!--
     <Reference Include="System.Data.SQLite">
       <HintPath>..\..\..\input\NuGetPackags\system.data.sqlite.core\1.0.109.2\lib\net46\System.Data.SQLite.dll</HintPath>
     </Reference>
--->
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Data" />
-<!--
-<Reference Include="System.Data.SQLite">
-      <HintPath>..\..\..\input\NuGetPackags\system.data.sqlite.core\1.0.109.2\lib\netstandard2.0\System.Data.SQLite.dll</HintPath>
-    </Reference>
--->
-    </ItemGroup>
-
-  <!--
-  <ItemGroup>
     <None Include="..\..\..\input\NuGetPackags\system.data.sqlite.core\1.0.109.2\runtimes\win-x64\native\netstandard2.0\SQLite.Interop.dll" Link="x64\SQLite.Interop.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -44,15 +28,36 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  -->
-  
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Data" />
+    <!-- nuget package reference
+    <PackageReference Include="System.Data.SQLite" Version="1.0.109.2" />
+    -->
+
+    <!-- comments below reference if use nuget package reference -->
+  <Reference Include="System.Data.SQLite">
+      <HintPath>..\..\..\input\NuGetPackags\system.data.sqlite.core\1.0.109.2\lib\netstandard2.0\System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <None Include="..\..\..\input\NuGetPackags\system.data.sqlite.core\1.0.109.2\runtimes\win-x64\native\netstandard2.0\SQLite.Interop.dll" Link="x64\SQLite.Interop.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\..\input\NuGetPackags\system.data.sqlite.core\1.0.109.2\runtimes\win-x86\native\netstandard2.0\SQLite.Interop.dll" Link="x86\SQLite.Interop.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!-- end direct reference-->
+    </ItemGroup>
+
   <ItemGroup>
     <Compile Include="..\..\..\qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
     <Compile Include="SqlDialectProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\qshine.snk" Link="qshine.snk" />
+    <None Include="..\..\..\qshine.snk" Link="qshine.snk">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\qshine\qshine.csproj">
@@ -61,12 +66,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Data.SQLite" Version="1.0.109.2" />
+    <None Update="plugin.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\database\sqlite\bin\"</PostBuildEvent>
+    <PostBuildEvent>xcopy  /F /R /Y "$(TargetDir)plugin.config" "$(SolutionDir)config\component\database\sqlite\"
+del /q "$(TargetDir)plugin.config"
+xcopy  /F /E /R /Y /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\database\sqlite\bin\"</PostBuildEvent>
   </PropertyGroup>
 </Project>

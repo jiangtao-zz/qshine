@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;net461;</TargetFrameworks>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>

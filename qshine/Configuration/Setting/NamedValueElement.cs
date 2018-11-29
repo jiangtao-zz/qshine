@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
+﻿using System.Configuration;
 
-namespace qshine.Configuration
+namespace qshine.Configuration.Setting
 {
     /// <summary>
     /// name/value/type pair configuration element

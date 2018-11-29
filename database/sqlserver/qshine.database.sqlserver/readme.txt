@@ -24,3 +24,12 @@ For .NET Core,
 a. Need install NUGet System.Data.SqlClient package in project build.
 b. LocalDb may not work. Change it to pipe connection.
 
+
+==================================
+Plugin location:
+
+	<qshine>
+		<environments>
+			<environment name="sqlserver" path="config/component/database/sqlserver"/>
+		</environments>   
+	</qshine>

@@ -2,7 +2,7 @@
 using qshine.Configuration;
 using qshine;
 using System;
-namespace qshine.UnitTests
+namespace qshine.Tests
 {
 	[TestClass()]
 	public class ObjectExtenstionTests

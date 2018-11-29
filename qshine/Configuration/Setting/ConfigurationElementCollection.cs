@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 
-namespace qshine.Configuration
+namespace qshine.Configuration.Setting
 {
-	/// <summary>
-	/// Configuration element collection.
-	/// </summary>
+    /// <summary>
+    /// Configuration element collection.
+    /// </summary>
     public class ConfigurationElementCollection<T> : ConfigurationElementCollection, IEnumerable<T>
 		where T : ConfigurationElement, new()
 	{

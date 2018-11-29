@@ -12,3 +12,11 @@ Download Wamp from https://sourceforge.net/projects/wampserver/ and install MySq
 
 4. ConnectionString = "server=localhost;user=dev;database=testDB;port=3306;password=royal1;"
 
+==================================
+Plugin location:
+
+	<qshine>
+		<environments>
+			<environment name="mysql" path="config/component/database/mysql"/>
+		</environments>   
+	</qshine>

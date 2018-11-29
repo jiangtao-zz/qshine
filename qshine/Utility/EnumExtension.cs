@@ -8,53 +8,110 @@ namespace qshine
     public static class EnumExtension
     {
         /// <summary>
-        /// Will get the string value for a given enums value, this will
-        /// only work if you assign the StringValue attribute to the items in your enum.
+        /// Convert a enum to a string value..
         /// </summary>
         /// <param name="value">A enum property</param>
-        /// <returns>Returns a text format of a enum property</returns>
-        public static string GetStringValue(this Enum value)
+        /// <param name="option">Indicates different format of string.
+        ///     EnumValueType.OriginalValue: return a numberic value
+        ///     EnumValueType.OriginalString: return enum defined name
+        ///     EnumValueType.StringValue: return "StringValue" attribute on enum property.
+        ///     
+        ///     default is original enum string
+        /// </param>
+        /// <returns>Returns a given formatted enum property string</returns>
+        public static string GetStringValue(this Enum value, EnumValueType option= EnumValueType.OrigunalString)
         {
-            return GetEnumStringValue(value);
+            switch (option)
+            {
+                case EnumValueType.StringValue:
+                    return GetEnumStringValue(value);
+
+                case EnumValueType.OriginalValue:
+                    return Convert.ToInt32(value).ToString();
+
+                default:
+                    return value.ToString();
+            }
         }
 
-		/// <summary>
-		/// Gets the enum value. possible throw exception when value is not defined in string attribute.
-		/// </summary>
-		/// <returns>The enum value.</returns>
-		/// <param name="value">Value.</param>
-		/// <typeparam name="T">The 1st type parameter.</typeparam>
-        public static T GetEnumValue<T>(this string value)
+        /// <summary>
+        /// Convert a string to a particular type of enum value.
+        /// </summary>
+        /// <returns>The enum value or throw an exception if it is not an expected string.</returns>
+        /// <param name="value">A string value to be converted.</param>
+        /// <param name="option">Indicates different format of string.
+        ///     EnumValueType.OriginalValue: return a numberic value
+        ///     EnumValueType.OriginalString: return enum defined name
+        ///     EnumValueType.StringValue: return "StringValue" attribute on enum property.
+        ///     
+        ///     default is original enum string
+        /// </param>
+        /// <typeparam name="T">The Enum type to be return.</typeparam>
+        public static T GetEnumValue<T>(this string value, EnumValueType option= EnumValueType.OrigunalString)
             where T : struct
         {
-            foreach (T enumValue in Enum.GetValues(typeof(T)))
+            switch (option)
             {
-                if (string.Compare(value, GetEnumStringValue(enumValue), StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    return enumValue;
-                }
+                case EnumValueType.OriginalValue:
+                    return (T)Enum.ToObject(typeof(T), Convert.ToInt32(value));
+
+                case EnumValueType.OrigunalString:
+                    return (T)Enum.Parse(typeof(T), value);
+
+                default:
+                    foreach (T enumValue in Enum.GetValues(typeof(T)))
+                    {
+                        if (string.Compare(value, GetEnumStringValue(enumValue), StringComparison.OrdinalIgnoreCase) == 0)
+                        {
+                            return enumValue;
+                        }
+                    }
+                    throw new ArgumentException(string.Format("{0}.{1}", typeof(T), value));
             }
-            throw new ArgumentOutOfRangeException(string.Format("{0}.{1}", typeof(T), value));
         }
 
-		/// <summary>
-		/// Gets the enum value.
-		/// </summary>
-		/// <returns>The enum value.</returns>
-		/// <param name="value">Value.</param>
-		/// <param name="faultEnumValue">Fault enum value.</param>
-		/// <typeparam name="T">The 1st type parameter.</typeparam>
-		public static T GetEnumValue<T>(this string value, T faultEnumValue)
+        /// <summary>
+        /// Convert a string to a particular type of enum value.
+        /// If the string is unidentified, it returns faultEnumValue.
+        /// </summary>
+        /// <returns>The enum value.</returns>
+        /// <param name="value">A string value to be converted.</param>
+        /// <param name="faultEnumValue">Use this value if the string is an invalid enum value.</param>
+        /// <typeparam name="T">Type of enum to be converted.</typeparam>
+        public static T GetEnumValue<T>(this string value, T faultEnumValue, EnumValueType option = EnumValueType.OrigunalString)
             where T : struct
         {
-            foreach (T enumValue in Enum.GetValues(typeof(T)))
+            switch (option)
             {
-                if (string.Compare(value, GetEnumStringValue(enumValue), StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    return enumValue;
-                }
+                case EnumValueType.OriginalValue:
+                    Int32 v;
+                    if (Int32.TryParse(value, out v))
+                    {
+                        return (T)Enum.ToObject(typeof(T), v);
+                    }
+                    else
+                    {
+                        return faultEnumValue;
+                    }
+
+                case EnumValueType.OrigunalString:
+                    T v1 = default(T);
+                    if (Enum.TryParse(value, true, out v1))
+                    {
+                        return v1;
+                    }
+                    else
+                        return faultEnumValue;
+                default:
+                    foreach (T enumValue in Enum.GetValues(typeof(T)))
+                    {
+                        if (string.Compare(value, GetEnumStringValue(enumValue), StringComparison.OrdinalIgnoreCase) == 0)
+                        {
+                            return enumValue;
+                        }
+                    }
+                    return faultEnumValue;
             }
-            return faultEnumValue;
         }
 
         private static string GetEnumStringValue(object value)
@@ -71,24 +128,23 @@ namespace qshine
     /// Usage:
     /// 1. Define enum with a string value attribute
     /// <![CDATA[
-    /// public enum ActionType
+    /// public enum EnumSample
     /// {
-    ///    [StringValue("Status Changed")]
-    ///    StatusChanged,
-    ///    [StringValue("Voice Note")]
-    ///    VoiceNotes,
-    ///    [StringValue("Added Progress Note")]
-    ///    AddProgressNotes,
-    ///    [StringValue("E-Mailed")]
-    ///    Emailed,
-    ///    //Fault handler for internal use only
-    ///    [StringValue("Inner-Unknown")]
-    ///    Unknown = -1000
+    ///    [StringValue("Status 1")]
+    ///    Status1,
+    ///    [StringValue("Status 2")]
+    ///    Status2,
+    ///    [StringValue("Status 3")]
+    ///    Status3,
+    ///    [StringValue("Status 4")]
+    ///    Status4,
+    ///    Fault handler for internal use only
+    ///    [StringValue("Unknown value")]
+    ///    Unknown = -1
     ///}
     ///]]>
     /// 2. Get string value from enum
     ///
-    /// string actionType = ActionType.StatusChanged.GetStringValue();
     /// </summary>
     public class StringValueAttribute : Attribute
     {
@@ -129,7 +185,7 @@ namespace qshine
         /// </summary>
         OrigunalString,
         /// <summary>
-        /// Return StringValue attribute value of enum.
+        /// Return StringValue attribute value of enum, such as "Original String".
         /// </summary>
         StringValue,
     }

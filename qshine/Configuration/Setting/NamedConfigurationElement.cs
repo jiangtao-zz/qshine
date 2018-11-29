@@ -1,6 +1,6 @@
 ﻿using System.Configuration;
 
-namespace qshine.Configuration
+namespace qshine.Configuration.Setting
 {
     /// <summary>
     /// Represents a named <see cref="ConfigurationElement"/> where the name is the key to a collection.

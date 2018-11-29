@@ -8,14 +8,14 @@ namespace qshine
 	/// </summary>
 	public class Check
 	{
-		/// <summary>
-		/// Verifies that the specified string is not null or empty.
-		/// The condition is not satisfied. 
-		/// Displays a message with a parameter name if the assertion fails.
-		/// </summary>
-		/// <param name="value">The value to verify is not null or empty.</param>
-		/// <param name="paramName">The parameter name.</param>
-		public static void IsNotEmpty(string value, string paramName=null)
+        /// <summary>
+        /// Ensure the value is not null or empty.
+        /// Throw ArgumentNullException exception with the parameter name if the given string object 
+        /// is null or empty.
+        /// </summary>
+        /// <param name="value">The given value should not be null or empty.</param>
+        /// <param name="paramName">The parameter name.</param>
+        public static void HaveValue(string value, string paramName=null)
 		{
 			if (string.IsNullOrEmpty(value))
 			{
@@ -27,13 +27,12 @@ namespace qshine
 			}
 		}
 		/// <summary>
-		/// Verifies that the specified object is not null.
-		/// The condition is not satisfied. 
-		/// Displays a message with a parameter name if the assertion fails.
+        /// Ensure the object value is not null.
+		/// Throw ArgumentNullException exception with the parameter name if the given object is null.
 		/// </summary>
-		/// <param name="value">The value to verify is not null or empty.</param>
+		/// <param name="value">The given value should not be null.</param>
 		/// <param name="paramName">The parameter name.</param>
-		public static void IsNotNull(object value, string paramName = null)
+		public static void HaveValue(object value, string paramName = null)
 		{
 			if (value==null)
 			{
@@ -45,18 +44,24 @@ namespace qshine
 			}
 		}
 
-		/// <summary>
-		/// Verifies that the given confition is satisfied.
-		/// Displays a message with a parameter name if the condition failed.
-		/// </summary>
-		/// <param name="condition">If the condition is <c>true</c>.</param>
-		/// <param name="message">Display message if condition is failed.</param>
-		/// <typeparam name="T">The Exception to be thrown if the condition failed.</typeparam>
-		public static void IsTrue<T>(bool condition, string message)
+        /// <summary>
+        /// Check for a condition and ensure the condition is true.
+        /// Throw a new type of exception with proper error message if the condition is false.
+        /// </summary>
+        /// <param name="condition">Ensure the condition is true.</param>
+        /// <param name="formats">Error message format.</param>
+        /// <param name="args">Error message arguments.</param>
+        /// <typeparam name="T">The Exception to be thrown if the condition failed.</typeparam>
+        public static void Assert<T>(bool condition, string format=null, params object[] args)
 			where T:Exception
 		{
 			if (!condition)
 			{
+                string message = format;
+                if (args.Length > 0)
+                {
+                    message = string.Format(format, args);
+                }
 				throw (T)Activator.CreateInstance(typeof(T), message);
 			}
 		}

@@ -7,6 +7,7 @@ using System.Security;
 using System.Linq;
 using System.Configuration;
 using qshine.Utility;
+using qshine.Configuration.Setting;
 using System.Xml;
 using System.Dynamic;
 using System.Data;
@@ -25,6 +26,28 @@ namespace qshine.Configuration
     /// </summary>
 	public partial class ApplicationEnvironment
     {
+        static Interceptor _interceptor;
+        static ApplicationEnvironment()
+        {
+            //Load runtime assemblies
+            LoadRuntimeComponents();
+
+            //Register ApplicationEnvironment interceptor
+            _interceptor = Interceptor.Register(typeof(ApplicationEnvironment));
+
+            //Invoke runtime assemblies startup initializers
+            StartupInitializer();
+        }
+
+        static void StartupInitializer()
+        {
+            var types = SafeGetInterfacedTypes(typeof(IStartupInitializer), InitializationType.IStartupInitializerType);
+            foreach (var type in types)
+            {
+                var dummy = Activator.CreateInstance(type);
+            }
+        }
+
         #region Ctor
         /// <summary>
         /// Ctor:: build default application environment
@@ -41,6 +64,10 @@ namespace qshine.Configuration
         /// <param name="options">Options to initialize application environment.</param>
         public ApplicationEnvironment(string name, EnvironmentInitializationOption options)
         {
+            var contextName = GetEnvironmentContextName(name);
+            //Set current Application Environment
+            CurrentEnvironmentContextStore.SetData(contextName, this);
+
             if (string.IsNullOrEmpty(name))
             {
                 name = string.Empty;
@@ -54,8 +81,8 @@ namespace qshine.Configuration
             _options = options;
 
             EnvironmentConfigure = new EnvironmentConfigure();
-            _configFiles = new SafeDictionary<string, string>();
-            _modules = new SafeDictionary<string, IModuleLoader>();
+            _configFiles = new List<string>();
+            _modules = new SafeDictionary<string, object>();
 
             Init();
         }
@@ -126,9 +153,9 @@ namespace qshine.Configuration
                 return null;
             }
             var fileName = configFileName.ToLower();
-            if (_configFiles.ContainsKey(fileName))
+            if (_configFiles.Any(x=>x.EndsWith(fileName)))
             {
-                return _configFiles[fileName];
+                return _configFiles.SingleOrDefault(x => x.EndsWith(fileName));
             }
             return null;
         }
@@ -175,6 +202,23 @@ namespace qshine.Configuration
             return type;
         }
 
+        public Assembly SafeLoadAssembly(string path)
+        {
+            try
+            {
+#if NETCORE
+                var assembly = ApplicationAssemblyResolver.Resolve(path);
+#else
+            var assembly = Assembly.LoadFrom(path);
+#endif
+                return assembly;
+            }catch(Exception ex)
+            {
+                Logger.Error("AE.SafeLoadAssembly:: {0} throw exception: {1}", path, ex.Message);
+                return null;
+            }
+        }
+
         #endregion
 
         #region private
@@ -183,13 +227,14 @@ namespace qshine.Configuration
         /// <summary>
         /// Contains all environment configure files 
         /// </summary>
-        SafeDictionary<string, string> _configFiles;
+        //SafeDictionary<string, string> _configFiles;
+        List<string> _configFiles;
 
         /// <summary>
         /// Contains all named modules from configure environment.
         /// A module is an auto loaded component which can perform self initialization. 
         /// </summary>
-        SafeDictionary<string, IModuleLoader> _modules;
+        SafeDictionary<string, object> _modules;
 
         EnvironmentInitializationOption _options;
 
@@ -202,15 +247,11 @@ namespace qshine.Configuration
         {
             Logger.Info("AE.Init {0} begin", Name);
 
-            //Load all domain user dlls
-            MapRuntimeComponents();
-
-            //Load intercept handlers before load plugin components
-            //LoadInterceptHandlers();
-
             //Set application assembly resolver
             SetAssemblyResolve();
 
+            var eventArg = new InterceptorEventArgs("Init",Name, _options);
+            _interceptor.RaiseOnEnterEvent(this, eventArg);
 
             //Load configure setting
             LoadConfig(_options.RootConfiguration==null?_options.RootConfigFile:null);
@@ -225,6 +266,11 @@ namespace qshine.Configuration
 
             //Load intercept handlers after plugin components loaded
             LoadInterceptHandlers();
+
+            //Initialize plugin types.
+            StartupInitializer();
+
+            _interceptor.RaiseOnSuccessEvent(this, eventArg);
             Logger.Info("AE.Init end {0}", Name);
         }
 
@@ -273,18 +319,18 @@ namespace qshine.Configuration
                         config = _options.RootConfiguration;
                     }
 
-                    var fileName = config.FilePath.ToLower();
-                    _configFiles.Add(fileName, configFile);
+                    //var fileName = configFile.ToLower();
+                    _configFiles.Add(configFile.ToLower());
                 }
                 else
                 {
-                    var fileName = Path.GetFileName(configFile).ToLower();
-                    if (_configFiles.ContainsKey(fileName))
+                    var fileName = configFile.ToLower();
+                    if (_configFiles.Contains(fileName))
                     {
                         //Do not load the file if it already loaded
                         return EnvironmentConfigure;
                     }
-                    _configFiles.Add(fileName, configFile);
+                    _configFiles.Add(fileName);
 
                     var fileMap = new ExeConfigurationFileMap { ExeConfigFilename = configFile };
                     Logger.Info("AE.LoadConfig:: Open config {0}.", configFile);
@@ -315,8 +361,7 @@ namespace qshine.Configuration
                             var rawXml = sectionInformation.GetRawXml();
                             if (rawXml != null)
                             {
-                                var xmlHelper = new XmlHelper(rawXml);
-                                var factories = xmlHelper.XmlSection;
+                                var factories = new XmlSection(rawXml);
                                 if(factories.Items.Count>0 && factories.Items[0].Name== "DbProviderFactories"
                                     && factories.Items[0].Items.Count>0)
                                 {
@@ -336,7 +381,7 @@ namespace qshine.Configuration
                             }
                         }
                     }
-                                    }
+                }
 
                                     //Load application environment specific sections
                 foreach (var section in config.Sections)
@@ -437,7 +482,12 @@ namespace qshine.Configuration
                 foreach (var module in section.Modules)
                 {
                     Logger.Info("AE.LoadEnvironmentSection:: Add Module {0}, Overwrite={1}", module.Name, _options.OverwriteModule);
-                    EnvironmentConfigure.AddModule(module, _options.OverwriteModule);
+                    EnvironmentConfigure.AddModule(new PlugableComponent
+                    {
+                        Name = module.Name,
+                        ClassTypeName = module.Type,
+                        ConfigureFilePath = section.CurrentConfiguration.FilePath
+                    }, _options.OverwriteModule);
                 }
 #endregion
 
@@ -493,7 +543,7 @@ namespace qshine.Configuration
                                     if (!string.IsNullOrEmpty(binfolder))
                                     {
                                         var binFolder = Path.Combine(Path.GetFullPath(path), binfolder);
-                                        SetBinaryFolders(binFolder);
+                                        ResolveBinaryFolders(binFolder);
                                     }
                                 }
                             }
@@ -514,6 +564,7 @@ namespace qshine.Configuration
             }
         }
 
+        int _deeps = 0;
         /// <summary>
         /// Add configured binary folders in binary components search path.
         /// The available binary folders could be:
@@ -524,146 +575,102 @@ namespace qshine.Configuration
         /// The x86 only components should be in x86 folder.
         /// The x64 only components should be in x64 folder.
         /// The Any CPU components should be in bin folder directly.
+        /// 5. [given binary folder]/[os folder] ex: bin/win or bin/linux.
+        /// 6. [given binary folder]/[one of above folder]/[one of above folder]/...
         /// </summary>
-        /// <param name="binFolder"></param>
-		void SetBinaryFolders(string binFolder)
+        /// <param name="binFolder">binary folder entry</param>
+        /// <remark>
+        /// The binary folder may contain any level of below type sub-folder. Only matched folder dlls will be loaded
+        ///  binary Folder --
+        ///        |-- qshine version folder: 1.0, 2.1
+        ///        |-- cpu-architecture folder: x86, x64, arm, arm64
+        ///        |-- target framework moniker folder: net461, netcoreapp2.1
+        ///        |-- os folder: win, linux, osx
+        ///        |
+        /// </remark>
+		void ResolveBinaryFolders(string binFolder)
         {
+            if (_deeps > 50)
+            {
+                //The environment configure loop infinity.
+                throw new ArgumentOutOfRangeException("AE.ResolveBinaryFolders:: Too many sub-folder levels.");
+            }
+            _deeps++;
             if (Directory.Exists(binFolder) && !EnvironmentConfigure.AssemblyFolders.Any(x => x.ObjectData == binFolder))
             {
-                Logger.Info("AE.SetBinaryFolders:: Add folder {0}", binFolder);
+                Logger.Info("AE.ResolveBinaryFolders:: Add binary folder {0}", binFolder);
 
                 //add specified binary folder
                 EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, binFolder));
 
-                //add nearest qshine framework version specific binary folder if exists.
+                //add components based on specific qshine version.
                 for (int i = GetFrameworkVersionPaths().Length - 1; i >= 0; i--)
                 {
                     var versionPath = Path.Combine(binFolder, GetFrameworkVersionPaths()[i]);
                     if (Directory.Exists(versionPath) && !EnvironmentConfigure.AssemblyFolders.Any(x => x.ObjectData == versionPath))
                     {
-                        EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, versionPath));
-
-                        Logger.Info("AE.SetBinaryFolders:: Add version path {0}", versionPath);
+                        //EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, versionPath));
+                        Logger.Info("AE.ResolveBinaryFolders:: Found version path {0}", versionPath);
+                        //Search for sub folder
+                        ResolveBinaryFolders(versionPath);
                         break;
                     }
                 }
 
-                //add cpu architecture binary folder
+                //add components built for specific cpu architecture
                 var cpuArchitecturePath = Path.Combine(binFolder, EnvironmentEx.CpuArchitecture);
                 if (Directory.Exists(cpuArchitecturePath) && !EnvironmentConfigure.AssemblyFolders.Any(x => x.ObjectData == cpuArchitecturePath))
                 {
-                    EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, cpuArchitecturePath));
-
-                    Logger.Info("AE.SetBinaryFolders:: Add CPU Architecture path {0}", cpuArchitecturePath);
+                    //EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, cpuArchitecturePath));
+                    Logger.Info("AE.ResolveBinaryFolders:: Found CPU Architecture path {0}", cpuArchitecturePath);
+                    //Search for sub folder
+                    ResolveBinaryFolders(cpuArchitecturePath);
                 }
 
-                //add qshine components built from specific .net library folder
+                //add components built for specific .net library version
                 if (!string.IsNullOrEmpty(EnvironmentEx.TargetFramework))
                 {
                     //add cpu architecture binary folder
                     var targetDotNetFrameworkPath = Path.Combine(binFolder, EnvironmentEx.TargetFramework);
                     if (Directory.Exists(targetDotNetFrameworkPath) && !EnvironmentConfigure.AssemblyFolders.Any(x => x.ObjectData == targetDotNetFrameworkPath))
                     {
-                        EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, targetDotNetFrameworkPath));
-
-                        Logger.Info("AE.SetBinaryFolders:: Add Net target framework path {0}", targetDotNetFrameworkPath);
+                        //EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, targetDotNetFrameworkPath));
+                        Logger.Info("AE.ResolveBinaryFolders:: Found DotNet target framework path {0}", targetDotNetFrameworkPath);
+                        //Search for sub folder
+                        ResolveBinaryFolders(targetDotNetFrameworkPath);
                     }
                 }
-            }
 
-        }
-
-        /// <summary>
-        /// Filter assemblies before add it into candidate assembly list
-        /// </summary>
-        /// <param name="assembly"></param>
-        /// <returns></returns>
-        bool IsCandidateAssembly(Assembly assembly)
-        {
-            //Ignore dynamic assembly
-            if (assembly.IsDynamic) return true;
-
-            string location = assembly.Location;
-            var fullName = assembly.FullName;
-            bool isCandidateAssembly = String.IsNullOrEmpty(location) || //ignore byte array loaded assembly
-                assembly.ManifestModule.Name == "<In Memory Module>" || //ignore in memory module
-                location.IndexOf("App_Web", StringComparison.Ordinal) > -1 || //ignore web dynamic compile dlls
-                location.IndexOf("App_global", StringComparison.Ordinal) > -1 || //ignore web app resource dlls
-                location.IndexOf("Microsoft", StringComparison.OrdinalIgnoreCase) > -1 || //ignore microsoft resource dlls
-                fullName.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase) || //ignore Microsoft dlls
-                fullName.StartsWith("System.", StringComparison.OrdinalIgnoreCase) || //ignore Microsoft System dlls
-                fullName.StartsWith("mscorlib,", StringComparison.Ordinal) || //ignore Run-time Core
-                fullName.StartsWith("runtime.", StringComparison.OrdinalIgnoreCase) || //ignore Run-time Core
-                fullName.IndexOf("CppCodeProvider", StringComparison.Ordinal) > -1 || //ignore code dom provider
-                fullName.IndexOf("SMDiagnostics", StringComparison.Ordinal) > -1 || //WCF
-                fullName.StartsWith("WebMatrix.", StringComparison.Ordinal) || // ignore MS web secuirty dll
-                fullName.StartsWith("WindowsBase.", StringComparison.Ordinal) || //WPF
-                fullName.StartsWith("NETStandard.Library", StringComparison.OrdinalIgnoreCase) || //ignore .NET Core
-                fullName.StartsWith("WindowsAzure.Storage", StringComparison.OrdinalIgnoreCase) || //ignore Azure storage
-                fullName.StartsWith("nunit,", StringComparison.Ordinal) ||
-                fullName.StartsWith("Ninject,", StringComparison.Ordinal) ||
-                fullName.StartsWith("Castle.", StringComparison.Ordinal) ||
-                fullName.StartsWith("Typemock", StringComparison.OrdinalIgnoreCase) ||
-                fullName.StartsWith("Telerik.", StringComparison.Ordinal);
-
-            if (!isCandidateAssembly && _options.IsCandidateAssembly != null)
-            {
-                isCandidateAssembly = !_options.IsCandidateAssembly(assembly);
-            }
-            return isCandidateAssembly;
-        }
-
-        /// <summary>
-        /// Map application components from runtime location to application environment.
-        /// Those components types could be resolved directly from run-time.
-        /// The mapped runtime application components will be part of accessable types for plugable application environment.
-        /// It will not include most system or common share components.
-        /// </summary>
-        void MapRuntimeComponents()
-        {
-            Assembly[] runtimeAssemblies = _options.RuntimeComponents;
-
-            if (runtimeAssemblies == null)
-            {
-                runtimeAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-            }
-
-
-            foreach (var a in runtimeAssemblies)
-            {
-                //Skip system assemblies
-                if (IsCandidateAssembly(a))
+                //add components built for specific operation system
+                if (!string.IsNullOrEmpty(EnvironmentEx.OSPlatform))
                 {
-                    continue;
-                }
-
-                //Get assembly name without version and culture info.
-                var assemblyNameObject = new AssemblyName(a.FullName);
-                var assemblyName = assemblyNameObject.Name;
-
-                if (!_assemblyMaps.ContainsKey(assemblyName))
-                {
-                    _assemblyMaps.Add(assemblyName, new PlugableAssembly
+                    //add cpu architecture binary folder
+                    var osPath = Path.Combine(binFolder, EnvironmentEx.OSPlatform);
+                    if (Directory.Exists(osPath) && !EnvironmentConfigure.AssemblyFolders.Any(x => x.ObjectData == osPath))
                     {
-                        Path = a.FullName,
-                        Assembly = a
-                    });
+                        //EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, targetDotNetFrameworkPath));
+                        Logger.Info("AE.ResolveBinaryFolders:: Found OS path {0}", osPath);
+                        //Search for sub folder
+                        ResolveBinaryFolders(osPath);
+                    }
                 }
+
             }
+            _deeps--;
+
         }
 
         [SecuritySafeCritical]
         void SetAssemblyResolve()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += ApplicationAssemblyResolve;
 #if NETCORE
             AssemblyLoadContext.Default.Resolving += OnResolving;
 #else
             AppDomain.CurrentDomain.AssemblyResolve += ApplicationAssemblyResolve;
 #endif
         }
-#if NETCORE
 
+#if NETCORE
         private Assembly OnResolving(AssemblyLoadContext context, AssemblyName name)
         {
             return ApplicationAssemblyResolve(context, new ResolveEventArgs(name.FullName));
@@ -696,40 +703,42 @@ namespace qshine.Configuration
                 return _assemblyMaps[assemblyName].Assembly;
             }
 
-            //2. ** try to load assembly from default load context ***
-            //The default load context runtime components should be loaded first before load other components to "load-from context".
-            //Due to "default load context" component cannot load dependency from other context. if dependency assembly also exists 
-            //in other configuration binary folder, try load dependency dll earlier before load plugable component. 
-            // check for assemblies already loaded by the current application domain. It is necessary. See. 
-            // https://docs.microsoft.com/en-us/dotnet/framework/deployment/best-practices-for-assembly-loading
-            if (_options.RuntimeComponents == null)
-            {
-                _options.RuntimeComponents = AppDomain.CurrentDomain.GetAssemblies();
-            }
-            Assembly[] assemblies = _options.RuntimeComponents;
-            var assembly = assemblies.FirstOrDefault(a => a.GetName().FullName.Equals(args.Name) ||
-                                                    a.GetName().Name.Equals(args.Name) ||
-                                                    a.GetName().Name.Equals(assemblyName));
-            //Add "default load context" dlls in the mapping list
-            if (assembly != null)
-            {
-                if (!_assemblyMaps.ContainsKey(assemblyName))
-                {
-                    _assemblyMaps[assemblyName] = new PlugableAssembly
-                    {
-                        Path = assembly.CodeBase
-                    };
-                }
-                _assemblyMaps[assemblyName].Assembly = assembly;
+            Assembly assembly=null;
 
-                Logger.Info("AE.AssemblyResolve:: Loaded from default load context:: Assembly {0},{1}", assembly.FullName, assembly.CodeBase);
-            }
-            else
+            ////2. ** try to load assembly from default load context ***
+            ////The default load context runtime components should be loaded first before load other components to "load-from context".
+            ////Due to "default load context" component cannot load dependency from other context. if dependency assembly also exists 
+            ////in other configuration binary folder, try load dependency dll earlier before load plugable component. 
+            //// check for assemblies already loaded by the current application domain. It is necessary. See. 
+            //// https://docs.microsoft.com/en-us/dotnet/framework/deployment/best-practices-for-assembly-loading
+            //if (_options.RuntimeComponents == null)
+            //{
+            //    _options.RuntimeComponents = AppDomain.CurrentDomain.GetAssemblies();
+            //}
+            //Assembly[] assemblies = _options.RuntimeComponents;
+            //var assembly = assemblies.FirstOrDefault(a => a.GetName().FullName.Equals(args.Name) ||
+            //                                        a.GetName().Name.Equals(args.Name) ||
+            //                                        a.GetName().Name.Equals(assemblyName));
+            ////Add "default load context" dlls in the mapping list
+            //if (assembly != null)
+            //{
+            //    if (!_assemblyMaps.ContainsKey(assemblyName))
+            //    {
+            //        _assemblyMaps[assemblyName] = new PlugableAssembly
+            //        {
+            //            Path = assembly.CodeBase
+            //        };
+            //    }
+            //    _assemblyMaps[assemblyName].Assembly = assembly;
+
+            //    Logger.Info("AE.AssemblyResolve:: Loaded from default load context:: Assembly {0},{1}", assembly.FullName, assembly.CodeBase);
+            //}
+            //else
             {
                 //Try to load assembly from different application configuration folders
                 if (!_assemblyMaps.ContainsKey(assemblyName))
                 {
-                    //Try to load configuration binary folders into mapping list
+                    //Try to load configuration binary folders into mapping list, if not loaded yet
                     LoadBinaryFiles();
                 }
 
@@ -744,28 +753,36 @@ namespace qshine.Configuration
                     //Load assembly from configured path and add in "load-from context"
                     //This may throw exception. The exception will be captured when call assemby Load()
 #if NETCORE
-                    var assemblyResolver = new ApplicationAssemblyResolver(_assemblyMaps[assemblyName].Path);
-                    assembly = assemblyResolver.Assembly;
-                    if(assembly==null){
-                        assemblyResolver.Dispose();
-                    }
-                    //assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(_assemblyMaps[assemblyName].Path);
+                    assembly = ApplicationAssemblyResolver.Resolve(_assemblyMaps[assemblyName].Path);
 #else
                     assembly = Assembly.LoadFrom(_assemblyMaps[assemblyName].Path);
 #endif
-
-                    _assemblyMaps[assemblyName].Assembly = assembly;
+                    if (assembly != null)
+                    {
+                        _assemblyMaps[assemblyName].Assembly = assembly;
+                    }
                 }
                 else
                 {
-#if NETCORE
-                    if (args.RequestingAssembly != null && _externalDepsJsonPaths.Count > 0)
-                    {
-                        assembly = ApplicationAssemblyResolver.Resolve(_externalDepsJsonPaths, args.RequestingAssembly, args.Name);
-                    }
-#endif
+//#if NETCORE
+//                    if (_externalDepsJsonPaths.Count > 0)
+//                    {
+//                        assembly = ApplicationAssemblyResolver.Resolve(_externalDepsJsonPaths, args.RequestingAssembly, args.Name);
+//                        if (assembly != null)
+//                        {
+//                            if (!_assemblyMaps.ContainsKey(assemblyName))
+//                            {
+//                                _assemblyMaps[assemblyName] = new PlugableAssembly
+//                                {
+//                                    Path = assembly.CodeBase,
+//                                    Assembly = assembly
+//                                };
+//                            }
+//                        }
+//                    }
+//#endif
                     //Couldn't find assembly
-                    //Log.SysLogger.Warn("AE.AssemblyResolve:: Couldn't find assembly {0}", args.Name);
+                    Log.SysLogger.Warn("AE.AssemblyResolve:: Couldn't find assembly {0}", args.Name);
                 }
             }
 
@@ -790,34 +807,50 @@ namespace qshine.Configuration
         {
             foreach (var c in EnvironmentConfigure.Modules)
             {
-                LoadModule(c);
+                LoadModule(c.Value);
             }
         }
 
-        void LoadModule(KeyValuePair<string, NamedTypeElement> module)
+        /// <summary>
+        /// Try to load a module.
+        /// </summary>
+        /// <param name="module">Module is a plugin component that will be auto loaded through application eenvironment.
+        /// The module initialization could be implemented in type constructor or type static constructor (If initialization call only once.).
+        /// </param>
+        /// <remarks>
+        /// The module must have a public constructor without parameter. 
+        /// </remarks>
+        void LoadModule(PlugableComponent module)
         {
-            var instance = CreateInstance(SafeLoadType(module.Value.Type)) as IModuleLoader;
-            if (instance != null)
+            if (_modules.ContainsKey(module.Name))
             {
-                if (!_modules.ContainsKey(module.Key))
+                //Do not load named module twice.
+                return;
+            }
+
+            module.ClassType = SafeLoadType(module.ClassTypeName);
+            if (module.ClassType != null)
+            {
+                object instance = CreateInstance(module.ClassType);
+                if (instance != null)
                 {
-                    Logger.Info("AE.LoadModule:: {0}", module.FormatObjectValues());
-                    _modules.Add(module.Key, instance);
-                    instance.Initialize();
+                    if (!_modules.ContainsKey(module.Name))
+                    {
+                        _modules.Add(module.Name, instance);
+                        Logger.Info("AE.LoadModule:: {0}", module.FormatObjectValues());
+                    }
                 }
             }
         }
 
         void LoadComponent(PlugableComponent component)
         {
-            Logger.Info("AE.LoadComponent:: {0}", component.FormatObjectValues());
-
             component.InterfaceType = SafeLoadType(component.InterfaceTypeName);
             if (component.InterfaceType != null)
             {
                 component.ClassType = SafeLoadType(component.ClassTypeName);
             }
-
+            Logger.Info("AE.LoadComponent:: {0}", component.FormatObjectValues());
         }
 
         /// <summary>
@@ -840,7 +873,9 @@ namespace qshine.Configuration
                         {
                             _assemblyMaps.Add(assemblyName, new PlugableAssembly
                             {
-                                Path = dll.FullName
+                                Path = dll.FullName,
+                                Assembly = SafeLoadAssembly(dll.FullName)
+
                             });
                             Logger.Info("AE.LoadBinary:: Add assembly {0}", dll.FullName);
                             //Found new binary file.
@@ -919,10 +954,10 @@ namespace qshine.Configuration
                     //Create default environment manager
                     lock (lockObject)
                     {
+                        current = CurrentEnvironmentContextStore.GetData(environmentContextStoreName) as ApplicationEnvironment;
                         if (current == null)
                         {
                             current = new ApplicationEnvironment();
-                            CurrentEnvironmentContextStore.SetData(environmentContextStoreName, current);
                         }
                     }
                 }
@@ -957,17 +992,7 @@ namespace qshine.Configuration
         /// <param name="options">Specifies options to initialize application environment</param>
         public static void Build(string name, EnvironmentInitializationOption options)
         {
-            var contextName = environmentContextStoreName;
-            if (!string.IsNullOrEmpty(name))
-            {
-                contextName += "_" + name;
-            }
-
-            if (options == null)
-            {
-                options = new EnvironmentInitializationOption();
-            }
-
+            var contextName = GetEnvironmentContextName(name);
             var appEnvironment = CurrentEnvironmentContextStore.GetData(contextName) as ApplicationEnvironment;
             if (appEnvironment == null)
             {
@@ -977,7 +1002,6 @@ namespace qshine.Configuration
                     if (appEnvironment == null)
                     {
                         appEnvironment = new ApplicationEnvironment(name, options);
-                        CurrentEnvironmentContextStore.SetData(contextName, appEnvironment);
                     }
                 }
             }
@@ -1078,7 +1102,7 @@ namespace qshine.Configuration
         /// </summary>
         /// <returns>The named type.</returns>
         /// <param name="typeName">Type name.</param>
-        public static Type GetNamedType(string typeName)
+        public static Type GetTypeByName(string typeName)
         {
             var type = Type.GetType(typeName);
             if (type == null)
@@ -1103,22 +1127,27 @@ namespace qshine.Configuration
             return type;
         }
 
-        public static IList<Type> SafeGetInterfacedTypes(Type interfaceType)
+        /// <summary>
+        /// Find all types which implemented a specific interface or base class type from all loaded assemblies. 
+        /// </summary>
+        /// <param name="interfaceType">Specifies interface or base class type.</param>
+        /// <returns>A list of implementation class types.</returns>
+        public static IList<Type> SafeGetInterfacedTypes(Type interfaceType, InitializationType flag= InitializationType.Undefined)
         {
             var selectedTypes = new List<Type>();
             foreach (var a in _assemblyMaps.Values)
             {
-                if (a.Assembly != null)
+                if (a.Assembly != null && (a.Initialized & (ulong) flag)==0)
                 {
                     var types = SafeGetInterfacedTypes(a.Assembly, interfaceType);
                     if (types != null && types.Count > 0)
                     {
                         selectedTypes.AddRange(types);
                     }
+                    a.Initialized |= (ulong)flag;
                 }
             }
             return selectedTypes;
-
         }
 
 #endregion
@@ -1128,8 +1157,103 @@ namespace qshine.Configuration
         static SafeDictionary<Type, object> _interceptHandlers = new SafeDictionary<Type, object>();
         static IContextStore _contextStore;
         static readonly SafeDictionary<string, Type> _commonNamedType = new SafeDictionary<string, Type>();
-
         static readonly object lockObject = new object();
+
+        static string GetEnvironmentContextName(string name)
+        {
+            var contextName = environmentContextStoreName;
+            if (!string.IsNullOrEmpty(name))
+            {
+                contextName += "_" + name;
+            }
+            return contextName;
+        }
+
+    /// <summary>
+    /// Filter assemblies before add it into candidate assembly list
+    /// </summary>
+    /// <param name="assembly"></param>
+    /// <returns></returns>
+    static bool IsCandidateAssembly(Assembly assembly)
+        {
+            //Ignore dynamic assembly
+            if (assembly.IsDynamic) return true;
+
+            string location = assembly.Location;
+            var fullName = assembly.FullName;
+            bool isCandidateAssembly = String.IsNullOrEmpty(location) || //ignore byte array loaded assembly
+                assembly.ManifestModule.Name == "<In Memory Module>" || //ignore in memory module
+                location.IndexOf("App_Web", StringComparison.Ordinal) > -1 || //ignore web dynamic compile dlls
+                location.IndexOf("App_global", StringComparison.Ordinal) > -1 || //ignore web app resource dlls
+                location.IndexOf("Microsoft", StringComparison.OrdinalIgnoreCase) > -1 || //ignore microsoft resource dlls
+                fullName.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase) || //ignore Microsoft dlls
+                fullName.StartsWith("System.", StringComparison.OrdinalIgnoreCase) || //ignore Microsoft System dlls
+                fullName.StartsWith("mscorlib,", StringComparison.Ordinal) || //ignore Run-time Core
+                fullName.StartsWith("runtime.", StringComparison.OrdinalIgnoreCase) || //ignore Run-time Core
+                fullName.IndexOf("CppCodeProvider", StringComparison.Ordinal) > -1 || //ignore code dom provider
+                fullName.IndexOf("SMDiagnostics", StringComparison.Ordinal) > -1 || //WCF
+                fullName.StartsWith("WebMatrix.", StringComparison.Ordinal) || // ignore MS web secuirty dll
+                fullName.StartsWith("WindowsBase.", StringComparison.Ordinal) || //WPF
+                fullName.StartsWith("NETStandard.Library", StringComparison.OrdinalIgnoreCase) || //ignore .NET Core
+                fullName.StartsWith("WindowsAzure.Storage", StringComparison.OrdinalIgnoreCase) || //ignore Azure storage
+                fullName.StartsWith("nunit,", StringComparison.Ordinal) ||
+                fullName.StartsWith("Ninject,", StringComparison.Ordinal) ||
+                fullName.StartsWith("Castle.", StringComparison.Ordinal) ||
+                fullName.StartsWith("Typemock", StringComparison.OrdinalIgnoreCase) ||
+                fullName.StartsWith("Telerik.", StringComparison.Ordinal);
+
+            if (!isCandidateAssembly && EnvironmentInitializationOption.IsCandidateAssembly != null)
+            {
+                isCandidateAssembly = !EnvironmentInitializationOption.IsCandidateAssembly(assembly);
+            }
+            return isCandidateAssembly;
+        }
+
+        /// <summary>
+        /// Load application components from runtime location to application environment.
+        /// Those components types could be resolved directly from run-time.
+        /// The mapped runtime application components will be part of accessable types for plugable application environment.
+        /// It will not include most system or common share components.
+        /// </summary>
+        static void LoadRuntimeComponents()
+        {
+            Assembly[] runtimeAssemblies = EnvironmentInitializationOption.RuntimeComponents;
+
+            if (runtimeAssemblies == null)
+            {
+                runtimeAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+            }
+
+            foreach (var a in runtimeAssemblies)
+            {
+                //Skip system assemblies
+                if (IsCandidateAssembly(a))
+                {
+                    continue;
+                }
+
+                //Get assembly name without version and culture info.
+                var assemblyNameObject = new AssemblyName(a.FullName);
+                var assemblyName = assemblyNameObject.Name;
+
+                if (!_assemblyMaps.ContainsKey(assemblyName))
+                {
+                    _assemblyMaps.Add(assemblyName, new PlugableAssembly
+                    {
+                        Path = a.FullName,
+                        Assembly = a
+                    });
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Find all class types which inplemented a given interface type
+        /// </summary>
+        /// <param name="assembly">Assembly may contain interfaced class</param>
+        /// <param name="interfacedType">Specifies an interface to be lookup.</param>
+        /// <returns>A list of class types which implemented a given interface or base class.</returns>
         static IList<Type> SafeGetInterfacedTypes(Assembly assembly, Type interfacedType)
         {
             Type[] types;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using qshine.Configuration.Setting;
 
 namespace qshine.Configuration
 {
@@ -8,23 +9,17 @@ namespace qshine.Configuration
     /// </summary>
 	public class EnvironmentConfigure
 	{
-		readonly IDictionary<string, PlugableComponent> _componentConfigure;
-        readonly IDictionary<string, NamedTypeElement> _moduleConfigure;
-        readonly ConnectionStrings _connectionStrings;
-
         /// <summary>
         /// Ctor
         /// </summary>
         public EnvironmentConfigure()
         {
-            _componentConfigure = new Dictionary<string, PlugableComponent>();
-            _moduleConfigure = new Dictionary<string, NamedTypeElement>();
-            _connectionStrings = new ConnectionStrings();
-
+            Components = new Dictionary<string, PlugableComponent>();
+            Modules = new Dictionary<string, PlugableComponent>();
+            ConnectionStrings = new ConnectionStrings();
             AppSettings = new Dictionary<string, string>();
             ConfigureFolders = new List<string>();
             AssemblyFolders = new List<StateObject<bool,string>>();
-
             Environments = new Dictionary<string, EnvironmentElement>();
         }
 
@@ -72,21 +67,17 @@ namespace qshine.Configuration
         /// </summary>
 		public IDictionary<string, PlugableComponent> Components
 		{
-			get
-			{
-				return _componentConfigure;
-			}
+            get;
+            private set;
 		}
 
         /// <summary>
         /// Get/Set named modules configure
         /// </summary>
-		public IDictionary<string, NamedTypeElement> Modules
+		public IDictionary<string, PlugableComponent> Modules
 		{
-			get
-			{
-				return _moduleConfigure;
-			}
+            get;
+            private set;
 		}
 
         /// <summary>
@@ -94,10 +85,8 @@ namespace qshine.Configuration
         /// </summary>
         public ConnectionStrings ConnectionStrings
         {
-            get
-            {
-                return _connectionStrings;
-            }
+            get;
+            private set;
         }
 
         #region internal methods
@@ -137,7 +126,8 @@ namespace qshine.Configuration
 			if (component == null) return null;
 			var c = new PlugableComponent
 			{
-				Name = component.Name,
+                ConfigureFilePath = component.CurrentConfiguration.FilePath,
+                Name = component.Name,
 				InterfaceTypeName = component.InterfaceType,
 				ClassTypeName = component.Type,
                 Scope = component.Scope,
@@ -159,18 +149,18 @@ namespace qshine.Configuration
 			//c.ClassType = Type.GetType(c.ClassTypeName);
 
 
-			if (!_componentConfigure.ContainsKey(component.Name))
+			if (!Components.ContainsKey(component.Name))
 			{
-				_componentConfigure.Add(component.Name, c);
+                Components.Add(component.Name, c);
 			}
 			else
 			{
 				if (overWrite)
 				{
-					_componentConfigure[component.Name] = c;
+                    Components[component.Name] = c;
 				}
 			}
-			return _componentConfigure[component.Name];
+			return Components[component.Name];
 		}
 
         /// <summary>
@@ -179,22 +169,22 @@ namespace qshine.Configuration
         /// <returns>The module.</returns>
         /// <param name="module">Module.</param>
         /// <param name="overWrite">If set to <c>true</c> overwrite existing module.</param>
-        internal NamedTypeElement AddModule(NamedTypeElement module, bool overWrite)
+        internal PlugableComponent AddModule(PlugableComponent module, bool overWrite)
 		{
 			if (module == null) return null;
 
-			if (!_moduleConfigure.ContainsKey(module.Name))
+			if (!Modules.ContainsKey(module.Name))
 			{
-				_moduleConfigure.Add(module.Name, module);
+                Modules.Add(module.Name, module);
 			}
 			else
 			{
 				if (overWrite)
 				{
-					_moduleConfigure[module.Name] = module;
+                    Modules[module.Name] = module;
 				}
 			}
-			return _moduleConfigure[module.Name];
+			return Modules[module.Name];
 		}
 
         /// <summary>
@@ -204,9 +194,9 @@ namespace qshine.Configuration
         /// <param name="overWrite">overwrite existing connection string if set to <c>true</c></param>
 		internal void AddConnectionString(ConnectionStringElement c, bool overWrite)
 		{
-			if (_connectionStrings[c.Name] == null || overWrite)
+			if (ConnectionStrings[c.Name] == null || overWrite)
 			{
-				_connectionStrings.AddOrUpdate(c);
+                ConnectionStrings.AddOrUpdate(c);
 			}
 		}
 
