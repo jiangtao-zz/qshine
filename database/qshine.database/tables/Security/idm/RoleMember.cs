@@ -13,8 +13,8 @@ namespace qshine.database.idm
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
 				.AddColumn("enterprise_id", System.Data.DbType.Int32, 0, allowNull: false, defaultValue:0, comments: "Specifies an enterprise account id.")
-				.AddColumn("role_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "role id", isIndex: true, reference:"im_role:id")
-				.AddColumn("principal_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "principal id", isIndex: true, reference:"im_principal:id")
+				.AddColumn("role_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "role id", isIndex: true, reference:new Role().PkColumn)
+				.AddColumn("principal_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "principal id", isIndex: true, reference:new Principal().PkColumn)
 				.AddAuditColumn();
 		}
 	}

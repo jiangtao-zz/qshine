@@ -114,7 +114,7 @@ namespace qshine.database.sqlite.Tests
             var sql = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(database))
             {
-                var result = dbclient.Sql(true, sql);
+                var result = dbclient.Sql(sql, BatchException.SkipException);
                 Assert.IsTrue(result);
 
                 dbclient.Sql("insert into table1(T1) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -182,7 +182,7 @@ namespace qshine.database.sqlite.Tests
             {
                 try { dbclient.Sql("drop table table2;"); } catch { }
                 //Create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 //insert a new record
                 dbclient.Sql("insert into table2(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -208,7 +208,7 @@ namespace qshine.database.sqlite.Tests
             sqls = dialect.TableUpdateSqls(table);
             using (var dbclient = new DbClient(database))
             {
-                var result = dbclient.Sql(false, sqls);
+                var result = dbclient.Sql( sqls);
 
                 var data = dbclient.SqlDataTable("select * from table2 where T2='AAA'");
                 Assert.AreEqual(1, data.Rows.Count);
@@ -257,7 +257,7 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table3;"); } catch { }
                 try { dbclient.Sql("drop table table3_1;"); } catch { }
 
-                var result = dbclient.Sql(true, sqls);
+                var result = dbclient.Sql(sqls, BatchException.SkipException);
 
 
                 dbclient.Sql("insert into table3(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -303,7 +303,7 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table4;"); } catch { }
 
                 //create a new table
-                var result = dbclient.Sql(true, sqls);
+                var result = dbclient.Sql(sqls, BatchException.SkipException);
 
 
                 //insert data for compare
@@ -326,7 +326,8 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
+
 
 
                 dbclient.Sql("insert into table4(T2) values(@p1)", DbParameters.New.Input("p1", "BBB"));
@@ -376,8 +377,7 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table5;"); } catch { }
 
                 //create a new table
-                var result = dbclient.Sql(true, sqls);
-
+                var result = dbclient.Sql(sqls, BatchException.SkipException);
 
                 //insert data for compare
                 dbclient.Sql("insert into table5(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -400,7 +400,7 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
 
                 var data = dbclient.SqlDataTable("select * from table5 where T2='AAA'");
@@ -453,7 +453,7 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table6;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 //insert data for compare
                 dbclient.Sql("insert into table6(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -472,7 +472,7 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 try
                 {
@@ -515,7 +515,7 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table7;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 //insert data for compare
                 dbclient.Sql("insert into table7(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -545,7 +545,7 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 var c = dbclient.Sql("insert into table7(T2, T3) values('BBB',null)");
                 Assert.AreEqual("1", c.ToString());
@@ -580,7 +580,7 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table8;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 //insert data for compare
                 dbclient.Sql("insert into table8(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -609,7 +609,7 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 var c = dbclient.Sql("insert into table8(T2, T3) values('BBB',5)");
                 Assert.AreEqual("1", c.ToString());
@@ -644,7 +644,7 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table9;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 //insert data for compare
                 dbclient.Sql("insert into table9(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -665,7 +665,7 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 //check for index
                 var count1 = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table9';");
@@ -702,7 +702,7 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table10;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 //insert data for compare
                 dbclient.Sql("insert into table10(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -722,7 +722,7 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 //check for index
                 var count1 = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table10';");
@@ -759,7 +759,7 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table11;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 //insert data for compare
                 dbclient.Sql("insert into table11(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -778,7 +778,7 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 try
                 {
@@ -821,7 +821,7 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table12;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 //insert data for compare
                 dbclient.Sql("insert into table12(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -840,7 +840,7 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 dbclient.Sql("insert into table12(T2) values('BBB')");
 

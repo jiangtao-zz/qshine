@@ -36,13 +36,13 @@ namespace qshine.Tests
         public void SqlDDLBuilder_all()
         {
             var provider = new FakeDialectProvider();
-            var database = new Database("System.Data.SQLite", "Data Source=unitTest.db");
-
-            var builder = new SqlDDLBuilder(database, provider);
+            var database = new SqlDDLDatabase(new Database("System.Data.SQLite", "Data Source=unitTest.db"));
 
             var table = new SqlDDLTable("t1", "unitTEST", "Test only", "TS1", "INDEX_TS1", 1, "TEST_SCHEMA");
             table.AddColumn("C1", System.Data.DbType.String, 10);
-            builder.RegisterTable(table);
+            database.AddTable(table);
+
+            var builder = new SqlDDLBuilder(database, provider);
             //builder.Build();
 
         }

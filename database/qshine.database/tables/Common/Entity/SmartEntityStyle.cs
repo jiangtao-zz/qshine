@@ -12,9 +12,9 @@
             : base("cm_sm_entity_style", "COMMON", "Smart Entity additional style and control table.", "comData", "comIndex")
         {
             AddPKColumn("id", System.Data.DbType.Int64)
-                .AddColumn("entity_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true, reference: "cm_sm_entity:id", comments: "FK:Smart entity id.")
-                .AddColumn("section_id", System.Data.DbType.Int64, 0, reference: "cm_sm_entity_sec:id", comments: "FK:Smart entity section id.")
-                .AddColumn("column_id", System.Data.DbType.Int64, 0, reference: "cm_sm_entity_col:id", comments: "FK:Smart entity column id.")
+                .AddColumn("entity_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true, reference: new SmartEntity().PkColumn, comments: "FK:Smart entity id.")
+                .AddColumn("section_id", System.Data.DbType.Int64, 0, reference: new SmartEntitySection().PkColumn, comments: "FK:Smart entity section id.")
+                .AddColumn("column_id", System.Data.DbType.Int64, 0, reference: new SmartEntityColumn().PkColumn, comments: "FK:Smart entity column id.")
                 .AddColumn("name", System.Data.DbType.String, 250, allowNull: false, comments: "style name to identify a particular usage.")
                 .AddColumn("value", System.Data.DbType.String, 0, comments: "CLOB: Additional style and control data.")
                 ;

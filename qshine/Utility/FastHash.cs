@@ -12,17 +12,33 @@ namespace qshine.Utility
     public class FastHash
     {
         /// <summary>
-        /// Calculate hash code for given properties
+        /// Calculate hash code for given properties.
+        /// Note: The object hash code may not identical from each run. Only use Primitive type and string property for identical hashcode
+        /// calculation.
         /// </summary>
-        /// <param name="items"></param>
-        /// <returns></returns>
+        /// <param name="items">Contains a list of primitive values for hash code calculation.</param>
+        /// <returns>An identical hash code.</returns>
         public static int GetHashCode(params object[] items)
         {
             int hashCode = 0;
+            int valueHashCode = 0;
 
             foreach (object item in items)
             {
-                hashCode = Combine(hashCode, item != null ? item.GetHashCode() : 0);
+                if (item == null)
+                {
+                    valueHashCode = 0;
+                }
+                else if(item is string)
+                {
+                    //dotnet code string.GetHashCode is not identical for each run.
+                    valueHashCode = GetIdenticalHashCode(item as string);
+                }
+                else
+                {
+                    valueHashCode = item.GetHashCode();
+                }
+                hashCode = Combine(hashCode, valueHashCode);
             }
 
             return hashCode;
@@ -34,6 +50,16 @@ namespace qshine.Utility
             {
                 return (x << 5) + 3 + x ^ y;
             }
+        }
+
+        static int GetIdenticalHashCode(string value)
+        {
+            int hascode = 0;
+            foreach(int x in value)
+            {
+                hascode = Combine(hascode, x);
+            }
+            return hascode;
         }
     }
 }

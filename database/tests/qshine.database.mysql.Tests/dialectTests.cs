@@ -148,7 +148,7 @@ namespace qshine.database.mysql.Tests
             {
                 DropTable(testTable);
 
-                var result = dbclient.Sql(false, sql);
+                var result = dbclient.Sql( sql);
                 Assert.IsTrue(result);
 
                 dbclient.Sql(string.Format("insert into {0}(T1) values(@p1)", testTable), DbParameters.New.Input("p1", "AAA"));
@@ -217,7 +217,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
 
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
                 dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix),
                     DbParameters.New.Input("p1", "AAA"));
@@ -243,7 +243,7 @@ namespace qshine.database.mysql.Tests
             sqls = dialect.TableUpdateSqls(table);
             using (var dbclient = new DbClient(_testDb))
             {
-                var result = dbclient.Sql(false, sqls);
+                var result = dbclient.Sql( sqls);
                 Assert.IsTrue(result);
 
 
@@ -293,7 +293,7 @@ namespace qshine.database.mysql.Tests
 
             using (var dbclient = new DbClient(_testDb))
             {
-                var result = dbclient.Sql(false, sqls);
+                var result = dbclient.Sql( sqls);
                 Assert.IsTrue(result);
 
 
@@ -343,7 +343,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                var result = dbclient.Sql(false, sqls);
+                var result = dbclient.Sql( sqls);
                 Assert.IsTrue(result);
 
 
@@ -367,7 +367,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 dbclient.Sql(string.Format(
@@ -418,7 +418,7 @@ namespace qshine.database.mysql.Tests
             {
 
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -443,7 +443,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 var data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='AAA'", testTable));
@@ -497,7 +497,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -520,7 +520,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 try
@@ -564,7 +564,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -598,7 +598,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql(sqls);
 
 
                 var c = dbclient.Sql(string.Format("insert into {0}(T2, T3) values('BBB',null)", testTable));
@@ -634,7 +634,7 @@ namespace qshine.database.mysql.Tests
             {
 
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -668,7 +668,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 var c = dbclient.Sql(string.Format("insert into {0}(T2, T3) values('BBB',5)", testTable));
@@ -703,7 +703,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -729,7 +729,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //check for index
@@ -767,7 +767,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -792,7 +792,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //check for index (Oracle unique constraint create unique index automatically. we need remove unique constraint to remove the index.
@@ -831,7 +831,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -854,7 +854,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 try
@@ -897,7 +897,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -919,7 +919,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 dbclient.Sql(string.Format("insert into {0}(T2) values('BBB')", testTable));
@@ -960,7 +960,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
                 //insert data for compare
                 dbclient.Sql(string.Format("insert into {0}(T2,T3) values({1}p1,15)", testTable, dialect.ParameterPrefix)
@@ -996,7 +996,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -1043,7 +1043,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
                 //insert data for compare
                 dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix)
@@ -1061,7 +1061,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 dbclient.Sql(string.Format("insert into {0}(T2) values('BBB')", testTable));
@@ -1098,7 +1098,7 @@ namespace qshine.database.mysql.Tests
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                 .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                 .AddColumn("T3", DbType.Int16, 0)
-                .AddColumn("T4", DbType.UInt64, 0, reference: "table15:Id")
+                .AddColumn("T4", DbType.UInt64, 0, reference: table.PkColumn)
                 ;
 
             DropTable(testTable2);
@@ -1112,8 +1112,8 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
-                dbclient.Sql(false, sqls2);
+                dbclient.Sql( sqls);
+                dbclient.Sql( sqls2);
 
 
                 //insert data with id
@@ -1153,7 +1153,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table2);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
                 //No issue to insert record without fk
                 dbclient.Sql(string.Format("insert into {0}(T2,T4) values('DDD',{1}p1)", testTable2, dialect.ParameterPrefix)
@@ -1203,8 +1203,8 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
-                dbclient.Sql(false, sqls2);
+                dbclient.Sql( sqls);
+                dbclient.Sql( sqls2);
 
 
                 //insert data with id
@@ -1223,7 +1223,7 @@ namespace qshine.database.mysql.Tests
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                     .AddColumn("T3", DbType.Int16, 0)
-                    .AddColumn("T4", DbType.UInt64, 0, reference: "table16:Id", version: 2)
+                    .AddColumn("T4", DbType.UInt64, 0, reference: table.PkColumn, version: 2)
                     ;
 
                 //Analyse the table change
@@ -1231,7 +1231,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table2);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
                 try
                 {
@@ -1275,7 +1275,7 @@ namespace qshine.database.mysql.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert record 1
@@ -1300,7 +1300,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert record 3 throw exception without auto increase
@@ -1320,7 +1320,7 @@ namespace qshine.database.mysql.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
                 //insert record 3 should not throw exception
                 dbclient.Sql(string.Format("insert into {0}(T1) values('AAA4')", testTable));

@@ -175,9 +175,9 @@ namespace qshine.database.mysql
         /// <remarks>
         /// It is useful to create a trigger for oracle PK column auto_increment and others
         /// </remarks>
-        public override List<string> TableCreateAdditionSqls(SqlDDLTable table)
+        public override List<ConditionalSql> TableCreateAdditionSqls(SqlDDLTable table)
         {
-            var sqls = new List<string>();
+            var sqls = new List<ConditionalSql>();
 
             //workaround for default SYSDATE()
             foreach(var column in table.Columns)
@@ -185,7 +185,8 @@ namespace qshine.database.mysql
                 SqlReservedWord reservedValue = column.DefaultValue as SqlReservedWord;
                 if (reservedValue!=null && reservedValue.IsSysDate)
                 {
-                    sqls.Add(SetDefaultSysdateColumn(table.TableName, column.Name, column.AllowNull));
+                    sqls.Add(new ConditionalSql(
+                        SetDefaultSysdateColumn(table.TableName, column.Name, column.AllowNull)));
                 }
             }
 
@@ -215,38 +216,44 @@ namespace qshine.database.mysql
             return ColumnModifyDefaultClause(tableName, column);
         }
 
-        public override string ColumnRemoveConstraintClause(string tableName, SqlDDLColumn column)
+        public override ConditionalSql ColumnRemoveConstraintClause(string tableName, SqlDDLColumn column)
         {
             var checkConstraintName = SqlDDLTable.GetCheckConstraintName(tableName, column.InternalId);
 
-            return 
+            return new ConditionalSql(
                 FormatCommandSqlLine("alter table {0} add constraint {1} check(null)",
-                            tableName, checkConstraintName, column.CheckConstraint);
+                            tableName, checkConstraintName, column.CheckConstraint));
         }
 
-        public override List<string> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        public override List<ConditionalSql> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
             //Note: auto increment is only for PK
-            return  new List<string>{
-                string.Format("alter table {0} drop primary key, add primary key ({1})",tableName,column.Name)
+            return  new List<ConditionalSql>{
+                new ConditionalSql(
+                    string.Format("alter table {0} drop primary key, add primary key ({1})",tableName,column.Name)
+                    )
             };
         }
 
-        public override List<string> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        public override List<ConditionalSql> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
-            //Note: auto increment is only for PK
-            return new List<string>{
+            //Note: auto increment is only for PK, but will be added with column midified
+            if (column.IsPK) return null;
+
+            return new List<ConditionalSql>{
+                new ConditionalSql(
                 string.Format("alter table {0} modify {1} {2} not null auto_increment",tableName,column.Name, 
                 ToNativeDBType(column.DbType.ToString(),column.Size,column.Scale))
+                )
             };
         }
 
-        public override string ColumnRemoveIndexClause(string tableName, SqlDDLColumn column)
+        public override ConditionalSql ColumnRemoveIndexClause(string tableName, SqlDDLColumn column)
         {
             var indexName = SqlDDLTable.GetIndexName(tableName, column);
 
-            return
-                string.Format("alter table {0} drop index {1}", tableName, indexName);
+            return new ConditionalSql(
+                string.Format("alter table {0} drop index {1}", tableName, indexName));
         }
 
         public override string ColumnNotNullClause(string tableName, SqlDDLColumn column)
@@ -259,6 +266,17 @@ namespace qshine.database.mysql
         {
             return FormatCommandSqlLine("alter table {0} modify column {1} {2}",
                 tableName, column.Name, ColumnDefinition(column));
+        }
+
+        public override ConditionalSql ColumnAddPKClause(string tableName, SqlDDLColumn column)
+        {
+            //Do not return primary key change statement.
+            //The primary key will be in column modification statement
+            return null;
+                //FormatCommandSqlLine("alter table {0} add primary key ({1})",
+                //tableName,
+                //column.Name
+                //);
         }
 
 
@@ -281,9 +299,11 @@ namespace qshine.database.mysql
         /// <param name="newColumnName">new column name</param>
         /// <param name="column">column definition</param>
         /// <returns></returns>
-        public override string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
+        public override ConditionalSql ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} change column {1} {2} {3};", tableName, oldColumnName, newColumnName, ColumnDefinition(column));
+            return new ConditionalSql(
+                string.Format("alter table {0} change column {1} {2} {3};", tableName, oldColumnName, newColumnName, ColumnDefinition(column))
+                );
         }
 
         /// <summary>
@@ -292,13 +312,13 @@ namespace qshine.database.mysql
         /// </summary>
         public override bool EnableInlineFKConstraint { get { return true; } }
 
-        public override string ColumnRemoveReferenceClause(string tableName, SqlDDLColumn column)
+        public override ConditionalSql ColumnRemoveReferenceClause(string tableName, SqlDDLColumn column)
         {
             var foreignKey = SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId);
 
-            return
+            return new ConditionalSql(
                 string.Format("alter table {0} drop foreign key {1}",
-                tableName, foreignKey);
+                tableName, foreignKey));
         }
 
         public override bool EnableInlineUniqueConstraint
@@ -306,26 +326,26 @@ namespace qshine.database.mysql
             get { return true; }
         }
 
-        public override string ColumnRemoveUniqueClause(string tableName, SqlDDLColumn column)
+        public override List<ConditionalSql> ColumnRemoveUniqueClause(string tableName, SqlDDLColumn column)
         {
-            string sql="";
+            List<ConditionalSql> sqls = new List<ConditionalSql>();
             if (column.IsUnique)
             {
                 string uniqeIndexName = (column.IsIndex)
                 ? SqlDDLTable.GetIndexName(tableName, column)
                 : SqlDDLTable.GetUniqueKeyName(tableName, column.InternalId);
 
-                sql = string.Format("alter table {0} drop index {1}",
+                sqls.Add(new ConditionalSql(string.Format("alter table {0} drop index {1}",
                     tableName,
                     uniqeIndexName
-                    );
+                    )));
 
                 if (column.IsIndex)
                 {
-                    sql += ColumnAddIndexClause(tableName, column);
+                    sqls.Add(ColumnAddIndexClause(tableName, column));
                 }
             }
-            return sql;
+            return sqls;
         }
 
 

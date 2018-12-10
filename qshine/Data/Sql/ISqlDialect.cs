@@ -43,7 +43,7 @@ namespace qshine.database
         /// };
         /// ...
         /// </example>
-        List<string> TableCreateSqls(SqlDDLTable table);
+        List<ConditionalSql> TableCreateSqls(SqlDDLTable table);
 
         /// <summary>
         /// Analyse the table structure and get table and column modified information.
@@ -62,7 +62,7 @@ namespace qshine.database
         /// </summary>
         /// <returns>table update statement</returns>
         /// <param name="table">Table.</param>
-        List<string> TableUpdateSqls(SqlDDLTable table);
+        List<ConditionalSql> TableUpdateSqls(SqlDDLTable table);
 
 		/// <summary>
 		/// Gets a value indicating whether a database can be created.

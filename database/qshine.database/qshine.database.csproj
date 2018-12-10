@@ -36,7 +36,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
-    <Compile Include="DatabaseBuilder.cs" />
+    <Compile Include="Database.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -13,9 +13,30 @@ namespace qshine.database
 		{
 			ApplicationEnvironment.Build("app.config");
 
-            var builder = new DatabaseBuilder("testDatabase");
-            builder.Build();
+            var database = new SqlDDLDatabase(new Database("testDatabase"));
 
+            using (var dbBuilder = new SqlDDLBuilder(database, null))
+            {
+                var error = BatchException.SkipException;
+                var result = dbBuilder.Build(error, true);
+                if (result == true)
+                {
+                    Console.WriteLine("The database has been updated sucessfully.");
+                }
+                else
+                {
+                    Console.WriteLine("Failed to build database {0}:", dbBuilder.ConnectionStringName);
+                    int i = 0;
+                    foreach (var e in error.Exceptions)
+                    {
+                        Console.WriteLine("Error {0}:{1}", ++i, e.Message);
+                        if (e.Data["sql"] != null)
+                        {
+                            Console.WriteLine("Sql:{0}", e.Data["sql"]);
+                        }
+                    }
+                }
+            }
         }
 	}
 }

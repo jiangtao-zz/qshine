@@ -10,6 +10,11 @@ namespace qshine.database.oracle
     /// </summary>
     public class SqlDialectProvider : ISqlDialectProvider
     {
+        static SqlDialectProvider()
+        {
+            //Register Oracle specific DbType mapper
+            Database.RegisterDbTypeMapper(new DbParameterMapper());
+        }
         public ISqlDialect GetSqlDialect(string dbConnectionString)
         {
             return new SqlDialect(dbConnectionString);
@@ -130,9 +135,10 @@ namespace qshine.database.oracle
         /// <param name="columnName"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        public override string ColumnAddClause(string tableName, SqlDDLColumn column)
+        public override ConditionalSql ColumnAddClause(string tableName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} add {1} {2}", tableName, column.Name, ColumnDefinition(column));
+            return new ConditionalSql(
+                string.Format("alter table {0} add {1} {2}", tableName, column.Name, ColumnDefinition(column)));
         }
 
         /// <summary>
@@ -173,23 +179,48 @@ begin
 end;", GetAutoIncreaseTriggerName(tableName), tableName, columnName, sequenceName);
         }
 
-        public override List<string> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        public override List<ConditionalSql> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
             //Remove the trigger only
             //keep the auto increment sequence for future re-use.
-            return new List<string> { string.Format(@"drop trigger {0}", GetAutoIncreaseTriggerName(tableName)) };
+            return new List<ConditionalSql> {
+                new ConditionalSql(
+                    new DbSqlStatement(string.Format(@"drop trigger {0}", GetAutoIncreaseTriggerName(tableName))),
+                    new DbSqlStatement(
+                        @"select 1 from user_triggers where table_name =:p1 and trigger_name=:p2",
+                        DbParameters.New
+                        .Input("p1",tableName.ToUpper())
+                        .Input("p2",GetAutoIncreaseTriggerName(tableName).ToUpper())),
+                    (result)=>result=="1"
+                    )
+            };
         }
 
-        public override List<string> ColumnAddAutoIncrementClauses(string tableName,  SqlDDLColumn column)
+        public override List<ConditionalSql> ColumnAddAutoIncrementClauses(string tableName,  SqlDDLColumn column)
         {
             var sequenceName = GetAutoIncreaseSequenceName(tableName);
 
-            return new List<string>{
-                CreateSequenceSql(sequenceName, 1000),
-                CreateAutoIncrementTriggerSql(tableName, column.Name, sequenceName) };
+            return new List<ConditionalSql> {
+                new ConditionalSql(
+                    new DbSqlStatement(CreateSequenceSql(sequenceName, 1000)),
+                    new DbSqlStatement(
+                        @"select 1 from user_sequences where sequence_name =:p1",
+                        DbParameters.New
+                        .Input("p1",sequenceName.ToUpper())),
+                        (result)=>result!="1"),
+                new ConditionalSql(
+                    new DbSqlStatement(CreateAutoIncrementTriggerSql(tableName, column.Name, sequenceName)),
+                    new DbSqlStatement(
+                        @"select 1 from user_triggers where table_name =:p1 and trigger_name=:p2",
+                        DbParameters.New
+                        .Input("p1",tableName.ToUpper())
+                        .Input("p2",GetAutoIncreaseTriggerName(tableName).ToUpper())),
+                    (result)=>result!="1"
+                    )
+            };
         }
 
-        public override List<string> TableCreateAdditionSqls(SqlDDLTable table)
+        public override List<ConditionalSql> TableCreateAdditionSqls(SqlDDLTable table)
         {
             if (table.PkColumn != null && table.PkColumn.AutoIncrease)
             {
@@ -276,10 +307,10 @@ end;", GetAutoIncreaseTriggerName(tableName), tableName, columnName, sequenceNam
                     return string.Format("VARCHAR2({0})", size);
 
                 case "Int64":
-                    return "NUMBER";
+                    return "NUMBER(18,0)";
 
                 case "UInt64":
-                    return "NUMBER";
+                    return "NUMBER(18,0)";
 
                 case "Int32":
                     return "NUMBER(10)";
@@ -309,8 +340,8 @@ end;", GetAutoIncreaseTriggerName(tableName), tableName, columnName, sequenceNam
                 case "Object":
                     return "BLOB";
 
-                case "Guid":
-                    return "RAW(32)";
+                case "Guid"://Oracle doesn't have a GUID data type support. the GUID string may contain {}
+                    return "CHAR(40)";
 
                 case "Double":
                     if (size == 0)

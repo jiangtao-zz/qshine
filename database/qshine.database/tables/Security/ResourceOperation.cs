@@ -13,7 +13,7 @@ namespace qshine.database.idm
 			AddPKColumn("id", System.Data.DbType.Int64)
 				.AddColumn("name", System.Data.DbType.String, 150, allowNull: false, comments: "resource operation name")
 				.AddColumn("description", System.Data.DbType.String, 500, comments: "resource operation description")
-				.AddColumn("resource_type_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "Resource type", reference:"sec_resource_type:id")
+				.AddColumn("resource_type_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "Resource type", reference:new SecureResourceType().PkColumn)
 				.AddColumn("secure_mask", System.Data.DbType.Int64, 0, allowNull: false, comments: "list a possible base operation using binary value. One bit indicates a single base operation.")
 				.AddAuditColumn();
 		}

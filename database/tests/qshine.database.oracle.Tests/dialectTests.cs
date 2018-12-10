@@ -53,8 +53,8 @@ namespace qshine.database.oracle.Tests
         [ClassInitialize()]
         public static void ClassInit(TestContext context)
         {
-            Log.SysLoggerProvider = new TraceLoggerProvider();
-            Log.SysLogger.EnableLogging(System.Diagnostics.TraceEventType.Verbose);
+            //Log.SysLoggerProvider = new TraceLoggerProvider();
+            //Log.SysLogger.EnableLogging(System.Diagnostics.TraceEventType.Verbose);
             ApplicationEnvironment.Build("app.config");
             _testDb = new Database("testdb");
         }
@@ -139,7 +139,7 @@ namespace qshine.database.oracle.Tests
             {
                 DropTable(testTable);
 
-                var result = dbclient.Sql(false, sql);
+                var result = dbclient.Sql( sql);
                 Assert.IsTrue(result);
 
                 dbclient.Sql(string.Format("insert into {0}(T1) values(:p1)",testTable), DbParameters.New.Input("p1", "AAA"));
@@ -208,7 +208,7 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
 
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
                 dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable,dialect.ParameterPrefix),
                     DbParameters.New.Input("p1", "AAA"));
@@ -234,7 +234,7 @@ namespace qshine.database.oracle.Tests
             sqls = dialect.TableUpdateSqls(table);
             using (var dbclient = new DbClient(_testDb))
             {
-                var result = dbclient.Sql(false, sqls);
+                var result = dbclient.Sql( sqls);
                 Assert.IsTrue(result);
 
 
@@ -284,7 +284,7 @@ namespace qshine.database.oracle.Tests
 
             using (var dbclient = new DbClient(_testDb))
             {
-                var result = dbclient.Sql(false, sqls);
+                var result = dbclient.Sql( sqls);
                 Assert.IsTrue(result);
 
 
@@ -334,7 +334,7 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                var result = dbclient.Sql(false, sqls);
+                var result = dbclient.Sql( sqls);
                 Assert.IsTrue(result);
 
 
@@ -358,7 +358,7 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 dbclient.Sql(string.Format(
@@ -409,7 +409,7 @@ namespace qshine.database.oracle.Tests
             {
 
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -434,7 +434,7 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 var data = dbclient.SqlDataTable(string.Format("select * from {0} where T2='AAA'", testTable));
@@ -488,7 +488,7 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -511,7 +511,7 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 try
@@ -555,7 +555,7 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -589,7 +589,7 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 var c = dbclient.Sql(string.Format("insert into {0}(T2, T3) values('BBB',null)", testTable));
@@ -625,7 +625,7 @@ namespace qshine.database.oracle.Tests
             {
 
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -659,7 +659,7 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 var c = dbclient.Sql(string.Format("insert into {0}(T2, T3) values('BBB',5)", testTable));
@@ -694,7 +694,7 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -720,7 +720,7 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //check for index
@@ -758,7 +758,7 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -784,7 +784,7 @@ namespace qshine.database.oracle.Tests
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
                 //Ignore drop index error. Drop unique keyword will drop index automatically.
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
 
                 //check for index (Oracle unique constraint create unique index automatically. we need remove unique constraint to remove the index.
@@ -823,7 +823,7 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -846,7 +846,7 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 try
@@ -889,7 +889,7 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -911,7 +911,7 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 dbclient.Sql(string.Format("insert into {0}(T2) values('BBB')", testTable));
@@ -952,7 +952,7 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
                 //insert data for compare
                 dbclient.Sql(string.Format("insert into {0}(T2,T3) values({1}p1,15)", testTable, dialect.ParameterPrefix)
@@ -988,7 +988,7 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert data for compare
@@ -1035,7 +1035,7 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
                 //insert data for compare
                 dbclient.Sql(string.Format("insert into {0}(T2) values({1}p1)", testTable, dialect.ParameterPrefix)
@@ -1053,7 +1053,7 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 dbclient.Sql(string.Format("insert into {0}(T2) values('BBB')", testTable));
@@ -1090,7 +1090,7 @@ namespace qshine.database.oracle.Tests
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                 .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                 .AddColumn("T3", DbType.Int16, 0)
-                .AddColumn("T4", DbType.UInt64, 0, reference: "table15:Id")
+                .AddColumn("T4", DbType.UInt64, 0, reference: table.PkColumn)
                 ;
 
             DropTable(testTable2);
@@ -1104,8 +1104,8 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
-                dbclient.Sql(false, sqls2);
+                dbclient.Sql( sqls);
+                dbclient.Sql( sqls2);
 
 
                 //insert data with id
@@ -1145,7 +1145,7 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table2);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
                 //No issue to insert record without fk
                 dbclient.Sql(string.Format("insert into {0}(T2,T4) values('DDD',{1}p1)", testTable2, dialect.ParameterPrefix)
@@ -1195,8 +1195,8 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
-                dbclient.Sql(false, sqls2);
+                dbclient.Sql( sqls);
+                dbclient.Sql( sqls2);
 
 
                 //insert data with id
@@ -1215,7 +1215,7 @@ namespace qshine.database.oracle.Tests
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
                     .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                     .AddColumn("T3", DbType.Int16, 0)
-                    .AddColumn("T4", DbType.UInt64, 0, reference: "table16:Id", version: 2)
+                    .AddColumn("T4", DbType.UInt64, 0, reference: table.PkColumn, version: 2)
                     ;
 
                 //Analyse the table change
@@ -1223,7 +1223,7 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table2);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
                 try
                 {
@@ -1267,7 +1267,7 @@ namespace qshine.database.oracle.Tests
             using (var dbclient = new DbClient(_testDb))
             {
                 //create a new table
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert record 1
@@ -1292,14 +1292,14 @@ namespace qshine.database.oracle.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(false, sqls);
+                dbclient.Sql( sqls);
 
 
                 //insert record 3 throw exception without auto increase
                 dbclient.Sql(string.Format("insert into {0}(id,T1) values(9999,'AAA2')", testTable));
 
                 var id3 = dbclient.SqlSelect(string.Format("select id from {0} where T1='AAA2'", testTable));
-                Assert.AreEqual(9999M, id3);
+                Assert.AreEqual(9999L, id3);
 
                 trackingTable = new TrackingTable(table);
 
@@ -1313,7 +1313,7 @@ namespace qshine.database.oracle.Tests
                 sqls = dialect.TableUpdateSqls(table);
                 //update table add auto increment
                 //ignore the error if the sequence already exists
-                dbclient.Sql(true, sqls);
+                dbclient.Sql(sqls, BatchException.SkipException);
 
                 //insert record 3 should not throw exception
                 dbclient.Sql(string.Format("insert into {0}(T1) values('AAA4')", testTable));

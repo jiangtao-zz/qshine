@@ -215,27 +215,59 @@ namespace qshine
 			return false;
 		}
 
-		/// <summary>
-		/// Tries to call a public generic method by method name and provide method arguments types explicitly.
-		/// </summary>
-		/// <returns>The generic if any.</returns>
-		/// <param name="instance">Instance.</param>
-		/// <param name="methodName">Method name.</param>
-		/// <param name="genericTypes">Generic type arguments of the method.</param>
-		/// <param name="argumentTypes">Method argument types.</param>
-		/// <param name="args">Method arguments.</param>
-		/// <example>
-		/// 	Assume class SampleClass has following method signature
-		/// 		public class SampleClass {
-		/// 			int GetTicket<T1,T2,T3> (int arg1, T2 arg2, T3 arg3){...}
-		/// 		}
-		/// 	int result;
-		/// 	var hasMethod = instance.TryCall<int>(out result, new [] {typeof(T1), typeof (T2), typeof(T3)}, new [] {typeof(int)}, "GetTicket", arg1);
-		/// </example>
-		/// <remarks>
-		/// 	This method is not accurate to determine the method match. If more than two methods found, it will through exception.
-		/// </remarks>
-		public static bool TryCall<T>(this object instance, out T result, Type[] genericTypes,  Type[] argumentTypes, string methodName, params object[] args)
+        /// <summary>
+        /// Call non-public method using reflection.
+        /// It is available internal
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="instance"></param>
+        /// <param name="result"></param>
+        /// <param name="argumentTypes"></param>
+        /// <param name="methodName"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        internal static bool TryCallNonPublic<T>(this object instance, out T result, Type[] argumentTypes, string methodName, params object[] args)
+        {
+            result = default(T);
+            MethodInfo method = null;
+            if (argumentTypes == null && args != null)
+            {
+                argumentTypes = args.Select(x => x.GetType()).ToArray();
+            }
+            else if (argumentTypes == null)
+            {
+                argumentTypes = new Type[] { };
+            }
+            method = instance.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic, Type.DefaultBinder, argumentTypes, null);
+            if (method != null)
+            {
+                result = (T)InvokeMethod(method, instance, ToParametersArrary(args));
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to call a public generic method by method name and provide method arguments types explicitly.
+        /// </summary>
+        /// <returns>The generic if any.</returns>
+        /// <param name="instance">Instance.</param>
+        /// <param name="methodName">Method name.</param>
+        /// <param name="genericTypes">Generic type arguments of the method.</param>
+        /// <param name="argumentTypes">Method argument types.</param>
+        /// <param name="args">Method arguments.</param>
+        /// <example>
+        /// 	Assume class SampleClass has following method signature
+        /// 		public class SampleClass {
+        /// 			int GetTicket<T1,T2,T3> (int arg1, T2 arg2, T3 arg3){...}
+        /// 		}
+        /// 	int result;
+        /// 	var hasMethod = instance.TryCall<int>(out result, new [] {typeof(T1), typeof (T2), typeof(T3)}, new [] {typeof(int)}, "GetTicket", arg1);
+        /// </example>
+        /// <remarks>
+        /// 	This method is not accurate to determine the method match. If more than two methods found, it will through exception.
+        /// </remarks>
+        public static bool TryCall<T>(this object instance, out T result, Type[] genericTypes,  Type[] argumentTypes, string methodName, params object[] args)
 		{
 			result = default(T);
 			var parameterCount = args == null ? 0 : args.Length;

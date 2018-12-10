@@ -145,6 +145,21 @@ namespace qshine.Tests
 
         }
 
+        [TestMethod()]
+        public void Json_Deserialize_Dictionary_JsonFormat_2()
+        {
+            var V1 = "abc\n123\r\nXYZ";
+
+            var json = "{\"V1\":\"abc\\n123\\r\\nXYZ\",\"V4\":[{\"Key\":\"a\",\"Value\":1},{\"Key\":\"b\",\"Value\":2}]}";
+            var v2 = json.DeserializeDictionary(JsonFormat.ISO8601JavascriptDateFormat);
+            Assert.AreEqual(V1, v2["V1"]);
+            var v2_4 = v2["V4"] as Dictionary<string, object>;
+            Assert.AreEqual(1, Convert.ToInt32(v2_4["a"]));
+            Assert.AreEqual(2, Convert.ToInt32(v2_4["b"]));
+        }
+
+
+
         [TestMethod]
         public void SetJsonProvider_Test()
         {

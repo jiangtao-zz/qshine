@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!--<TargetFrameworks>netcoreapp2.1;net461</TargetFrameworks>-->
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>netcoreapp2.1;net461</TargetFrameworks>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -27,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\qshine.database.mysql.Tests\GenericDDLTests.cs" Link="GenericDDLTests.cs" />
     <Compile Include="dialectTests.cs" />
   </ItemGroup>
   <ItemGroup>

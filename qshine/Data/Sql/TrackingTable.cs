@@ -27,7 +27,7 @@ namespace qshine.database
                     Scale = x.Scale,
                     DefaultValue = Convert.ToString(x.DefaultValue),
                     AllowNull = x.AllowNull,
-                    Reference = x.Reference,
+                    Reference = x.ToReferenceClause(),
                     IsUnique = x.IsUnique,
                     IsPK = x.IsPK,
                     CheckConstraint = x.CheckConstraint,

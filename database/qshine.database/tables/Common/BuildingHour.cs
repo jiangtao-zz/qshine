@@ -11,7 +11,7 @@ public BuildingHour()
 			: base("cm_building_hour", "COMMON", "Location building hours table.", "comData", "comIndex")
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
-				.AddColumn("location_id", System.Data.DbType.UInt64, 0, allowNull:false, comments: "Link to a location by id.", reference:"cm_location:id", isIndex:true)
+				.AddColumn("location_id", System.Data.DbType.UInt64, 0, allowNull:false, comments: "Link to a location by id.", reference:new Location().PkColumn, isIndex:true)
 				.AddColumn("start_1", System.Data.DbType.Int32, 0, comments: "Monday: Open Hours in format of HHMM*100. Example, 930 means 9:30AM. 0 means whole day closed")
 				.AddColumn("start_2", System.Data.DbType.Int32, 0, comments: "Tuesday: Open Hours")
 				.AddColumn("start_3", System.Data.DbType.Int32, 0, comments: "Wednesday: Open Hours")

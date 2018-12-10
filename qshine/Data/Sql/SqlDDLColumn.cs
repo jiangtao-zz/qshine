@@ -16,7 +16,12 @@ namespace qshine.database
     /// 
     /// </remarks>
 	public class SqlDDLColumn
-	{
+    {
+        /// <summary>
+        /// Table instance
+        /// </summary>
+        public SqlDDLTable Table {get;set; }
+
 		public SqlDDLColumn(string tableName)
 		{
             TableName = tableName;
@@ -59,11 +64,17 @@ namespace qshine.database
         /// <summary>
         /// Indicates a column foreign key reference constraint 
         /// </summary>
-		public string Reference { get; set; }
+		public SqlDDLColumn Reference { get; set; }
+
+        public string ToReferenceClause()
+        {
+            if (Reference == null) return "";
+            return string.Format("{0}:{1}", Reference.TableName, Reference.Name);
+        }
         /// <summary>
         /// INdicates a unique constraint column
         /// </summary>
-		public bool IsUnique { get; set; }
+        public bool IsUnique { get; set; }
         /// <summary>
         /// Indicates a PK column
         /// </summary>
@@ -96,8 +107,11 @@ namespace qshine.database
         public long HashCode {
             get
             {
+                string defaultValue = DefaultValue == null ? "" : DefaultValue.ToString();
+                string reference = Reference == null ? "" : ToReferenceClause();
+
                 return FastHash.GetHashCode(
-                    Name, DbType, Size, Scale, DefaultValue, AllowNull, Reference, IsUnique, IsPK, CheckConstraint, AutoIncrease, IsIndex, Version
+                    Name, DbType, Size, Scale, defaultValue, AllowNull, reference, IsUnique, IsPK, CheckConstraint, AutoIncrease, IsIndex, Version
                     , InternalId
                     );
             }

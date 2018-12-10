@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
+using System.Text;
+
 namespace qshine
 {
 	/// <summary>
@@ -24,7 +27,8 @@ namespace qshine
 		/// </summary>
 		public DbClient()
 		{
-			_database = new Database();
+            _context = DbContext.Current;
+            _database = _context.Database;
 		}
 
 		/// <summary>
@@ -200,47 +204,141 @@ namespace qshine
 			},this, "ExecuteReader", commandType, commandString, parameters);
 		}
 
+
 		/// <summary>
-		/// Execute a SQL statement
+		/// Execute a SQL statement with parameters
 		/// </summary>
 		/// <param name="commandString">SQL statement</param>
 		/// <param name="parameters">input and output parameters for SQL statement.</param>
 		/// <returns>Return rows affected</returns>
 		public int Sql(string commandString, DbParameters parameters=null)
 		{
-			return ExecuteNonQuery(CommandType.Text, commandString, parameters);
+			return Sql(new DbSqlStatement(commandString,parameters));
 		}
 
-        /// <summary>
-        /// Execute a list of sqls and return true if no any error
-        /// </summary>
-        /// <param name="batchCommands"></param>
-        /// <param name="parameters"></param>
-        public bool Sql(bool ignoreError, List<string> batchCommands, DbParameters parameters = null)
+        public bool Sql(List<string> batchStatements, BatchException batchException)
         {
-            bool result = true;
-            string lastErrorMessage;
-            foreach (var c in batchCommands)
-            {
-                if (string.IsNullOrWhiteSpace(c)) continue;
+            if (batchStatements == null || batchStatements.Count == 0) return false;
 
-                if (ignoreError)
+            return Sql(batchStatements.Select(item => new DbSqlStatement(item)).ToList(),
+                batchException);
+        }
+
+
+        /// <summary>
+        /// Execute a Sql statement
+        /// </summary>
+        /// <param name="sql">sql statement with parameters</param>
+        /// <returns>result of the sql statement</returns>
+        public int Sql(DbSqlStatement sql)
+        {
+            if (sql == null || string.IsNullOrWhiteSpace(sql.Sql)) return -1;
+
+            int result = ExecuteNonQuery(sql.CommandType, sql.Sql, sql.Parameters);
+            sql.Result = result;
+
+            return result;
+        }
+
+        /// <summary>
+        /// Execute a batch Sql statements
+        /// </summary>
+        /// <param name="sqls">sql statements</param>
+        /// <param name="batchException">batch exception policy</param>
+        /// <returns>True to indicate success.</returns>
+        public bool Sql(List<DbSqlStatement> batchStatements, BatchException batchException)
+        {
+            if (batchStatements == null || batchStatements.Count==0) return false;
+
+            bool result = true;
+
+            if (batchException != null)
+            {
+                batchException.ChainBatchException();
+            }
+
+            foreach (var c in batchStatements)
+            {
+                if (c==null ||string.IsNullOrWhiteSpace(c.Sql)) continue;
+
+                if (batchException != null)
                 {
                     try
                     {
-                        ExecuteNonQuery(CommandType.Text, c, parameters);
+                        Sql(c);
                     }
                     catch (Exception ex)
                     {
-                        lastErrorMessage = ex.Message;
                         result = false;
+                        ex.Data.Add("sql", c);
+                        //Try throw batch exception based on batch exception policy
+                        batchException.TryThrow(ex);
                     }
                 }
                 else
                 {
-                    ExecuteNonQuery(CommandType.Text, c, parameters);
+                    Sql(c);
                 }
             }
+
+            //Try throw batch exception based on batch exception policy
+            if (batchException != null)
+            {
+                batchException.TryThrow();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Execute sql when condition satisfied
+        /// </summary>
+        /// <param name="sql">conditional sql instance.</param>
+        /// <returns></returns>
+        public bool Sql(ConditionalSql sql, BatchException batchException)
+        {
+            Check.HaveValue(sql, "sql");
+
+            bool result = true;
+            if (sql.ConditionSql!=null && sql.Condition!=null && !string.IsNullOrWhiteSpace(sql.ConditionSql.Sql))
+            {
+                object v = SqlSelect(sql.ConditionSql.Sql,sql.ConditionSql.Parameters);
+                result = sql.Condition(v==null?string.Empty:v.ToString());
+            }
+            if (result)
+            {
+                return Sql(sql.Sqls, batchException);
+            }
+            return false;
+        }
+
+        public bool Sql(List<ConditionalSql> batchSqls)
+        {
+            return Sql(batchSqls, new BatchException());
+        }
+
+
+        public bool Sql(List<ConditionalSql> batchSqls, BatchException batchException)
+        {
+            if (batchSqls == null || batchSqls.Count == 0) return false;
+
+            bool result = true;
+            if (batchException != null)
+            {
+                batchException.ChainBatchException();
+            }
+
+            foreach (var c in batchSqls)
+            {
+                Sql(c, batchException);
+            }
+
+            //Try throw batch exception based on batch exception policy
+            if (batchException != null)
+            {
+                batchException.TryThrow();
+            }
+
             return result;
         }
 
@@ -348,8 +446,40 @@ namespace qshine
             var s = value.ToString().ToLower();
             return s == "1"
             || s == "-1"
-            || s == "t"
-            || s == "Y";
+            || s == "t" //true
+            || s == "y"; //yes
+        }
+
+        /// <summary>
+        /// Insert record to table
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="columns"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public int Insert(string tableName, string columns, params object[] values)
+        {
+            var builder = new StringBuilder();
+            var parameterNames = new List<string>();
+            var parameters = DbParameters.New;
+            foreach (var v in values)
+            {
+                var p = parameters.AutoParameter(v);
+                parameterNames.Add(ParameterName(p.ParameterName));
+            }
+            builder.AppendFormat("insert into {0}({1}) values({2})", tableName, columns, string.Join(",", parameterNames));
+
+            return ExecuteNonQuery(CommandType.Text, builder.ToString(), parameters);
+        }
+
+        /// <summary>
+        /// generate sql parameter name with a prefix
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        public string ParameterName(string p)
+        {
+            return _database.ParameterPrefix + p;
         }
 
 
@@ -362,7 +492,7 @@ namespace qshine
 				foreach (var p in parameters)
 				{
 					var parameter = command.CreateParameter();
-					DbParameters.MapFrom(p, parameter);
+                    MapParameterToNative(p, parameter);
 					command.Parameters.Add(parameter);
 				}
 			}
@@ -378,26 +508,116 @@ namespace qshine
 						parameters[i].Direction == ParameterDirection.Output ||
 						parameters[i].Direction == ParameterDirection.ReturnValue)
 					{
-						DbParameters.MapperTo(parameters[i], (IDbDataParameter)command.Parameters[i]);
+                        MapParameterFromNative(parameters[i], (IDbDataParameter)command.Parameters[i]);
 					}
 				}
 			}
 		}
 
-		#endregion
+        List<IDbTypeMapper> _customDbTypeMapper;
+        private List<IDbTypeMapper> CustomDbTypeMappers
+        {
+            get
+            {
+                if (_customDbTypeMapper == null)
+                {
+                    _customDbTypeMapper = _database.DbTypeMappers;
+                }
+                return _customDbTypeMapper;
+            }
+        }
 
-	}
-	/*
-	public static class DbClientExtension
+        private CommonDbDataTypeMapper _commonMapper = new CommonDbDataTypeMapper();
+
+        /// <summary>
+        /// Map a common data parameter to a provider specific native data parameter
+        /// </summary>
+        /// <param name="common">common parameter</param>
+        /// <param name="native">database native parameter</param>
+        private void MapParameterToNative(IDbDataParameter common, IDbDataParameter native)
+        {
+            native.Direction = common.Direction;
+            native.Size = common.Size;
+            native.Precision = common.Precision;
+            native.Scale = common.Scale;
+            native.ParameterName = common.ParameterName;
+
+            bool mapped = false;
+            //perform Common DbTypeMapping
+            mapped = _commonMapper.MapToNative(common, native);
+
+            //perform custom DbTypeMapping if exists
+            foreach (var mapper in CustomDbTypeMappers)
+            {
+                if (mapper.MapToNative(common, native) == true)
+                {
+                    mapped = true;
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Map a data provider specific native data parameter to a common data parameter
+        /// </summary>
+        /// <param name="common">common parameter</param>
+        /// <param name="native">database native parameter</param>
+        private void MapParameterFromNative(IDbDataParameter native, IDbDataParameter common)
+        {
+            bool hasMapped = false;
+
+            hasMapped = _commonMapper.MapFromNative(native, common);
+
+            //perform custom DbTypeMapping if exists
+            foreach (var mapper in CustomDbTypeMappers)
+            {
+                if (mapper.MapFromNative(native, common) == true)
+                {
+                    hasMapped = true;
+                    break;
+                }
+            }
+
+            if (!hasMapped && native.Direction!= ParameterDirection.Input)
+            {
+                common.Value = native.Value;
+            }
+        }
+
+        #endregion
+
+    }
+
+    public static class DbClientExtension
 	{
-		/// <summary>
-		/// Gets the nullable value.
-		/// </summary>
-		/// <returns>The nullable value.</returns>
-		/// <param name="reader">Reader.</param>
-		/// <param name="index">Index.</param>
-		/// <typeparam name="T">The 1st type parameter.</typeparam>
-		public static T? GetNullableValue<T>(this IDataReader reader, int index) where T : struct
+
+        /// <summary>
+        /// Shortcut of SqlSelect
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="commandString"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        static public T SqlSelect<T>(this string commandString, DbParameters parameters = null)
+        {
+            using (var db = new DbClient())
+            {
+                var result = db.SqlSelect(commandString, parameters);
+                if (result == null) return default(T);
+
+                return (T)result;
+            }
+        }
+
+        /*
+        /// <summary>
+        /// Gets the nullable value.
+        /// </summary>
+        /// <returns>The nullable value.</returns>
+        /// <param name="reader">Reader.</param>
+        /// <param name="index">Index.</param>
+        /// <typeparam name="T">The 1st type parameter.</typeparam>
+        public static T? GetNullableValue<T>(this IDataReader reader, int index) where T : struct
 		{
 			object value = reader.GetValue(index);
 
@@ -490,6 +710,7 @@ namespace qshine
 
 			return ConvertObjectValue<T>(value);
 		}
+        */
 	}
-	*/
+	
 }

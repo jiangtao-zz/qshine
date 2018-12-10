@@ -105,6 +105,10 @@ namespace qshine.database.sqlite
             get { return ""; }
         }
 
+        public override List<ConditionalSql> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        {
+            return null;
+        }
         /// <summary>
         /// Get a keyword to set column default value
         /// </summary>
@@ -227,12 +231,12 @@ namespace qshine.database.sqlite
 
         }
 
-        public override List<string> TableUpdateSqls(SqlDDLTable table)
+        public override List<ConditionalSql> TableUpdateSqls(SqlDDLTable table)
         {
             var statements = base.TableUpdateSqls(table);
             if (statements.Count>0)
             {
-                statements = new List<string>();
+                statements = new List<ConditionalSql>();
 
                 //found column attribute change, we have to rebuild the table and copy the data from previous table
                 var builder = new StringBuilder();
@@ -248,7 +252,8 @@ namespace qshine.database.sqlite
                 BuildDropTableIndexes(builder, table.TableName);
 
                 //4. create a new table statement
-                builder.Append(string.Join(";",base.TableCreateSqls(table)));
+                var sqls = ConvertToSqls(base.TableCreateSqls(table));
+                builder.Append(string.Join(";",sqls));
 
                 //var newColumns = String.Join(",", table.Columns.Select(x => x.Name));
                 //var prevColumns = String.Join(",", table.Columns.Select(x => x.PreviousColumn == null ? x.Name : x.PreviousColumn.ColumnName));
@@ -277,7 +282,7 @@ namespace qshine.database.sqlite
                 builder.Append("commit;");
                 builder.Append("PRAGMA foreign_keys = on;");
 
-                statements.Add(builder.ToString());
+                statements.Add(new ConditionalSql(builder.ToString()));
             }
             return statements;
         }
@@ -287,5 +292,25 @@ namespace qshine.database.sqlite
             newColumns = String.Join(",", table.Columns.Select(x => x.Name));
             prevColumns = String.Join(",", table.Columns.Select(x => x.PreviousColumn==null?x.Name:x.PreviousColumn.ColumnName));
         }
-	}
+
+        string ConvertToSqls(List<ConditionalSql> sqls)
+        {
+            if (sqls == null && sqls.Count == 0) return "";
+
+            var sqlLists = new List<string>();
+
+            foreach (var c in sqls)
+            {
+                foreach(var s in c.Sqls)
+                {
+                    if (!string.IsNullOrEmpty(s.Sql))
+                    {
+                        sqlLists.Add(s.Sql);
+                    }
+                }
+            }
+            return String.Join(";", sqlLists);
+        }
+
+    }
 }

@@ -13,8 +13,9 @@ namespace qshine.database.idm
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
 				.AddColumn("enterprise_id", System.Data.DbType.Int32, 0, allowNull:false, defaultValue:0, comments: "Specifies an enterprise account id.")
-				.AddColumn("principal_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "principal id. It only can be user id or group id.", isIndex: true, reference:"im_principal:id")
-				.AddColumn("group_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "group id", isIndex: true, reference:"im_group:id")
+				.AddColumn("principal_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "principal id. It only can be user id or group id.", isIndex: true,
+                reference:new Principal().PkColumn)
+				.AddColumn("group_id", System.Data.DbType.Int64, 0, allowNull: false, comments: "group id", isIndex: true, reference:new Group().PkColumn)
 				.AddAuditColumn();
 		}
 	}

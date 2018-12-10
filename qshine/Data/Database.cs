@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.OleDb;
 using qshine.Configuration;
+using qshine.Utility;
+using System.Linq;
 
 namespace qshine
 {
@@ -84,6 +86,39 @@ namespace qshine
         #endregion
 
         #region public Properties
+        static Dictionary<string, string> _parameterPrefixLookup = new Dictionary<string, string>();
+
+        void SetParameterPrefix(DbProviderFactory factory)
+        {
+            CommandBuilder = factory.CreateCommandBuilder();
+            string placeholder;
+            CommandBuilder.TryCallNonPublic(out placeholder, null, "GetParameterPlaceholder", 0);
+            if(!string.IsNullOrEmpty(placeholder))
+            {
+                _parameterPrefixLookup.Add(ProviderName, placeholder.Substring(0,1));
+            }
+        }
+
+        /// <summary>
+        /// Get database parameterPrefix
+        /// </summary>
+        public string ParameterPrefix
+        {
+            get
+            {
+                return _parameterPrefixLookup[ProviderName];
+            }
+        }
+
+        /// <summary>
+        /// The command builder will be available after DbProviderFactory set;
+        /// </summary>
+        DbCommandBuilder _commandBuilder=null;
+        public DbCommandBuilder CommandBuilder
+        {
+            get; private set;
+        }
+
         /// <summary>
         /// Get database provider factory
         /// </summary>
@@ -98,6 +133,11 @@ namespace qshine
                         ".NET DbProviderFactory {0} load error.",
                         ProviderName
                         );
+
+                    if (!_parameterPrefixLookup.ContainsKey(ProviderName))
+                    {
+                        SetParameterPrefix(_factory);
+                    }
                 }
                 return _factory;
 
@@ -199,6 +239,7 @@ namespace qshine
 		{
 			var connection = DbProviderFactory.CreateConnection();
 			connection.ConnectionString = ConnectionString;
+
 			return connection;
 		}
 
@@ -211,6 +252,28 @@ namespace qshine
             return DbProviderFactory.CreateDataAdapter();
         }
 
+        List<IDbTypeMapper> _dbTypeMappers;
+        public List<IDbTypeMapper> DbTypeMappers
+        {
+            get
+            {
+                if (_dbTypeMappers == null)
+                {
+                    _dbTypeMappers = new List<IDbTypeMapper>();
+                    if (_globalDbTypeMappers.ContainsKey("*"))
+                    {
+                        _dbTypeMappers.AddRange(_globalDbTypeMappers["*"]);
+                    }
+
+                    foreach(var mapperProviderName in _globalDbTypeMappers.Keys.Where(x=>x.Contains(ProviderName)))
+                    {
+                        _dbTypeMappers.AddRange(_globalDbTypeMappers[mapperProviderName]);
+                    }
+                }
+                return _dbTypeMappers;
+            }
+        }
+
         private string ParseDataSource()
 		{
             object dataSource;
@@ -220,6 +283,28 @@ namespace qshine
             }
             return "";
 		}
+
+        static SafeDictionary<string, List<IDbTypeMapper>> _globalDbTypeMappers = new SafeDictionary<string, List<IDbTypeMapper>>();
+
+        /// <summary>
+        /// Register a database DBType mapper.
+        /// </summary>
+        /// <param name="mapper"></param>
+        static public void RegisterDbTypeMapper(IDbTypeMapper mapper)
+        {
+            var providerName = mapper.SupportedProviderNames;
+            if (!_globalDbTypeMappers.ContainsKey(providerName))
+            {
+                _globalDbTypeMappers.Add(providerName, new List<IDbTypeMapper>() { mapper });
+            }
+            else
+            {
+                if(!_globalDbTypeMappers[providerName].Any(x=>x.GetType()==mapper.GetType()))
+                {
+                    _globalDbTypeMappers[providerName].Add(mapper);
+                }
+            }
+        }
 
 	}
 

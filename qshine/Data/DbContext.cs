@@ -21,7 +21,8 @@ namespace qshine
 		{
 			Database = database;
 			Id = new Guid();
-		}
+            Current = this;
+        }
 
 		/// <summary>
 		/// Gets the identifier of DbContext.
@@ -45,10 +46,10 @@ namespace qshine
 		{
 			get
 			{
-				var current = ContextManager.GetData(ContextName) as Dictionary<Guid, DbContext>;
+				var current = ContextManager.GetData(ContextName) as DbContext;
 				if (current != null)
 				{
-					return current.Values.LastOrDefault();
+					return current;
 				}
 
 				var context = new DbContext(new Database());
@@ -58,16 +59,7 @@ namespace qshine
 
 			set
 			{
-				Dictionary<Guid, DbContext> dbLIst = ContextManager.GetData(ContextName) as Dictionary<Guid, DbContext>;
-				if (dbLIst == null)
-				{
-					dbLIst = new Dictionary<Guid, DbContext>();
-				}
-				if (!dbLIst.ContainsKey(value.Id))
-				{
-					dbLIst.Add(value.Id, value);
-					ContextManager.SetData(ContextName, value);
-				}
+				ContextManager.SetData(ContextName, value);
 			}
 		}
 

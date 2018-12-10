@@ -37,7 +37,7 @@ namespace qshine
 		{
 			RequireNew = requireNew;
 			//store individual database transaction
-			//Databases = new Dictionary<Database, DbSession>();
+			Databases = new Dictionary<Database, DbSession>();
 			//push this unit of work into store
 			UnitOfWorks.Push(this);
 		}
@@ -112,7 +112,7 @@ namespace qshine
 			}
 			if (disposing)
 			{
-				//if has transaction, close connection and transactions
+				//if found a transaction, try to close the connection and transactions.
 				foreach(var session in Databases.Values){
 					if (session.Connection != null)
 					{
@@ -133,7 +133,7 @@ namespace qshine
 						session.Connection = null;
 					}
 				}
-				//if no transaction, and unit of work is not complete and not requirNew, cancel available transaction
+				//if no transaction found and the unit of work is not completed within non requirNew unit of work, the unit of work need be rollback
 				if (!_canComplete && Databases.Count == 0 && !RequireNew)
 				{
 					var activeUnitOfWork = UnitOfWorks.LastOrDefault(x => x.Databases.Count > 0);
@@ -142,6 +142,7 @@ namespace qshine
 						activeUnitOfWork.Rollback();
 					}
 				}
+
 				if (UnitOfWorks.Count >0)
 				{
 					var unitOfWork = UnitOfWorks.Pop();
