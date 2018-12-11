@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using qshine.Utility;
 using System;
 using System.Collections.Generic;
 
@@ -185,9 +186,45 @@ namespace qshine.Tests
         public void Enum_StringToEnum_Test()
         {
             Assert.AreEqual(SampleEnum.Status3, "Status3".GetEnumValue<SampleEnum>());
+            Assert.AreEqual(SampleEnum.Status3, "102".GetEnumValue<SampleEnum>(EnumValueType.OriginalValue));
+            Assert.AreEqual(SampleEnum.Status3, "Status 3".GetEnumValue<SampleEnum>(EnumValueType.StringValue));
+
             Assert.AreEqual(SampleEnum.Unknown, "xyz".GetEnumValue(SampleEnum.Unknown));
             var x = "xyz".GetEnumValue(SampleEnum.Unknown);
-            
+            Assert.AreEqual(x, SampleEnum.Unknown);
+            x = "Status3".GetEnumValue(SampleEnum.Unknown);
+            Assert.AreEqual(x, SampleEnum.Status3);
+            x = "Status 3".GetEnumValue(SampleEnum.Unknown,EnumValueType.StringValue);
+            Assert.AreEqual(x, SampleEnum.Status3);
+            x = "102".GetEnumValue(SampleEnum.Unknown, EnumValueType.OriginalValue);
+            Assert.AreEqual(x, SampleEnum.Status3);
+
+        }
+
+        [TestMethod]
+        public void GetFastHashCode_Tests()
+        {
+            int hascode = FastHash.GetHashCode("123", 12, new DateTime(2000, 10, 10, 10, 10, 10), 12.6,null);
+            int hascode2 = FastHash.GetHashCode("123", 12, new DateTime(2000, 10, 10, 10, 10, 10), 12.6,null);
+            int hascode3 = FastHash.GetHashCode("123", 13, new DateTime(2000, 10, 10, 10, 10, 10), 12.6,null);
+            int hascode4 = FastHash.GetHashCode(13, "123", new DateTime(2000, 10, 10, 10, 10, 10), 12.6, null);
+            Assert.AreEqual(hascode, hascode2);
+            Assert.AreNotEqual(hascode2, hascode3);
+            Assert.AreNotEqual(hascode3, hascode4);
+
+            Assert.AreEqual(-1309771405, hascode);
+            Assert.AreEqual(-1309739824, hascode3);
+            Assert.AreEqual(544796504, hascode4);
+
+            int hascode5 = FastHash.GetHashCode(13, "123", 12,"321");
+            int hascode6 = FastHash.GetHashCode(12, "123", 13, "321");
+            int hascode7 = FastHash.GetHashCode(12, "321", 13, "123");
+            Assert.AreNotEqual(hascode5, hascode6);
+            Assert.AreNotEqual(hascode6, hascode7);
+            Assert.AreEqual(57632447, hascode5);
+            Assert.AreEqual(57733811, hascode6);
+            Assert.AreEqual(55743155, hascode7);
+
         }
     }
 

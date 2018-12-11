@@ -79,10 +79,41 @@ namespace qshine.json.newton
                 {
                     result.Add(d.Key, ConvertToJsonDictionary(d.Value.ToString(), jsonFormat, jsonFormatSetting));
                 }
+                else if(d.Value is JArray)
+                {
+                    //convert "item" array to dictionary when using "UseSimpleDictionaryFormat = false"
+                    var dic = d.Value as JArray;
+                    if (dic != null && dic.Count>0 && dic[0].Count()==2 && dic[0]["Key"]!=null && dic[0]["Value"] != null)
+                    {
+
+                        result.Add(d.Key, ConvertToKeyValueDictionary(dic));
+                    }
+                    else
+                    {
+                        result.Add(d.Key, d.Value);
+                    }
+                }
                 else
                 {
                     result.Add(d.Key, d.Value);
                 }
+            }
+            return result;
+        }
+
+        private Dictionary<string, object> ConvertToKeyValueDictionary(JArray dic)
+        {
+            var result = new Dictionary<string, object>();
+            foreach(JObject dv in dic)
+            {
+                string key = (string)dv["Key"];
+                var v = dv["Value"] as JValue;
+                object value = v;
+                if (v != null)
+                {
+                    value = v.Value;
+                }
+                result.Add(key, value);
             }
             return result;
         }

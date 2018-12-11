@@ -15,8 +15,8 @@ namespace qshine.database.common
                 .AddColumn("name", System.Data.DbType.String, 50, allowNull: false, comments: "Application setting variable name.")
                 .AddColumn("category", System.Data.DbType.String, 50, comments: "Variable category")
                 .AddColumn("value", System.Data.DbType.String, 250, comments: "Application setting variable value")
-                .AddColumn("module_id", System.Data.DbType.Int64, 0, reference: "cm_module:id", comments: "Refer to business module.")
-                .AddColumn("app_id", System.Data.DbType.Int64, 0, reference: "cm_application:id", comments: "Refer to business application.")
+                .AddColumn("module_id", System.Data.DbType.Int64, 0, reference:new Module().PkColumn, comments: "Refer to business module.")
+                .AddColumn("app_id", System.Data.DbType.Int64, 0, reference: new Application().PkColumn, comments: "Refer to business application.")
             .AddAuditColumn();
         }
     }

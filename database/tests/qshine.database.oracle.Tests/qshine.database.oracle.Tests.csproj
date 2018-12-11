@@ -26,9 +26,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\qshine.database.mysql.Tests\GenericDDLTests.cs" Link="GenericDDLTests.cs" />
     <Compile Include="dialectTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\qshine.database.sqlite.Tests\NLog.config" Link="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

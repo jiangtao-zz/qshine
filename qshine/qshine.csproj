@@ -76,9 +76,16 @@
     <Compile Include="Configuration\EnvironmentInitializationOption.cs" />
     <Compile Include="Context\ContextStoreType.cs" />
     <Compile Include="Context\StaticContextStore.cs" />
+    <Compile Include="Data\CommonDbDataTypeMapper.cs" />
+    <Compile Include="Data\ConditionalSql.cs" />
+    <Compile Include="Data\DbSqlStatement.cs" />
+    <Compile Include="Data\DbTypeMapper.cs" />
     <Compile Include="Data\netcoreDataExtension.cs" />
+    <Compile Include="Data\Sql\SqlDDLDatabase.cs" />
     <Compile Include="Data\Sql\SqlDDLIndex.cs" />
     <Compile Include="Data\Sql\SqlDialectStandard.cs" />
+    <Compile Include="Data\Sql\TrackingName.cs" />
+    <Compile Include="Exception\BatchException.cs" />
     <Compile Include="IStartupInitializer.cs" />
     <Compile Include="Logger\ConsoleLoggerProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

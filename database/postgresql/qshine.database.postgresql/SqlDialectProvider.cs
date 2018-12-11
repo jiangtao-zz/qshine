@@ -156,6 +156,20 @@ namespace qshine.database.postgresql
         }
 
         /// <summary>
+        /// Get a sql clause to change column data type
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public override ConditionalSql ColumnChangeTypeClause(string tableName, SqlDDLColumn column)
+        {
+            return new ConditionalSql(
+                FormatCommandSqlLine("alter table {0} alter column {1} type {2}",
+               tableName, column.Name, ToNativeDBType(column.DbType.ToString(), column.Size, column.Scale))
+               );
+        }
+
+        /// <summary>
         /// Get column default value keyword
         /// </summary>
         /// <param name="defaultValue"></param>
@@ -195,9 +209,11 @@ namespace qshine.database.postgresql
         /// <param name="columnName"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        public override string ColumnAddClause(string tableName,  SqlDDLColumn column)
+        public override ConditionalSql ColumnAddClause(string tableName,  SqlDDLColumn column)
         {
-            return string.Format("alter table {0} add column {1} {2};", tableName, column.Name, ColumnDefinition(column));
+            return new ConditionalSql(
+                string.Format("alter table {0} add column {1} {2};", tableName, column.Name, ColumnDefinition(column))
+                );
         }
 
         /// <summary>
@@ -257,18 +273,21 @@ namespace qshine.database.postgresql
                 tableName, columnName, value);
         }
 
-        public override List<string> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        public override List<ConditionalSql> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
-            return new List<string> {
-                string.Format("alter table {0} alter {1} set default nextval('{0}_{1}_seq')",
-                tableName, column.Name)
+            var seqName = string.Format("{0}_{1}_seq", tableName, column.Name);
+            return new List<ConditionalSql> {
+                new ConditionalSql(
+                string.Format("create sequence if not exists {0}",seqName)),
+                new ConditionalSql(
+                    string.Format("alter table {0} alter {1} set default nextval('{2}')",
+                tableName, column.Name, seqName))
             };
         }
-
-        public override List<string> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        public override List<ConditionalSql> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
-            return new List<string> {
-                ColumnRemoveDefaultClause(tableName, column)
+            return new List<ConditionalSql> {
+                new ConditionalSql(ColumnRemoveDefaultClause(tableName, column))
             };
         }
 
@@ -323,7 +342,7 @@ namespace qshine.database.postgresql
 
                 case "AnsiString":
                 case "String":
-                    if (size == 0)
+                    if (size <= 0)
                     {
                         return "TEXT";
                     }

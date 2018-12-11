@@ -97,7 +97,7 @@ namespace qshine
                 var list = input[v] as List<object>;
                 if (list != null && list.Count > 0)
                 {
-                    //convert "item" array to dictionary
+                    //convert "item" array to dictionary when using "UseSimpleDictionaryFormat = false"
                     var dic = list[0] as Dictionary<string, object>;
                     if(dic!=null && dic.Count == 2 && dic.ContainsKey("Key"))
                     {

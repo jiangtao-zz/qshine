@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System;
+using qshine.Utility;
 
 namespace qshine.database
 {
@@ -10,29 +11,61 @@ namespace qshine.database
 	/// </summary>
 	public class SqlDDLTable
 	{
-		string _tableName;
-		string _tableSpace;
-		string _schemaName;
-		string _indexTableSpace;
-		string _tableComments;
-		string _tableCategory;
-		List<SqlDDLColumn> _columns;
-		SqlDDLColumn _pkColumn;
-		Dictionary<string, SqlDDLIndex> _indexes;
-		int _internalIdSequence = 1;
-		int _version;
+        const int MaxNameLength = 30;
+        int _internalIdSequence = 1; 
 		public SqlDDLTable(string tableName, string category, string comments, string tableSpace="",string indexTableSpace="", int version=1, string schemaName="")
 		{
-			_tableName = tableName;
-			_schemaName = schemaName;
-			_tableSpace = tableSpace;
-			_indexTableSpace = indexTableSpace;
-			_tableComments = comments;
-			_tableCategory = category;
-			_columns = new List<SqlDDLColumn>();
-			_indexes = new Dictionary<string, SqlDDLIndex>();
-			_version = version;
-		}
+            Check.Assert<ArgumentException>(!string.IsNullOrEmpty(tableName) && tableName.Length <= MaxNameLength,
+                "tableName is mandatory and length must be less than {0}", MaxNameLength);
+
+			TableName = tableName;
+            SchemaName = schemaName;
+			TableSpace = tableSpace;
+			IndexTableSpace = indexTableSpace;
+            Comments = comments;
+			Category = category;
+            Columns = new List<SqlDDLColumn>();
+			Indexes = new Dictionary<string, SqlDDLIndex>();
+			Version = version;
+            HistoryTableNames = new Dictionary<int, string>();
+
+        }
+        /// <summary>
+        /// The has code identifiy table uniqueness
+        /// </summary>
+        /// <returns></returns>
+        public long HashCode
+        {
+            get
+            {
+                long hashcode = FastHash.GetHashCode(
+                    TableName,
+                    SchemaName,
+                    TableSpace,
+                    IndexTableSpace);
+                foreach(var c in Columns)
+                {
+                    hashcode += c.HashCode;
+                }
+                foreach (var c in Indexes)
+                {
+                    if (c.Value != null)
+                    {
+                        hashcode += c.Value.HashCode;
+                    }
+                }
+                return hashcode;
+            }
+        }
+
+        /// <summary>
+        /// Database instance which contains all tables
+        /// </summary>
+        public SqlDDLDatabase Database { get; set; }
+        /// <summary>
+        /// Table internal unique id
+        /// </summary>
+        public long Id { get; set; }
 
 		/// <summary>
 		/// Adds the PK Column.
@@ -60,7 +93,7 @@ namespace qshine.database
 		}
 
 		public SqlDDLTable AddColumn(string columnName, DbType dbType, int size, int scale=0, bool allowNull = true, object defaultValue = null, string comments = "",
-		                             string checkConstraint = "", bool isUnique = false, string reference = "", bool isIndex = false, int version=1,
+		                             string checkConstraint = "", bool isUnique = false, SqlDDLColumn reference = null, bool isIndex = false, int version=1,
                                      bool isPK=false, bool autoIncrease = false, params string[] oldColumnNames)
         {
             return AddColumn(0, columnName, dbType, size, scale, allowNull, defaultValue, comments,
@@ -69,7 +102,7 @@ namespace qshine.database
 
 
         public SqlDDLTable AddColumn(int internalId, string columnName, DbType dbType, int size, int scale = 0, bool allowNull = true, object defaultValue = null, string comments = "",
-                                     string checkConstraint = "", bool isUnique = false, string reference = "", bool isIndex = false, int version = 1, 
+                                     string checkConstraint = "", bool isUnique = false, SqlDDLColumn reference = null, bool isIndex = false, int version = 1, 
                                      bool isPK=false, bool autoIncrease=false, params string[] oldColumnNames)
         {
             if (internalId == 0)
@@ -78,7 +111,7 @@ namespace qshine.database
                 _internalIdSequence++;
             }
 
-            var c = _columns.SingleOrDefault(x => x.InternalId == internalId);
+            var c = Columns.SingleOrDefault(x => x.InternalId == internalId);
             if (c != null)
             {
                 throw new InvalidExpressionException(string.Format(
@@ -90,7 +123,7 @@ namespace qshine.database
                 throw new InvalidConstraintException("Cannot define a big size column as a unique or primary key column.");
             }
 
-            if (isPK && _columns.Any(x => x.IsPK))
+            if (isPK && Columns.Any(x => x.IsPK))
             {
                 throw new InvalidExpressionException("Only one PRIMARY key column is allow in the table.");
             }
@@ -111,26 +144,30 @@ namespace qshine.database
                 Reference = reference,
                 IsIndex = isIndex,
                 Version = version,
-                InternalId = internalId
+                InternalId = internalId,
+                Table = this
             };
 
-            foreach (var oldColumn in oldColumnNames)
-			{
-				_pkColumn.ColumnNameHistory.Add(oldColumn);
-			}
+            if (PkColumn != null)
+            {
+                foreach (var oldColumn in oldColumnNames)
+                {
+                    PkColumn.ColumnNameHistory.Add(oldColumn);
+                }
+            }
 
-			_columns.Add(column);
+            Columns.Add(column);
 
             if (isPK)
             {
-                _pkColumn = column;
+                PkColumn = column;
                 //No not create index for PK column. It should created automatically by the database system.
             }
             else
             {
                 if (column.IsIndex)
                 {
-                    AddIndex(columnName, GetIndexName(_tableName, column) ,isUnique);
+                    AddIndex(columnName, GetIndexName(TableName, column) ,isUnique);
                 }
             }
 
@@ -147,10 +184,10 @@ namespace qshine.database
 			AddColumn("created_on", DbType.DateTime, 0,0,false, SqlReservedWord.SysDate);
             AddColumn("updated_by", DbType.String, 100);
 			AddColumn("updated_on", DbType.DateTime, 0,0, false, SqlReservedWord.SysDate);
-			AddIndex("created_by", GetName("ixa", _tableName, 1));
-			AddIndex("updated_by", GetName("ixa", _tableName, 2));
-            AddIndex("created_on", GetName("ixa", _tableName, 3));
-			AddIndex("updated_on", GetName("ixa", _tableName, 4));
+			AddIndex("created_by", GetName("ixa", TableName, 1));
+			AddIndex("updated_by", GetName("ixa", TableName, 2));
+            AddIndex("created_on", GetName("ixa", TableName, 3));
+			AddIndex("updated_on", GetName("ixa", TableName, 4));
 
 			return this;
 		}
@@ -166,11 +203,11 @@ namespace qshine.database
 		{
             Check.HaveValue(indexName, "indexName");
 
-			if (!_indexes.ContainsKey(indexName))
+			if (!Indexes.ContainsKey(indexName))
 			{
-                _indexes.Add(indexName, new SqlDDLIndex
+                Indexes.Add(indexName, new SqlDDLIndex
                 {
-                    TableName = _tableName,
+                    TableName = this.TableName,
                     IndexName = indexName,
                     IndexColumns = columnNames,
                     IsUnique = isUnique
@@ -179,34 +216,44 @@ namespace qshine.database
 			return this;
 		}
 
-		Dictionary<int, string> _tableNameHistory = new Dictionary<int, string>();
-		/// <summary>
-		/// Gets the table name history.
-		/// </summary>
-		/// <value>The table name history.</value>
-		public Dictionary<int, string> TableNameHistory
-		{
-			get
-			{
-				return _tableNameHistory;
-			}
-		}
+        Dictionary<int, string> HistoryTableNames
+        {
+            get;set;
+        }
 
-		/// <summary>
-		/// Track table name history if a table name got changed.
-		/// To rename a table we need use this method to add all previous table name.
-		/// </summary>
-		/// <returns>current instance</returns>
-		/// <param name="tableName">One of old table name.</param>
-		/// <param name="version">One of old table version.</param>
-		public SqlDDLTable AddOldTableName(string tableName, int version)
+        /// <summary>
+        /// Method to indicate table rename action for specific version.
+        /// To rename a table you must call this method to specify table internal Id, previous table name and version number.
+        /// </summary>
+        /// <returns>current instance</returns>
+        /// <param name="tableId">Internal unique table Id.</param>
+        /// <param name="oldTableName">old table name.</param>
+        /// <param name="version">version of old table name.</param>
+        public SqlDDLTable RenameTable(long tableId, string oldTableName, int version)
 		{
-			if (!_tableNameHistory.ContainsKey(version))
-			{
-				_tableNameHistory.Add(version, tableName);
-			}
+            Check.Assert<ArgumentException>(tableId==0 || Id == 0 || Id == tableId,
+                "The argument tableId [{0}] must match to table tracking id [{1}].", tableId, Id);
+
+            Check.Assert<ArgumentException>(version<Version,
+                "The argument version [{0}] must be a history version number (<{1}).", version, Version);
+
+            Check.Assert<ArgumentException>(!HistoryTableNames.ContainsKey(version),
+                "The argument version [{0}] cannot be same as previous renamed name version.", version);
+
+            Check.Assert<ArgumentException>(oldTableName != TableName,
+                "The argument oldTableName [{0}] cannot be same as current table name {1}.", oldTableName, TableName);
+
+            Id = tableId;
+            HistoryTableNames.Add(version, oldTableName);
+            IsTableRenamed = true;
+
 			return this;
 		}
+
+        /// <summary>
+        /// Indicates a table has been renamed.
+        /// </summary>
+        public bool IsTableRenamed { get; private set; }
 
         /// <summary>
         /// Get possible index name
@@ -239,7 +286,7 @@ namespace qshine.database
         {
             return GetName("chk", tableName, internalId); ;
         }
-        
+
         /// <summary>
         /// Get possible table column Unique constraint name.
         /// </summary>
@@ -257,83 +304,60 @@ namespace qshine.database
         }
 
 
-        public void Create()
-		{
-		}
-
 		public string TableName
 		{
-			get
-			{
-				return _tableName;
-			}
+            get; private set;
 		}
 
-		public SqlDDLColumn PkColumn
+        public string TableSpace { get; private set; }
+
+        public string IndexTableSpace { get; private set; }
+
+
+        public SqlDDLColumn PkColumn
 		{
-			get
-			{
-				return _pkColumn;
-			}
+            get; private set;
 		}
 
 		public IList<SqlDDLColumn> Columns
 		{
-			get
-			{
-				return _columns;
-			}
+            get; private set;
 		}
 
 		public Dictionary<string, SqlDDLIndex> Indexes
 		{
-			get
-			{
-				return _indexes;
-			}
+            get; private set;
 		}
 
 		public int Version
 		{
-            get
-			{
-				return _version;
-			}
+            get; private set;
 		}
 
 		public string SchemaName
 		{
-			get
-			{
-				return _schemaName;
-			}
+            get;private set;
 		}
 
 		public string Comments
 		{
-			get
-			{
-				return _tableComments;
-			}
+            get; private set;
 		}
 
 		public string Category
 		{
-			get
-			{
-				return _tableCategory;
-			}
+            get; private set;
 		}
 
 
 		private static string GetName(string suffix, string tableName, int sequence)
 		{
 			var name = string.Format("{0}_{1}{2}", tableName, suffix,sequence);
-			if (name.Length > 29)
+			if (name.Length >= MaxNameLength)
 			{
 				var end = string.Format("_{0}{1}", suffix,sequence);
-				int n = 29 - end.Length;
-				name = name.Substring(0, n);
+				int n = MaxNameLength - end.Length;
+				name = name.Substring(0, n)+end;
 			}
 			return name;
 		}

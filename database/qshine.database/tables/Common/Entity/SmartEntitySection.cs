@@ -19,7 +19,7 @@
         {
             AddPKColumn("id", System.Data.DbType.Int64)
                 .AddColumn("org_id", System.Data.DbType.Int32, 0, allowNull: false, defaultValue: 0, comments: "Specifies an organization id apply to this section. It is a system record if the value is 0.")
-                .AddColumn("entity_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true, reference: "cm_sm_entity:id", comments: "FK:Smart entity id.")
+                .AddColumn("entity_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true, reference: new SmartEntity().PkColumn, comments: "FK:Smart entity id.")
                 .AddColumn("name", System.Data.DbType.String, 250, allowNull: false, comments: "smart entity section name.")
                 .AddColumn("display_name", System.Data.DbType.String, 50, allowNull: false, comments: "Section display name.")
                 .AddColumn("position", System.Data.DbType.Int32, 0, comments: "Section position, start from 0.")

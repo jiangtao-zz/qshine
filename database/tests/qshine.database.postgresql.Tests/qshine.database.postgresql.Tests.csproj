@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\qshine.database.mysql.Tests\GenericDDLTests.cs" Link="GenericDDLTests.cs" />
     <Compile Include="dialectTests.cs" />
   </ItemGroup>
   <ItemGroup>

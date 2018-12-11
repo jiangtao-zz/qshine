@@ -1,4 +1,6 @@
-﻿namespace qshine.database
+﻿using qshine.Utility;
+
+namespace qshine.database
 {
     /// <summary>
     /// Index information
@@ -24,5 +26,13 @@
         /// Indicates a unique index
         /// </summary>
         public bool IsUnique { get; set; }
+
+        public long HashCode
+        {
+            get
+            {
+                return FastHash.GetHashCode(TableName, IndexName, IndexColumns, IsUnique);
+            }
+        }
     }
 }

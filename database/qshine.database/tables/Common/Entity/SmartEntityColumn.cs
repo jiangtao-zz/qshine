@@ -13,8 +13,8 @@
             : base("cm_sm_entity_col", "COMMON", "Smart Entity columns table.", "comData", "comIndex")
         {
             AddPKColumn("id", System.Data.DbType.Int64)
-                .AddColumn("entity_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true, reference: "cm_sm_entity:id", comments: "FK:Smart entity id.")
-                .AddColumn("section_id", System.Data.DbType.Int64, 0, reference: "cm_sm_entity_sec:id", comments: "FK:Smart entity section id.")
+                .AddColumn("entity_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true, reference: new SmartEntity().PkColumn, comments: "FK:Smart entity id.")
+                .AddColumn("section_id", System.Data.DbType.Int64, 0, reference: new SmartEntitySection().PkColumn, comments: "FK:Smart entity section id.")
                 .AddColumn("column_name", System.Data.DbType.String, 250, allowNull: false, comments: "smart entity column name.")
                 .AddColumn("display_name", System.Data.DbType.String, 50, allowNull: false, comments: "Column display name.")
                 .AddColumn("position", System.Data.DbType.Int32, 0, comments: "Column position, start from 0.")

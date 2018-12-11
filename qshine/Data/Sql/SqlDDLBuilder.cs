@@ -10,20 +10,20 @@ namespace qshine.database
 	/// </summary>
 	public class SqlDDLBuilder:IDisposable
 	{
-		string _lastErrorMessage = "";
 		List<SqlDDLTable> _tables;
         ISqlDialectProvider _sqlDialectProvider;
 		ISqlDialect _sqlDialect;
-        Database _database;
         SqlDDLTracking _trackingTable;
 
+        BatchException _batchException;
 
+        #region Ctor
         /// <summary>
         /// Create a new SqlDDLBuilder instance for given database using specific sql dialect provider
         /// </summary>
         /// <param name="database">Specifies a database instance to be built</param>
         /// <param name="sqlDialectProvider">Specifies a SQL dialect provider</param>
-        public SqlDDLBuilder(Database database, ISqlDialectProvider sqlDialectProvider)
+        public SqlDDLBuilder(SqlDDLDatabase database, ISqlDialectProvider sqlDialectProvider)
         {
             _sqlDialectProvider = sqlDialectProvider;
             if (_sqlDialectProvider == null)
@@ -31,10 +31,10 @@ namespace qshine.database
                 _sqlDialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
                 Check.HaveValue(_sqlDialectProvider);
             }
-            _database = database;
+            Database = database;
 
-            _tables = new List<SqlDDLTable>();
-            _sqlDialect = _sqlDialectProvider.GetSqlDialect(_database.ConnectionString);
+            _tables = Database.Tables;
+            _sqlDialect = _sqlDialectProvider.GetSqlDialect(Database.Database.ConnectionString);
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace qshine.database
         /// <param name="connectionStringName">Specifies a database connection string configure name. 
         /// The configed database connectionstring contains DB provider name and connection string.</param>
         public SqlDDLBuilder(string connectionStringName)
-            :this(new Database(connectionStringName),null)
+            :this(new SqlDDLDatabase(new Database(connectionStringName)),null)
 		{
         }
 
@@ -52,9 +52,11 @@ namespace qshine.database
         /// </summary>
         /// <param name="database">Database connection and provider</param>
         public SqlDDLBuilder(Database database)
-            :this(database,null)
+            :this(new SqlDDLDatabase(database),null)
         {
         }
+
+        #endregion
 
         #region IDisposable
         public void Dispose()
@@ -76,26 +78,29 @@ namespace qshine.database
         }
         #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// Gets database connection string.
-		/// </summary>
-		/// <value>The name of the database.</value>
-		public string ConnectionStringName { get; private set; }
+        /// <summary>
+        /// Sql DDL Database
+        /// </summary>
+        public SqlDDLDatabase Database { get; private set; }
+
+
+        /// <summary>
+        /// Gets database connection string.
+        /// </summary>
+        /// <value>The name of the database.</value>
+        public string ConnectionStringName { get; private set; }
+
+        public SqlDDLTracking TrackingTable
+        {
+            get
+            {
+                return _trackingTable;
+            }
+        }
 
 		#endregion
-
-		/// <summary>
-		/// Registers the table structure.
-		/// </summary>
-		/// <returns>The table.</returns>
-		/// <param name="table">Table.</param>
-		public SqlDDLBuilder RegisterTable(SqlDDLTable table)
-		{
-			_tables.Add(table);
-			return this;
-		}
 
 		/// <summary>
 		/// Build database instance from registered tables.
@@ -104,9 +109,12 @@ namespace qshine.database
 		/// <returns>It returns true if database build sucessfully. Otherwise, it returns false with LastErrorMessage.
 		/// A full action log will be generated in Log information level through Log configuration.
 		/// </returns>
+        /// <param name="batchException">BatchException to hold error messages</param>
 		/// <param name="createNewDatabase">Indicates whether a new database should be created. If the flag is true it will only create new database if the given database is not existing.</param>
-		public bool Build(bool createNewDatabase = false)
+		public bool Build(BatchException batchException, bool createNewDatabase = false)
 		{
+            _batchException = batchException;
+
 			//Create a new database instance if the database is not existing.
 			bool isDatabaseExists = _sqlDialect.DatabaseExists();
 
@@ -118,18 +126,28 @@ namespace qshine.database
 					isDatabaseExists = _sqlDialect.CreateDatabase();
 					if (!isDatabaseExists)
 					{
-						_lastErrorMessage = string.Format("Failed to create a database {0} instance. You need create database instance manually.", ConnectionStringName);
-						return false;
-					}
-				}
+                        var errorMessage = string.Format("Failed to create a database {0} instance. You need create database instance manually.", ConnectionStringName);
+                        if (batchException != null)
+                        {
+                            batchException.Exceptions.Add(new Exception(errorMessage));
+                            batchException.TryThrow();
+                        }
+                        return false;
+                    }
+                }
 			}
 
 			//Database should exist to build/update database structure;
 			if (!isDatabaseExists)
 			{
-				_lastErrorMessage = string.Format("Database {0} is not found.", ConnectionStringName);
-				return false;
-			}
+				var errorMessage = string.Format("Database {0} is not found.", ConnectionStringName);
+                if (batchException != null)
+                {
+                    batchException.Exceptions.Add(new Exception(errorMessage));
+                    batchException.TryThrow();
+                }
+                return false;
+            }
 
 
             _trackingTable = new SqlDDLTracking(_sqlDialect,DBClient);
@@ -143,8 +161,51 @@ namespace qshine.database
 			//Go through each register table
 			foreach (var table in _tables)
 			{
-				if (!IsTableExists(table.TableName))
+                //Skip table update for those have higher version table already created in the database
+                var currentTrackingTable = _trackingTable.FindSameTrackingTable(table);
+                if (currentTrackingTable != null)
+                {
+                    if (IsTableExists(currentTrackingTable.ObjectName))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        //Current tracking table is deleted manually out of the system control.
+                        //Remove the tracking record and recreate it again.
+                        _trackingTable.RemoveTrackingTable(currentTrackingTable.Id);
+                    }
+                }
+
+                //New table
+                if (!IsTableExists(table.TableName))
 				{
+                    if (table.IsTableRenamed)
+                    {
+                        //try to rename
+                        var trackingTable = _trackingTable.GetTrackingTable(table.Id);
+                        //It may require table name change.
+                        if (trackingTable != null && IsTableExists(trackingTable.ObjectName))
+                        {
+                            //rename table and update the info
+                            RenameAndUpdateTable(table, trackingTable);
+                            continue;
+                        }
+                    }
+
+                    if (table.Id > 0)
+                    {
+                        var trackingTable = _trackingTable.GetTrackingTable(table.Id);
+                        if(trackingTable != null)
+                        {
+                            if (IsTableExists(trackingTable.ObjectName) && table.Version <= trackingTable.Version)
+                            {
+                                //ignore the table creation if table Id presented explicitly and high version table already exists
+                                continue;
+                            }
+                        }
+                    }
+
                     //if table not exists, create a new table
                     if (CreateTable(table))
                     {
@@ -154,11 +215,20 @@ namespace qshine.database
 				}
 				else
 				{
+
 					//table already exists, try to update table structure
 					TryUpdateTable(table);
 				}
 			}
-			return true;
+            if (batchException != null)
+            {
+                batchException.TryThrow();
+                if (batchException.Exceptions.Count > 0)
+                {
+                    return false;
+                }
+            }
+            return true;
 		}
 
         bool IsTableExists(string tableName)
@@ -171,7 +241,12 @@ namespace qshine.database
 
         void BatchSql(List<string> sqls)
         {
-            DBClient.Sql(true, sqls);
+            DBClient.Sql(sqls, _batchException);
+        }
+
+        void BatchSql(List<ConditionalSql> sqls)
+        {
+            DBClient.Sql(sqls, _batchException);
         }
 
 
@@ -186,7 +261,7 @@ namespace qshine.database
             {
                 if (_dbClient == null)
                 {
-                    _dbClient = new DbClient(_database);
+                    _dbClient = new DbClient(Database.Database);
                 }
                 return _dbClient;
             }
@@ -201,24 +276,33 @@ namespace qshine.database
 			var trackingTable = _trackingTable.GetTrackingTable(table.TableName);
 			if (trackingTable != null)
 			{
-				//Table name changed?
-				if (table.TableNameHistory.ContainsKey(trackingTable.Version))
-				{
-					//Match old tableName from current tracking table
-					if (trackingTable.ObjectName != table.TableName)
-					{
-						//rename table
-						RenameTableName(trackingTable.ObjectName, table.TableName);
-
-                        //update the tracking table
-                        _trackingTable.UpdateTrackingTable(trackingTable, table);
-					}
-				}
-
 				UpdateTable(table, trackingTable);
                 _trackingTable.UpdateTrackingTableColumns(trackingTable, table);
 			}
 		}
+
+        /// <summary>
+        /// Rename and update table structure if it has any change.
+        /// </summary>
+        /// <param name="table">Table.</param>
+        void RenameAndUpdateTable(SqlDDLTable table, TrackingTable trackingTable)
+        {
+            if (trackingTable != null)
+            {
+                //Match old tableName from current tracking table
+                if (trackingTable.ObjectName != table.TableName)
+                {
+                    //rename table
+                    RenameTableName(trackingTable.ObjectName, table.TableName);
+
+                    //update the tracking table
+                    _trackingTable.UpdateTrackingTableForTableRename(trackingTable, table);
+                }
+
+                UpdateTable(table, trackingTable);
+                _trackingTable.UpdateTrackingTableColumns(trackingTable, table);
+            }
+        }
 
         /// <summary>
         /// Renames the name of the table.
@@ -239,7 +323,12 @@ namespace qshine.database
             }
             catch (Exception ex)
             {
-                LastErrorMessage = string.Format("Error to rename table {0} to {1}. Ex:{2}", oldTableName, newTableName, ex.Message);
+                var errorMessage = string.Format("Error to rename table {0} to {1}. Ex:{2}", oldTableName, newTableName, ex.Message);
+                if (_batchException != null)
+                {
+                    _batchException.Exceptions.Add(new Exception(errorMessage));
+                    _batchException.TryThrow();
+                }
                 return false;
             }
         }
@@ -251,23 +340,12 @@ namespace qshine.database
         /// <returns></returns>
         bool CreateTable(SqlDDLTable table)
         {
-            try
-            {
-                //_logger.Debug("Create a table {0}.", table.TableName);
-                var statement = _sqlDialect.TableCreateSqls(table);
+            //_logger.Debug("Create a table {0}.", table.TableName);
+            var statement = _sqlDialect.TableCreateSqls(table);
 
-                //comments are not support
-                BatchSql(statement);
-
-                //_logger.Debug("Table {0} created.", table.TableName);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                LastErrorMessage = String.Format("Failed to create table {0}. Exception: {1}", table.TableName, ex.Message);
-                return false;
-            }
+            //comments are not support
+            BatchSql(statement);
+            return true;
         }
 
         /// <summary>
@@ -278,39 +356,22 @@ namespace qshine.database
         /// <returns></returns>
         bool UpdateTable(SqlDDLTable table, TrackingTable trackingTable)
         {
-            try
+            if (_sqlDialect.AnalyseTableChange(table, trackingTable))
             {
-                if (_sqlDialect.AnalyseTableChange(table, trackingTable))
+                var sqls = _sqlDialect.TableUpdateSqls(table);
+                if (sqls!=null && sqls.Count>0)
                 {
-                    var sqls = _sqlDialect.TableUpdateSqls(table);
-                    if (sqls!=null && sqls.Count>0)
-                    {
-                        //_logger.Debug("Update table {0}.", table.TableName);
+                    //_logger.Debug("Update table {0}.", table.TableName);
 
-                        BatchSql(sqls);
+                    BatchSql(sqls);
 
-                        //_logger.Debug("Table {0} updated.", table.TableName);
-                        return true;
-                    }
+                    //_logger.Debug("Table {0} updated.", table.TableName);
+                    return true;
                 }
-                return false;
             }
-            catch (Exception ex)
-            {
-                LastErrorMessage = String.Format("Failed to update table {0} schema. Exception: {1}", table.TableName, ex.Message);
-                return false;
-            }
+            return false;
         }
 
-
-        /// <summary>
-        /// Gets the last error message.
-        /// </summary>
-        /// <value>The last error message.</value>
-        public string LastErrorMessage
-		{
-            get;set;
-		}
 
 		static bool _internalTableExists = false;
 		static object lockObject = new object();
@@ -331,11 +392,15 @@ namespace qshine.database
 							CreateTable(_trackingTable.TrackingColumnTable);
 						}
 
-						_internalTableExists = true;
+                        if (!IsTableExists(SqlDDLTracking.TrackingNameTableName))
+                        {
+                            CreateTable(_trackingTable.TrackingRenameTable);
+                        }
+
+                        _internalTableExists = true;
 					}
 				}
 			}
 		}
-
 	}
 }

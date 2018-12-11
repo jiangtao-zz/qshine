@@ -127,24 +127,11 @@ namespace qshine.database
         /// </param>
         /// <param name="referenceColumn">foreign key table column</param>
         /// <returns></returns>
-        public virtual string ColumnReferenceKeyword(string reference)
+        public virtual string ColumnReferenceKeyword(SqlDDLColumn reference)
         {
-            var formattedReference = reference;
-            var foreignKeyReference = reference.Split(':');
-            if (foreignKeyReference.Length == 2)
-            {
-                formattedReference = string.Format("references {0}({1})", foreignKeyReference[0], foreignKeyReference[1]);
-            }
-            else if(reference.StartsWith("references",StringComparison.InvariantCultureIgnoreCase))
-            {
-                formattedReference = reference;
-            }
-            else
-            {
-                formattedReference = string.Format("references {0}", reference);
-            }
+            if (reference == null) return "";
 
-
+            var formattedReference = string.Format("references {0}({1})", reference.Table.TableName, reference.Name);
             return formattedReference;
         }
 
@@ -167,10 +154,10 @@ namespace qshine.database
         /// <param name="oldColumnName">old column name</param>
         /// <param name="column">column definition</param>
         /// <returns></returns>
-        public virtual string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
+        public virtual ConditionalSql ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
-            return FormatCommandSqlLine("alter table {0} rename column {1} to {2}", 
-                tableName, oldColumnName, newColumnName);
+            return new ConditionalSql(FormatCommandSqlLine("alter table {0} rename column {1} to {2}", 
+                tableName, oldColumnName, newColumnName));
         }
 
         /// <summary>
@@ -179,10 +166,10 @@ namespace qshine.database
         /// <param name="tableName">table name</param>
         /// <param name="column">column definition</param>
         /// <returns></returns>
-        public virtual string ColumnAddClause(string tableName, SqlDDLColumn column)
+        public virtual ConditionalSql ColumnAddClause(string tableName, SqlDDLColumn column)
         {
-            return FormatCommandSqlLine("alter table {0} add column {1} {2}", 
-                tableName, column.Name, ColumnDefinition(column));
+            return new ConditionalSql(FormatCommandSqlLine("alter table {0} add column {1} {2}", 
+                tableName, column.Name, ColumnDefinition(column)));
         }
 
         /// <summary>
@@ -191,39 +178,41 @@ namespace qshine.database
         /// <param name="tableName"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        public virtual string ColumnChangeTypeClause(string tableName, SqlDDLColumn column)
+        public virtual ConditionalSql ColumnChangeTypeClause(string tableName, SqlDDLColumn column)
         {
-            return ColumnModifyClause(tableName, column.Name, ToNativeDBType(column.DbType, column.Size, column.Scale));
+            return new ConditionalSql(ColumnModifyClause(tableName, column.Name, ToNativeDBType(column.DbType, column.Size, column.Scale)));
         }
 
-        public virtual string ColumnAddPKClause(string tableName, SqlDDLColumn column)
+        public virtual ConditionalSql ColumnAddPKClause(string tableName, SqlDDLColumn column)
         {
-            return
+            return new ConditionalSql(
                 FormatCommandSqlLine("alter table {0} add primary key ({1})",
                 tableName,
                 column.Name
-                );
+                ));
         }
 
-        public virtual string ColumnRemovePKClause(string tableName, SqlDDLColumn column)
+        public virtual ConditionalSql ColumnRemovePKClause(string tableName, SqlDDLColumn column)
         {
-            return
+            return new ConditionalSql(
                 FormatCommandSqlLine("alter table {0} drop primary key",
                 tableName
-                );
+                ));
         }
 
-        public virtual string ColumnAddUniqueClause(string tableName,  SqlDDLColumn column)
+        public virtual ConditionalSql ColumnAddUniqueClause(string tableName,  SqlDDLColumn column)
         {
-            return
+            return new ConditionalSql(
                 FormatCommandSqlLine("alter table {0} add unique({1})",
                 tableName,
                 column.Name
-                );
+                ));
         }
 
-        public virtual string ColumnRemoveUniqueClause(string tableName, SqlDDLColumn column)
+        public virtual List<ConditionalSql> ColumnRemoveUniqueClause(string tableName, SqlDDLColumn column)
         {
+            var sqls = new List<ConditionalSql>();
+
             if (EnableInlineUniqueConstraint)
             {
                 string sql = "";
@@ -237,23 +226,26 @@ namespace qshine.database
                         tableName,
                         uniqeIndexName
                         );
+                    sqls.Add(new ConditionalSql(sql));
 
                     if (column.IsIndex)
                     {
-                        sql += ColumnAddIndexClause(tableName, column);
+                        sqls.Add(ColumnAddIndexClause(tableName, column));
                     }
                 }
-                return sql;
             }
-
-            return
-                string.Format("alter table {0} drop unique({1})",
-                tableName,
-                column.Name
-                );
+            else
+            {
+                sqls.Add(new ConditionalSql(
+                    string.Format("alter table {0} drop unique({1})",
+                    tableName,
+                    column.Name
+                    )));
+            }
+            return sqls;
         }
 
-        public virtual string ColumnAddIndexClause(string tableName, SqlDDLColumn column)
+        public virtual ConditionalSql ColumnAddIndexClause(string tableName, SqlDDLColumn column)
         {
             return CreateIndexClause(new SqlDDLIndex
             {
@@ -264,31 +256,32 @@ namespace qshine.database
             });
         }
 
-        public virtual string ColumnRemoveIndexClause(string tableName, SqlDDLColumn column)
+        public virtual ConditionalSql ColumnRemoveIndexClause(string tableName, SqlDDLColumn column)
         {
             var indexName = SqlDDLTable.GetIndexName(tableName, column);
 
-            return
+            return new ConditionalSql(
                 FormatCommandSqlLine("drop index {0}",
-                indexName);
+                indexName));
         }
 
-        public virtual string ColumnAddReferenceClause(string tableName, SqlDDLColumn column)
+        public virtual ConditionalSql ColumnAddReferenceClause(string tableName, SqlDDLColumn column)
         {
             var foreignKey = SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId);
 
-            return
+            return new ConditionalSql(
                 FormatCommandSqlLine("alter table {0} add constraint {1} foreign key({2}) {3}",
-                tableName, foreignKey, column.Name, ColumnReferenceKeyword(column.Reference));
+                tableName, foreignKey, column.Name, ColumnReferenceKeyword(column.Reference))
+                );
         }
 
-        public virtual string ColumnRemoveReferenceClause(string tableName, SqlDDLColumn column)
+        public virtual ConditionalSql ColumnRemoveReferenceClause(string tableName, SqlDDLColumn column)
         {
             var foreignKey = SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId);
 
-            return
+            return new ConditionalSql(
                 FormatCommandSqlLine("alter table {0} drop constraint {1}",
-                tableName, foreignKey);
+                tableName, foreignKey));
         }
 
         public virtual string InlineFKConstraint(string tableName, SqlDDLColumn column)
@@ -310,22 +303,22 @@ namespace qshine.database
         }
 
 
-        public virtual string ColumnAddConstraintClause(string tableName, SqlDDLColumn column)
+        public virtual ConditionalSql ColumnAddConstraintClause(string tableName, SqlDDLColumn column)
         {
             var checkConstraintName = SqlDDLTable.GetCheckConstraintName(tableName, column.InternalId);
 
-            return
+            return new ConditionalSql(
                 FormatCommandSqlLine("alter table {0} add constraint {1} check({2})",
-                tableName, checkConstraintName, column.CheckConstraint);
+                tableName, checkConstraintName, column.CheckConstraint));
         }
 
-        public virtual string ColumnRemoveConstraintClause(string tableName, SqlDDLColumn column)
+        public virtual ConditionalSql ColumnRemoveConstraintClause(string tableName, SqlDDLColumn column)
         {
             var checkConstraintName = SqlDDLTable.GetCheckConstraintName(tableName, column.InternalId);
 
-            return
+            return new ConditionalSql(
                 FormatCommandSqlLine("alter table {0} drop constraint {1}",
-                tableName, checkConstraintName);
+                tableName, checkConstraintName));
         }
 
         public virtual string ColumnNotNullClause(string tableName, SqlDDLColumn column)
@@ -353,19 +346,19 @@ namespace qshine.database
             return ColumnModifyClause(tableName, column.Name, ColumnDefaultKeyword("null"));
         }
 
-        public virtual List<string> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        public virtual List<ConditionalSql> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
             throw new NotImplementedException();
         }
 
-        public virtual List<string> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        public virtual List<ConditionalSql> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
             throw new NotImplementedException();
         }
 
         private string ColumnModifyClause(string tableName, string columnName, string columnProperties)
         {
-            return FormatCommandSqlLine("alter table {0} modify ({1} {2})",
+            return FormatCommandSqlLine("alter table {0} modify {1} {2}",
                 tableName, columnName, columnProperties);
         }
 
@@ -377,13 +370,14 @@ namespace qshine.database
         /// <param name="indexValue"></param>
         /// <param name="isUnique"></param>
         /// <returns></returns>
-        public virtual string CreateIndexClause(SqlDDLIndex index)
+        public virtual ConditionalSql CreateIndexClause(SqlDDLIndex index)
         {
             if (index.IsUnique)
             {
-                return FormatCommandSqlLine("create unique index {0} on {1} ({2})", index.IndexName, index.TableName, index.IndexColumns);
+                return new ConditionalSql(
+                    FormatCommandSqlLine("create unique index {0} on {1} ({2})", index.IndexName, index.TableName, index.IndexColumns));
             }
-            return string.Format("create index {0} on {1} ({2})", index.IndexName, index.TableName, index.IndexColumns);
+            return new ConditionalSql(string.Format("create index {0} on {1} ({2})", index.IndexName, index.TableName, index.IndexColumns));
         }
 
 
@@ -413,9 +407,9 @@ namespace qshine.database
         /// </summary>
         /// <param name="table"></param>
         /// <returns></returns>
-        public virtual List<string> TableCreateSqls(SqlDDLTable table)
+        public virtual List<ConditionalSql> TableCreateSqls(SqlDDLTable table)
         {
-            List<string> sqls = new List<string>();
+            List<ConditionalSql> sqls = new List<ConditionalSql>();
 
             var builder = new StringBuilder();
 
@@ -442,7 +436,7 @@ namespace qshine.database
             builder.Append(TableInlineConstraintClause(table));//add table inline constraint clauses
             builder.Append(")");
 
-            sqls.Add(builder.ToString());
+            sqls.Add(new ConditionalSql(builder.ToString()));
             builder.Clear();
             //Build outline constraints
 
@@ -459,7 +453,6 @@ namespace qshine.database
                 }
             }
 
-
             //Build index creation statements
             foreach (var index in table.Indexes)
             {
@@ -472,7 +465,9 @@ namespace qshine.database
 
                 if(!skipIndex)
                 {
-                    sqls.Add(CreateIndexClause(index.Value));
+                    sqls.Add(
+                        CreateIndexClause(index.Value)
+                        );
                 }
             }
 
@@ -498,7 +493,7 @@ namespace qshine.database
 
             foreach (var column in table.Columns)
             {
-                if (!string.IsNullOrEmpty(column.Reference))
+                if (column.Reference!=null)
                 {
                     if (EnableInlineFKConstraint)
                     {
@@ -524,7 +519,7 @@ namespace qshine.database
         /// <remarks>
         /// It is useful to create a trigger for oracle PK column auto_increment and others
         /// </remarks>
-        public virtual List<string> TableCreateAdditionSqls(SqlDDLTable table)
+        public virtual List<ConditionalSql> TableCreateAdditionSqls(SqlDDLTable table)
         {
             return null;
         }
@@ -541,9 +536,9 @@ namespace qshine.database
         /// </summary>
         /// <returns>table update statement</returns>
         /// <param name="table">Table.</param>
-        public virtual List<string> TableUpdateSqls(SqlDDLTable table)
+        public virtual List<ConditionalSql> TableUpdateSqls(SqlDDLTable table)
         {
-            var sqls = new List<string>();
+            var sqls = new List<ConditionalSql>();
 
             //Add new column first
             foreach (var column in table.Columns)
@@ -617,7 +612,7 @@ namespace qshine.database
                             sqls.AddRange(cmds);
                         }
                     }
-                    else if (column.NeedAddAutoIncrease)
+                    else if (column.NeedAddAutoIncrease)//The PK always include auto increase.
                     {
                         var cmds = ColumnAddAutoIncrementClauses(table.TableName, column);
                         if (cmds != null)
@@ -628,25 +623,27 @@ namespace qshine.database
 
                     if (column.NeedRemoveDefault)
                     {
-                        sqls.Add(ColumnRemoveDefaultClause(table.TableName, column));
+                        sqls.Add(new ConditionalSql(ColumnRemoveDefaultClause(table.TableName, column)));
                     }
                     else if (column.NeedAddDefault)
                     {
-                        sqls.Add(ColumnAddDefaultClause(table.TableName, column));
+                        sqls.Add(
+                            new ConditionalSql(ColumnAddDefaultClause(table.TableName, column)));
                     }
                     else if (column.NeedModifyDefault)
                     {
-                        sqls.Add(ColumnModifyDefaultClause(table.TableName, column));
+                        sqls.Add(
+                            new ConditionalSql(ColumnModifyDefaultClause(table.TableName, column)));
                     }
 
 
                     if (column.NeedNull)
                     {
-                        sqls.Add(ColumnNullClause(table.TableName, column));
+                        sqls.Add(new ConditionalSql(ColumnNullClause(table.TableName, column)));
                     }
                     else if (column.NeedNotNull)
                     {
-                        sqls.Add(ColumnNotNullClause(table.TableName, column));
+                        sqls.Add(new ConditionalSql(ColumnNotNullClause(table.TableName, column)));
                     }
 
 
@@ -689,7 +686,7 @@ namespace qshine.database
 
                     if (column.NeedRemoveUnique && !column.IsPK)
                     {
-                        sqls.Add(ColumnRemoveUniqueClause(table.TableName, column));
+                        sqls.AddRange(ColumnRemoveUniqueClause(table.TableName, column));
                     }
                     else if (column.NeedAddUnique && !column.IsPK)
                     {
@@ -702,7 +699,11 @@ namespace qshine.database
                     }
                     else if (column.NeedAddPK)
                     {
-                        sqls.Add(ColumnAddPKClause(table.TableName, column));
+                        var sql = ColumnAddPKClause(table.TableName, column);
+                        if (sql != null)
+                        {
+                            sqls.Add(sql);
+                        }
                     }
 
                 }
@@ -777,7 +778,7 @@ namespace qshine.database
 
             if (!EnableInlineFKConstraint)
             {
-                if (!string.IsNullOrEmpty(column.Reference))
+                if (column.Reference!=null)
                 {
                     builder.AppendFormat(" constraint {0} {1}", SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId),
                         ColumnReferenceKeyword(column.Reference));
@@ -882,145 +883,149 @@ namespace qshine.database
 
         bool AnalyseColumn(SqlDDLColumn column, TrackingColumn trackingColumn)
         {
+            if (column.AutoIncrease != trackingColumn.AutoIncrease)
+            {
+                if (column.AutoIncrease)
+                {
+                    column.NeedAddAutoIncrease = true;
+                }
+                else
+                {
+                    column.NeedRemoveAutoIncrease = true;
+                }
+                column.IsDirty = true;
+            }
+
+            if(column.AllowNull != trackingColumn.AllowNull)
+            {
+                if (column.AllowNull)
+                {
+                    column.NeedNull = true;
+                }
+                else
+                {
+                    column.NeedNotNull = true;
+                }
+                column.IsDirty = true;
+
+            }
+
+            if (!column.CheckConstraint.AreEqual(trackingColumn.CheckConstraint))
+            {
+                if(string.IsNullOrEmpty(column.CheckConstraint))
+                {
+                    column.NeedRemoveConstraint = true;
+                }
+                else if (string.IsNullOrEmpty(trackingColumn.CheckConstraint))
+                {
+                    column.NeedAddConstraint = true;
+                }
+                else
+                {
+                    column.NeedModifyConstraint = true;
+                }
+                column.IsDirty = true;
+
+            }
+
+            if (!column.ToReferenceClause().AreEqual(trackingColumn.Reference))
+            {
+                if (column.Reference==null)
+                {
+                    column.NeedRemoveReference = true;
+                }
+                else if (string.IsNullOrEmpty(trackingColumn.Reference))
+                {
+                    column.NeedAddReference = true;
+                }
+                else
+                {
+                    column.NeedModifyReference = true;
+                }
+                column.IsDirty = true;
+
+            }
+
+            if (column.IsIndex != trackingColumn.IsIndex)
+            {
+                if (column.IsIndex)
+                {
+                    column.NeedAddIndex = true;
+                }
+                else
+                {
+                    column.NeedRemoveIndex = true;
+                }
+                column.IsDirty = true;
+            }
+
+            if (column.IsUnique != trackingColumn.IsUnique)
+            {
+                if (column.IsUnique)
+                {
+                    column.NeedAddUnique = true;
+                }
+                else
+                {
+                    column.NeedRemoveUnique = true;
+                }
+                column.IsDirty = true;
+            }
+
+            if (column.IsPK != trackingColumn.IsPK)
+            {
+                if (column.IsPK)
+                {
+                    //change column to PK. Only single column can be PK.
+                    //It should only add PK to the table which doesn't have PK original
+                    column.NeedAddPK = true;
+                    //The primary key always be a unique key
+                    column.NeedAddUnique = false;
+                    column.NeedRemoveUnique = false;
+                }
+                else
+                {
+                    //Remove PK constaint
+                    //Take caution to remove PK. PK constaint will automatically create unique index.
+                    //Remove PK will not remove index automatically.
+                    column.NeedRemovePK = true;
+                }
+                column.IsDirty = true;
+            }
+
+            string stringValue = Convert.ToString(column.DefaultValue);
+            if (!stringValue.AreEqual(trackingColumn.DefaultValue))
+            {
+                if (string.IsNullOrEmpty(stringValue))
+                {
+                    column.NeedRemoveDefault = true;
+                }
+                else if (string.IsNullOrEmpty(trackingColumn.DefaultValue))
+                {
+                    column.NeedAddDefault = true;
+                }
+                else
+                {
+                    column.NeedModifyDefault = true;
+                }
+                column.IsDirty = true;
+            }
+
+            if (ToNativeDBType(column.DbType.ToString(), column.Size, column.Scale) != ToNativeDBType(trackingColumn.ColumnType, trackingColumn.Size, trackingColumn.Scale))
+            {
+                column.NeedModifyType = true;
+                column.IsDirty = true;
+            }
             if (column.Version > trackingColumn.Version)
             {
-                if (column.AutoIncrease != trackingColumn.AutoIncrease)
-                {
-                    if (column.AutoIncrease)
-                    {
-                        column.NeedAddAutoIncrease = true;
-                    }
-                    else
-                    {
-                        column.NeedRemoveAutoIncrease = true;
-                    }
-                    column.IsDirty = true;
-                }
-
-                if(column.AllowNull != trackingColumn.AllowNull)
-                {
-                    if (column.AllowNull)
-                    {
-                        column.NeedNull = true;
-                    }
-                    else
-                    {
-                        column.NeedNotNull = true;
-                    }
-                    column.IsDirty = true;
-
-                }
-
-                if (column.CheckConstraint != trackingColumn.CheckConstraint)
-                {
-                    if(string.IsNullOrEmpty(column.CheckConstraint))
-                    {
-                        column.NeedRemoveConstraint = true;
-                    }
-                    else if (string.IsNullOrEmpty(trackingColumn.CheckConstraint))
-                    {
-                        column.NeedAddConstraint = true;
-                    }
-                    else
-                    {
-                        column.NeedModifyConstraint = true;
-                    }
-                    column.IsDirty = true;
-
-                }
-
-                if (column.Reference != trackingColumn.Reference)
-                {
-                    if (string.IsNullOrEmpty(column.Reference))
-                    {
-                        column.NeedRemoveReference = true;
-                    }
-                    else if (string.IsNullOrEmpty(trackingColumn.Reference))
-                    {
-                        column.NeedAddReference = true;
-                    }
-                    else
-                    {
-                        column.NeedModifyReference = true;
-                    }
-                    column.IsDirty = true;
-
-                }
-
-                if (column.IsIndex != trackingColumn.IsIndex)
-                {
-                    if (column.IsIndex)
-                    {
-                        column.NeedAddIndex = true;
-                    }
-                    else
-                    {
-                        column.NeedRemoveIndex = true;
-                    }
-                    column.IsDirty = true;
-                }
-
-                if (column.IsUnique != trackingColumn.IsUnique)
-                {
-                    if (column.IsUnique)
-                    {
-                        column.NeedAddUnique = true;
-                    }
-                    else
-                    {
-                        column.NeedRemoveUnique = true;
-                    }
-                    column.IsDirty = true;
-                }
-
-                if (column.IsPK != trackingColumn.IsPK)
-                {
-                    if (column.IsPK)
-                    {
-                        //change column to PK. Only single column can be PK.
-                        //It should only add PK to the table which doesn't have PK original
-                        column.NeedAddPK = true;
-                        //The primary key always be a unique key
-                        column.NeedAddUnique = false;
-                        column.NeedRemoveUnique = false;
-                    }
-                    else
-                    {
-                        //Remove PK constaint
-                        //Take caution to remove PK. PK constaint will automatically create unique index.
-                        //Remove PK will not remove index automatically.
-                        column.NeedRemovePK = true;
-                    }
-                    column.IsDirty = true;
-                }
-
-                string stringValue = Convert.ToString(column.DefaultValue);
-                if (!stringValue.AreEqual(trackingColumn.DefaultValue))
-                {
-                    if (string.IsNullOrEmpty(stringValue))
-                    {
-                        column.NeedRemoveDefault = true;
-                    }
-                    else if (string.IsNullOrEmpty(trackingColumn.DefaultValue))
-                    {
-                        column.NeedAddDefault = true;
-                    }
-                    else
-                    {
-                        column.NeedModifyDefault = true;
-                    }
-                    column.IsDirty = true;
-                }
-
-                if (ToNativeDBType(column.DbType.ToString(), column.Size, column.Scale) != ToNativeDBType(trackingColumn.ColumnType, column.Size, column.Scale))
-                {
-                    column.NeedModifyType = true;
-                    column.IsDirty = true;
-                }
-
-                return column.IsDirty;
+                column.IsDirty = true;
             }
-            return false;
+            else if(column.IsDirty)
+            {
+                //auto increase version number
+                column.Version = trackingColumn.Version + 1;
+            }
+            return column.IsDirty;
         }
 
     }

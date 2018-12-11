@@ -123,6 +123,20 @@ namespace qshine.database.sqlserver
             get { return true; }
         }
 
+        /// <summary>
+        /// Get a sql clause to change column data type
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        public override ConditionalSql ColumnChangeTypeClause(string tableName, SqlDDLColumn column)
+        {
+            return new ConditionalSql(
+                FormatCommandSqlLine("alter table {0} alter column {1} {2}",
+               tableName, column.Name, ToNativeDBType(column.DbType.ToString(), column.Size, column.Scale))
+               );
+        }
+
 
         /// <summary>
         /// Get a sql statement to rename a column and set new column definition
@@ -132,9 +146,11 @@ namespace qshine.database.sqlserver
         /// <param name="newColumnName">new column name</param>
         /// <param name="column">column definition</param>
         /// <returns></returns>
-        public override string ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
+        public override ConditionalSql ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
-            return string.Format("exec sp_rename '{0}.{1}', '{2}', 'COLUMN'", tableName, oldColumnName, newColumnName);
+            return new ConditionalSql(
+                string.Format("exec sp_rename '{0}.{1}', '{2}', 'COLUMN'", tableName, oldColumnName, newColumnName)
+                );
         }
 
         /// <summary>
@@ -155,9 +171,11 @@ namespace qshine.database.sqlserver
         /// <param name="columnName"></param>
         /// <param name="column"></param>
         /// <returns></returns>
-        public override string ColumnAddClause(string tableName, SqlDDLColumn column)
+        public override ConditionalSql ColumnAddClause(string tableName, SqlDDLColumn column)
         {
-            return string.Format("alter table {0} add {1} {2}", tableName, column.Name, ColumnDefinition(column));
+            return new ConditionalSql(
+                string.Format("alter table {0} add {1} {2}", tableName, column.Name, ColumnDefinition(column))
+                );
         }
 
         /// <summary>
@@ -204,16 +222,16 @@ namespace qshine.database.sqlserver
                 );
         }
 
-        public override string ColumnRemoveIndexClause(string tableName, SqlDDLColumn column)
+        public override ConditionalSql ColumnRemoveIndexClause(string tableName, SqlDDLColumn column)
         {
             var indexName = SqlDDLTable.GetIndexName(tableName, column);
 
-            return
+            return new ConditionalSql(
                 FormatCommandSqlLine("drop index {0} on {1}",
-                indexName, column.TableName);
+                indexName, column.TableName));
         }
 
-        public override List<string> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        public override List<ConditionalSql> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
             throw new NotSupportedException(
 @"Sql Server do not support modifying column to auto increment.
@@ -224,7 +242,7 @@ To add auto increment you need manually perform below actions:
  (d) Drop the temp column.");
         }
 
-        public override List<string> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
+        public override List<ConditionalSql> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
             throw new NotSupportedException(
 @"Sql Server do not support column auto increment dropping.

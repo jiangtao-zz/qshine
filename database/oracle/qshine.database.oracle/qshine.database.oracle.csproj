@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\..\qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
+    <Compile Include="DbParameterMapper.cs" />
     <Compile Include="SqlDialectProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

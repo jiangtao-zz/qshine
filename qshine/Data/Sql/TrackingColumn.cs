@@ -8,6 +8,7 @@ namespace qshine.database
 	{
 		public long Id { get; set; }
         public long InternalId { get; set; }
+        public long TableId { get; set; }
 		public string TableName { get; set; }
 		public string Comments { get; set; }
 		public string ColumnName { get; set; }

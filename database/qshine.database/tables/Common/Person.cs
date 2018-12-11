@@ -22,8 +22,8 @@ namespace qshine.database.common
 				.AddColumn("email", System.Data.DbType.String, 100, allowNull: false, comments: "email address", isIndex: true)
 				.AddColumn("phone", System.Data.DbType.String, 50, comments: "Primary phone number")
 				.AddColumn("phone1", System.Data.DbType.String, 50, comments: "Second phone number or cell phone number")
-                .AddColumn("home_location_id", System.Data.DbType.UInt64, 0, comments: "Home location id", reference:"cm_location:id")
-				.AddColumn("work_location_id", System.Data.DbType.UInt64, 0, comments: "Workplace location id", reference:"cm_location:id")
+                .AddColumn("home_location_id", System.Data.DbType.UInt64, 0, comments: "Home location id", reference:new Location().PkColumn)
+				.AddColumn("work_location_id", System.Data.DbType.UInt64, 0, comments: "Workplace location id", reference: new Location().PkColumn)
 			.AddAuditColumn();
 		}
 	}
