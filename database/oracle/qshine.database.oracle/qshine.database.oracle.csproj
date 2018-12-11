@@ -9,9 +9,9 @@
     <DelaySign>false</DelaySign>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <!--<PropertyGroup>
     <RestoreSources>$(RestoreSources);..\..\..\input\NuGetPackags\</RestoreSources>
-  </PropertyGroup>
+  </PropertyGroup>-->
 
   <PropertyGroup>
     <TargetFrameworks>net461;netcoreapp2.1;</TargetFrameworks>

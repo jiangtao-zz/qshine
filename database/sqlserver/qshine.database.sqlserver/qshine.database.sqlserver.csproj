@@ -6,9 +6,9 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <!--<PropertyGroup>
     <RestoreSources>$(RestoreSources);..\..\..\input\NuGetPackags\</RestoreSources>
-  </PropertyGroup>  
+  </PropertyGroup>-->  
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="System" />
@@ -48,6 +48,6 @@
 del /q "$(TargetDir)plugin.config"
 xcopy  /F /E /R /Y /D /i "$(TargetDir)..\*.*" "$(SolutionDir)config\component\database\sqlserver\bin\"</PostBuildEvent>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>C:\Users\huj\source\repos\qshine\qshine.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\..\..\qshine.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 </Project>
