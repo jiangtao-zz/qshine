@@ -112,7 +112,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 1", "testspace1", "testindex1", 2, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 1000)
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -204,7 +204,7 @@ namespace qshine.database.mysql.Tests
 
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -230,7 +230,7 @@ namespace qshine.database.mysql.Tests
 
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1x", DbType.String, 120, defaultValue: "X123", version: 2)
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -280,7 +280,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 3", "testspace1", "testindex1", 2, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -327,7 +327,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 4", "testspace1", "testindex1", 2, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -355,7 +355,7 @@ namespace qshine.database.mysql.Tests
                 table = new SqlDDLTable(testTable, "test", "test table 4", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
                     .AddColumn("T3", DbType.Int16, 0, version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -402,7 +402,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 5", "testspace1", "testindex1", 2, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -428,7 +428,7 @@ namespace qshine.database.mysql.Tests
                 table = new SqlDDLTable(testTable, "test", "test table 5", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
                     .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: true, allowNull: false, version: 3)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -481,7 +481,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 6", "testspace1", "testindex1", 2, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -508,7 +508,7 @@ namespace qshine.database.mysql.Tests
                 table = new SqlDDLTable(testTable, "test", "test table 6", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
                     .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint: "T3>10", version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -548,7 +548,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 7", "testspace1", "testindex1", 2, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, allowNull: false)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -586,7 +586,7 @@ namespace qshine.database.mysql.Tests
                 table = new SqlDDLTable(testTable, "test", "test table 7", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
                     .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -618,7 +618,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 8", "testspace1", "testindex1", 2, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 1)
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 1)
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint: "T3>10")
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
@@ -657,7 +657,7 @@ namespace qshine.database.mysql.Tests
                 table = new SqlDDLTable(testTable, "test", "test table 8", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
@@ -688,7 +688,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 9", "testspace1", "testindex1", 1, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 1)
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 1)
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: true)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
@@ -715,7 +715,7 @@ namespace qshine.database.mysql.Tests
                 table = new SqlDDLTable(testTable, "test", "test table 5", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                    .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                     .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: false, version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
@@ -752,7 +752,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 10", "testspace1", "testindex1", 1, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 1)
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 1)
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: true)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
@@ -778,7 +778,7 @@ namespace qshine.database.mysql.Tests
                 table = new SqlDDLTable(testTable, "test", "test table 10", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 0, false, "ABC", "TEST C2", isUnique: false, isIndex: false, version: 2)
+                    .AddColumn("T2", DbType.String, 100, 0, false, "ABC", "TEST C2", isUnique: false, isIndex: false, version: 2)
                     .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, isIndex: true)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
@@ -816,7 +816,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 11", "testspace1", "testindex1", 1, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                 .AddColumn("T3", DbType.Int16, 0, defaultValue: 16)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
@@ -843,7 +843,7 @@ namespace qshine.database.mysql.Tests
                 table = new SqlDDLTable(testTable, "test", "test table 11", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                    .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                     .AddColumn("T3", DbType.Int16, 0, defaultValue: "", isUnique: true, version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
@@ -882,7 +882,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 12", "testspace1", "testindex1", 1, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                 .AddColumn("T3", DbType.Int16, 0)
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                 .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
@@ -908,7 +908,7 @@ namespace qshine.database.mysql.Tests
                 table = new SqlDDLTable(testTable, "test", "test table 12", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                    .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                     .AddColumn("T3", DbType.Int16, 0, defaultValue: 12, version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
                     .AddColumn("T5", DbType.Int64, 0, defaultValue: 1234567890)
@@ -944,7 +944,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 13", "testspace1", "testindex1", 2, "NewTest");
             table.AddPKColumn("PKC", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                 .AddAuditColumn()
                 .AddColumn("T3", DbType.Int16, 0, checkConstraint: "T3>10 and T3<20")
                 .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -981,7 +981,7 @@ namespace qshine.database.mysql.Tests
                 table = new SqlDDLTable(testTable, "test", "test table 6", "testspace1", "testindex1", 3, "NewTest");
                 table.AddPKColumn("PKC", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
+                    .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2, oldColumnNames: "T21,T22".Split(','))
                     .AddAuditColumn()
                     .AddColumn("T3", DbType.Int16, 0, defaultValue: 16, checkConstraint: "T3<1", version: 2)
                     .AddColumn("T4", DbType.Int32, 0, defaultValue: 32)
@@ -1088,7 +1088,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 15", "testspace1", "testindex1", 1, "NewTest");
             table.AddPKColumn("Id", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                 .AddColumn("T3", DbType.Int16, 0)
                 .AddColumn("T4", DbType.UInt64, 0)
                 ;
@@ -1096,7 +1096,7 @@ namespace qshine.database.mysql.Tests
             var table2 = new SqlDDLTable(testTable2, "test", "test table 15_1", "testspace1", "testindex1", 1, "NewTest");
             table2.AddPKColumn("Id", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                 .AddColumn("T3", DbType.Int16, 0)
                 .AddColumn("T4", DbType.UInt64, 0, reference: table.PkColumn)
                 ;
@@ -1143,7 +1143,7 @@ namespace qshine.database.mysql.Tests
                 table2 = new SqlDDLTable(testTable2, "test", "test table 15_1", "testspace1", "testindex1", 3, "NewTest");
                 table2.AddPKColumn("Id", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                    .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                     .AddColumn("T3", DbType.Int16, 0)
                     .AddColumn("T4", DbType.UInt64, 0, version: 2)
                     ;
@@ -1179,7 +1179,7 @@ namespace qshine.database.mysql.Tests
             var table = new SqlDDLTable(testTable, "test", "test table 16", "testspace1", "testindex1", 1, "NewTest");
             table.AddPKColumn("Id", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                 .AddColumn("T3", DbType.Int16, 0)
                 .AddColumn("T4", DbType.UInt64, 0)
                 ;
@@ -1187,7 +1187,7 @@ namespace qshine.database.mysql.Tests
             var table2 = new SqlDDLTable(testTable2, "test", "test table 16_1", "testspace1", "testindex1", 1, "NewTest");
             table2.AddPKColumn("Id", DbType.UInt64)
                 .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                 .AddColumn("T3", DbType.Int16, 0)
                 .AddColumn("T4", DbType.UInt64, 0)
                 ;
@@ -1221,7 +1221,7 @@ namespace qshine.database.mysql.Tests
                 table2 = new SqlDDLTable(testTable2, "test", "test table 15_1", "testspace1", "testindex1", 3, "NewTest");
                 table2.AddPKColumn("Id", DbType.UInt64)
                     .AddColumn("T1", DbType.String, 100, defaultValue: "A")
-                    .AddColumn("T2", DbType.String, 1000, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
+                    .AddColumn("T2", DbType.String, 100, 12, false, "ABC", "TEST C2", isUnique: true, isIndex: true, version: 2)
                     .AddColumn("T3", DbType.Int16, 0)
                     .AddColumn("T4", DbType.UInt64, 0, reference: table.PkColumn, version: 2)
                     ;

@@ -113,7 +113,6 @@ namespace qshine
         /// <summary>
         /// The command builder will be available after DbProviderFactory set;
         /// </summary>
-        DbCommandBuilder _commandBuilder=null;
         public DbCommandBuilder CommandBuilder
         {
             get; private set;
