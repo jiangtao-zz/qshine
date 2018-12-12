@@ -352,12 +352,10 @@ namespace qshine.database
 
 		private static string GetName(string suffix, string tableName, int sequence)
 		{
-			var name = string.Format("{0}_{1}{2}", tableName, suffix,sequence);
+			var name = string.Format("{0}{1}{2}", suffix,sequence, tableName);
 			if (name.Length >= MaxNameLength)
 			{
-				var end = string.Format("_{0}{1}", suffix,sequence);
-				int n = MaxNameLength - end.Length;
-				name = name.Substring(0, n)+end;
+				name = name.Substring(0, MaxNameLength);
 			}
 			return name;
 		}

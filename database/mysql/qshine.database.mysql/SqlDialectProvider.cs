@@ -314,7 +314,7 @@ namespace qshine.database.mysql
 
         public override ConditionalSql ColumnRemoveReferenceClause(string tableName, SqlDDLColumn column)
         {
-            var foreignKey = SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId);
+            var foreignKey = SqlDDLTable.GetForeignKeyName(tableName, column.InternalId);
 
             return new ConditionalSql(
                 string.Format("alter table {0} drop foreign key {1}",

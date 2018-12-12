@@ -267,7 +267,7 @@ namespace qshine.database
 
         public virtual ConditionalSql ColumnAddReferenceClause(string tableName, SqlDDLColumn column)
         {
-            var foreignKey = SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId);
+            var foreignKey = SqlDDLTable.GetForeignKeyName(tableName, column.InternalId);
 
             return new ConditionalSql(
                 FormatCommandSqlLine("alter table {0} add constraint {1} foreign key({2}) {3}",
@@ -277,7 +277,7 @@ namespace qshine.database
 
         public virtual ConditionalSql ColumnRemoveReferenceClause(string tableName, SqlDDLColumn column)
         {
-            var foreignKey = SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId);
+            var foreignKey = SqlDDLTable.GetForeignKeyName(tableName, column.InternalId);
 
             return new ConditionalSql(
                 FormatCommandSqlLine("alter table {0} drop constraint {1}",
@@ -286,7 +286,7 @@ namespace qshine.database
 
         public virtual string InlineFKConstraint(string tableName, SqlDDLColumn column)
         {
-            var foreignKey = SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId);
+            var foreignKey = SqlDDLTable.GetForeignKeyName(tableName, column.InternalId);
 
             return
                 string.Format("constraint {0} foreign key ({1}) {2}",
@@ -780,7 +780,7 @@ namespace qshine.database
             {
                 if (column.Reference!=null)
                 {
-                    builder.AppendFormat(" constraint {0} {1}", SqlDDLTable.GetForeignKeyName(column.Name, column.InternalId),
+                    builder.AppendFormat(" constraint {0} {1}", SqlDDLTable.GetForeignKeyName(column.Table.TableName, column.InternalId),
                         ColumnReferenceKeyword(column.Reference));
                 }
             }

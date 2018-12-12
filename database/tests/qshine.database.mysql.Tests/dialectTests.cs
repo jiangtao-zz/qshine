@@ -1137,7 +1137,7 @@ namespace qshine.database.mysql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("FK test failed"));
+                    Assert.IsTrue(ex.Message.Contains("constraint"));
                 }
 
                 table2 = new SqlDDLTable(testTable2, "test", "test table 15_1", "testspace1", "testindex1", 3, "NewTest");
@@ -1244,7 +1244,7 @@ namespace qshine.database.mysql.Tests
                 }
                 catch (Exception ex)
                 {
-                    Assert.IsTrue(ex.Message.Contains("FK test failed"));
+                    Assert.IsTrue(ex.Message.ToLower().Contains("constraint"));
                 }
 
             }
