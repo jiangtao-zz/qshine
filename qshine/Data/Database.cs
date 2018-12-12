@@ -263,14 +263,23 @@ namespace qshine
                     {
                         _dbTypeMappers.AddRange(_globalDbTypeMappers["*"]);
                     }
-
-                    foreach(var mapperProviderName in _globalDbTypeMappers.Keys.Where(x=>x.Contains(ProviderName)))
+                    foreach (var mapperProviderName in _globalDbTypeMappers.Keys.Where(x=> IsMatchProvider(x,ProviderName)))
                     {
                         _dbTypeMappers.AddRange(_globalDbTypeMappers[mapperProviderName]);
                     }
                 }
                 return _dbTypeMappers;
             }
+        }
+
+        bool IsMatchProvider(string tags, string provider)
+        {
+            var tagList = tags.Split(',');
+            foreach (var tag in tagList)
+            {
+                if (provider.IndexOf(tag, StringComparison.InvariantCultureIgnoreCase) >= 0) return true;
+            }
+            return false;
         }
 
         private string ParseDataSource()
