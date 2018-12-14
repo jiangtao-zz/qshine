@@ -29,11 +29,14 @@ namespace qshine
             
             native.Value = ToDbValue(common.Value);
             DbType dbType;
-            if(ToDbType(common.Value.GetType(), out dbType))
+
+            if (common.DbType == DbType.AnsiString)
             {
-                native.DbType = dbType;
+                dbType = native.DbType;
+                common.DbType = dbType;
                 return true;
             }
+            native.DbType = common.DbType;
             return false;
         }
 
@@ -77,6 +80,14 @@ namespace qshine
             {
                 dbType = DbType.DateTime;
             }
+            else if (type == typeof(DateTimeOffset))
+            {
+                dbType = DbType.DateTimeOffset;
+            }
+            else if (type == typeof(TimeSpan))
+            {
+                dbType = DbType.Time;
+            }
             else if (type == typeof(Byte[]))
             {
                 dbType = DbType.Binary;
@@ -84,6 +95,10 @@ namespace qshine
             else if (type == typeof(Guid))
             {
                 dbType = DbType.Guid;
+            }
+            else if (type == typeof(Boolean))
+            {
+                dbType = DbType.Boolean;
             }
             else
             {

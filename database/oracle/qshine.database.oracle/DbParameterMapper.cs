@@ -48,13 +48,13 @@ namespace qshine.database.oracle
         {
             //Some database do not support certain data type
             //hack native data convert
-            if (common.DbType == DbType.Boolean)
+            if (common.Value is Boolean)
             {
                 native.DbType = DbType.Int16;
                 native.Value = Convert.ToInt16(common.Value);
                 return true;
             }
-            else if (common.DbType == DbType.Guid)
+            else if (common.DbType == DbType.Guid || common.Value is Guid)
             {
                 native.DbType = DbType.AnsiString;
                 native.Size = 40;

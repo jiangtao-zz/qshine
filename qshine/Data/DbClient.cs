@@ -543,8 +543,6 @@ namespace qshine
             native.ParameterName = common.ParameterName;
 
             bool mapped = false;
-            //perform Common DbTypeMapping
-            mapped = _commonMapper.MapToNative(common, native);
 
             //perform custom DbTypeMapping if exists
             foreach (var mapper in CustomDbTypeMappers)
@@ -554,6 +552,12 @@ namespace qshine
                     mapped = true;
                     break;
                 }
+            }
+
+            if (!mapped)
+            {
+                //perform Common DbTypeMapping
+                mapped = _commonMapper.MapToNative(common, native);
             }
         }
 
