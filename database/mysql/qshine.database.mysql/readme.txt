@@ -11,6 +11,8 @@ Download Wamp from https://sourceforge.net/projects/wampserver/ and install MySq
 	mysql>GRANT ALL PRIVILEGES ON *.* TO 'dev'@'localhost' IDENTIFIED BY 'royal1';
 	mysql>quit 
 
+
+
 4. ConnectionString = "server=localhost;user=dev;database=testDB;port=3306;password=royal1;"
 ==================================
 

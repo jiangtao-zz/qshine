@@ -7,12 +7,23 @@ using qshine.Utility;
 namespace qshine.database
 {
 	/// <summary>
-	/// Sql DDL Table class.
+	/// Defines table structure and structure change.
 	/// </summary>
 	public class SqlDDLTable
 	{
         const int MaxNameLength = 30;
         int _internalIdSequence = 1; 
+
+        /// <summary>
+        /// Ctor.
+        /// </summary>
+        /// <param name="tableName">table name.</param>
+        /// <param name="category">table business category.</param>
+        /// <param name="comments">table comments and description</param>
+        /// <param name="tableSpace">table strage tablespace location name</param>
+        /// <param name="indexTableSpace">table index storage tablespace location name</param>
+        /// <param name="version">table version name</param>
+        /// <param name="schemaName">table schema name</param>
 		public SqlDDLTable(string tableName, string category, string comments, string tableSpace="",string indexTableSpace="", int version=1, string schemaName="")
 		{
             Check.Assert<ArgumentException>(!string.IsNullOrEmpty(tableName) && tableName.Length <= MaxNameLength,
@@ -30,54 +41,20 @@ namespace qshine.database
             HistoryTableNames = new Dictionary<int, string>();
 
         }
+
+        #region public Methods
+
         /// <summary>
-        /// The has code identifiy table uniqueness
+        /// Adds the PK Column.
         /// </summary>
+        /// <param name="columnName">Column name.</param>
+        /// <param name="dbType">Db type.</param>
+        /// <param name="size">Size.</param>
+        /// <param name="defaultValue">Default value.</param>
+        /// <param name="allowNull">If set to <c>true</c> allow null.</param>
+        /// <param name="autoIncrease">Auto increase number. -1 means not auto increase</param>
         /// <returns></returns>
-        public long HashCode
-        {
-            get
-            {
-                long hashcode = FastHash.GetHashCode(
-                    TableName,
-                    SchemaName,
-                    TableSpace,
-                    IndexTableSpace);
-                foreach(var c in Columns)
-                {
-                    hashcode += c.HashCode;
-                }
-                foreach (var c in Indexes)
-                {
-                    if (c.Value != null)
-                    {
-                        hashcode += c.Value.HashCode;
-                    }
-                }
-                return hashcode;
-            }
-        }
-
-        /// <summary>
-        /// Database instance which contains all tables
-        /// </summary>
-        public SqlDDLDatabase Database { get; set; }
-        /// <summary>
-        /// Table internal unique id
-        /// </summary>
-        public long Id { get; set; }
-
-		/// <summary>
-		/// Adds the PK Column.
-		/// </summary>
-		/// <param name="columnName">Column name.</param>
-		/// <param name="dbType">Db type.</param>
-		/// <param name="size">Size.</param>
-		/// <param name="defaultValue">Default value.</param>
-		/// <param name="allowNull">If set to <c>true</c> allow null.</param>
-		/// <param name="autoIncrease">Auto increase number. -1 means not auto increase</param>
-		/// <returns></returns>
-		public SqlDDLTable AddPKColumn(string columnName, DbType dbType, int size=1, bool allowNull = false, 
+        public SqlDDLTable AddPKColumn(string columnName, DbType dbType, int size=1, bool allowNull = false, 
             string defaultValue="", bool autoIncrease=true, int version=1, 
             params string[] oldColumnNames)
         {
@@ -215,12 +192,6 @@ namespace qshine.database
 			}
 			return this;
 		}
-
-        Dictionary<int, string> HistoryTableNames
-        {
-            get;set;
-        }
-
         /// <summary>
         /// Method to indicate table rename action for specific version.
         /// To rename a table you must call this method to specify table internal Id, previous table name and version number.
@@ -254,6 +225,29 @@ namespace qshine.database
         /// Indicates a table has been renamed.
         /// </summary>
         public bool IsTableRenamed { get; private set; }
+
+        /// <summary>
+        /// Add additional database provider specific SQL.
+        /// The SQL only run for a given database provider
+        /// </summary>
+        /// <param name="customSql">Sql statement</param>
+        /// <param name="supportedProviderName">Comma separated supported database provider name match list.
+        /// It could be a wildcard (*) for all service providers or a list of partial names match to service provider.
+        /// Example,
+        ///   "*" match to all database providrs
+        /// </param>
+        /// <returns></returns>
+        public SqlDDLTable AddCustomSqlAfterTableCreation(DbSqlStatement customSql, string supportedProviderName)
+        {
+            return this;
+        }
+        public SqlDDLTable AddCustomSqlAfterTableUpdated(DbSqlStatement customSql, string supportedProviderName)
+        {
+            return this;
+        }
+
+
+        #endregion
 
         /// <summary>
         /// Get possible index name
@@ -303,54 +297,130 @@ namespace qshine.database
             return GetName("df", tableName, internalId);
         }
 
-
-		public string TableName
+        #region public properties
+        /// <summary>
+        /// Database instance which contains all tables
+        /// </summary>
+        public SqlDDLDatabase Database { get; set; }
+        /// <summary>
+        /// Table internal unique id
+        /// </summary>
+        public long Id { get; set; }
+        /// <summary>
+        /// Table name
+        /// </summary>
+        public string TableName
 		{
             get; private set;
 		}
 
+        /// <summary>
+        /// Database storage tablespace name
+        /// </summary>
         public string TableSpace { get; private set; }
 
+        /// <summary>
+        /// Database index tablespace name
+        /// </summary>
         public string IndexTableSpace { get; private set; }
 
-
+        /// <summary>
+        /// Table primary key column
+        /// </summary>
         public SqlDDLColumn PkColumn
 		{
             get; private set;
 		}
 
+        /// <summary>
+        /// Table columns
+        /// </summary>
 		public IList<SqlDDLColumn> Columns
 		{
             get; private set;
 		}
 
+        /// <summary>
+        /// Indexes of table
+        /// </summary>
 		public Dictionary<string, SqlDDLIndex> Indexes
 		{
             get; private set;
 		}
 
+        /// <summary>
+        /// Table version number for each structure change
+        /// </summary>
 		public int Version
 		{
             get; private set;
 		}
 
+        /// <summary>
+        /// Database schema the table belong to.
+        /// </summary>
 		public string SchemaName
 		{
             get;private set;
 		}
 
+        /// <summary>
+        /// Table comments
+        /// </summary>
 		public string Comments
 		{
             get; private set;
 		}
 
+        /// <summary>
+        /// Classify a table category for business use.
+        /// </summary>
 		public string Category
 		{
             get; private set;
 		}
 
+        /// <summary>
+        /// The hash code identifiy table uniqueness
+        /// </summary>
+        /// <returns></returns>
+        public long HashCode
+        {
+            get
+            {
+                long hashcode = FastHash.GetHashCode(
+                    TableName,
+                    SchemaName,
+                    TableSpace,
+                    IndexTableSpace);
+                foreach (var c in Columns)
+                {
+                    hashcode += c.HashCode;
+                }
+                foreach (var c in Indexes)
+                {
+                    if (c.Value != null)
+                    {
+                        hashcode += c.Value.HashCode;
+                    }
+                }
+                return hashcode;
+            }
+        }
 
-		private static string GetName(string suffix, string tableName, int sequence)
+        #endregion
+
+        /// <summary>
+        /// Define historic table name used in previous version.
+        /// It is used to tracking table rename.
+        /// </summary>
+        Dictionary<int, string> HistoryTableNames
+        {
+            get; set;
+        }
+
+
+        private static string GetName(string suffix, string tableName, int sequence)
 		{
 			var name = string.Format("{0}{1}{2}", suffix,sequence, tableName);
 			if (name.Length >= MaxNameLength)
@@ -359,5 +429,6 @@ namespace qshine.database
 			}
 			return name;
 		}
+
     }
 }
