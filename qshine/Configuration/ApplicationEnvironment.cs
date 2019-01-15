@@ -142,6 +142,23 @@ namespace qshine.Configuration
         }
 
         /// <summary>
+        /// Get all given type of providers from configured components
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public IList<T> GetProviders<T>()
+            where T:IProvider
+        {
+            return EnvironmentConfigure.Components.Where(
+                x=>x.Value.InterfaceType != null &&
+                x.Value.InterfaceType == typeof(T) && 
+                x.Value.ClassType!=null)
+                .Select(
+                    y=> (T)CreateInstance(y.Value.ClassType, y.Value.Parameters.Values.ToArray()))
+                .ToList();
+        }
+
+        /// <summary>
         /// Gets the first config file path searching through all config folders.
         /// </summary>
         /// <returns>The config file path if any or null.</returns>

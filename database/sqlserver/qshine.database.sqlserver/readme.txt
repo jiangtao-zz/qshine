@@ -16,6 +16,10 @@
 		1> create database sampledb;
 		2> go
 		1> exit
+	or,
+	From VS->View->Sql Server Object Explorer->(localdb)sampleinstance->databases
+	Create New Database->sampledb
+
 
 4. Get the connectionstring
 	Data Source=(LocalDb)\sampledbinstance;Initial Catalog=sampledb;Integrated Security=True

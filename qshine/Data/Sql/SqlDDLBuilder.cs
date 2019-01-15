@@ -10,9 +10,9 @@ namespace qshine.database
 	/// </summary>
 	public class SqlDDLBuilder:IDisposable
 	{
-		List<SqlDDLTable> _tables;
-        ISqlDialectProvider _sqlDialectProvider;
-		ISqlDialect _sqlDialect;
+		readonly List<SqlDDLTable> _tables;
+        readonly ISqlDialectProvider _sqlDialectProvider;
+        readonly ISqlDialect _sqlDialect;
         SqlDDLTracking _trackingTable;
 
         BatchException _batchException;
@@ -374,7 +374,7 @@ namespace qshine.database
 
 
 		static bool _internalTableExists = false;
-		static object lockObject = new object();
+		static readonly object lockObject = new object();
 		void EnsureTrackingTableExists()
 		{
 			if (!_internalTableExists)

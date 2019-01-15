@@ -85,6 +85,16 @@ namespace qshine
 
         #endregion
 
+        /// <summary>
+        /// Override instance hash code.
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return FastHash.GetHashCode(ProviderName, ConnectionString);
+        }
+
+
         #region public Properties
         static Dictionary<string, string> _parameterPrefixLookup = new Dictionary<string, string>();
 
@@ -259,11 +269,7 @@ namespace qshine
                 if (_dbTypeMappers == null)
                 {
                     _dbTypeMappers = new List<IDbTypeMapper>();
-                    if (_globalDbTypeMappers.ContainsKey("*"))
-                    {
-                        _dbTypeMappers.AddRange(_globalDbTypeMappers["*"]);
-                    }
-                    foreach (var mapperProviderName in _globalDbTypeMappers.Keys.Where(x=> IsMatchProvider(x,ProviderName)))
+                    foreach (var mapperProviderName in _globalDbTypeMappers.Keys.Where(x=> IsMatchProvider(x)))
                     {
                         _dbTypeMappers.AddRange(_globalDbTypeMappers[mapperProviderName]);
                     }
@@ -272,8 +278,17 @@ namespace qshine
             }
         }
 
-        bool IsMatchProvider(string tags, string provider)
+        /// <summary>
+        /// Check the tags match to database provider
+        /// </summary>
+        /// <param name="tags"></param>
+        /// <returns></returns>
+        public bool IsMatchProvider(string tags)
         {
+            if (tags == "*") return true;
+
+            var provider = ProviderName;
+
             var tagList = tags.Split(',');
             foreach (var tag in tagList)
             {
@@ -315,5 +330,4 @@ namespace qshine
         }
 
 	}
-
 }

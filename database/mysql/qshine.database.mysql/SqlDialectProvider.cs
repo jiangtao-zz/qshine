@@ -190,6 +190,10 @@ namespace qshine.database.mysql
                 }
             }
 
+            sqls.Add(new ConditionalSql(string.Format("alter table {0} engine = innodb", table.TableName), "select version()",
+                (x) => { return string.CompareOrdinal(x, "5.5.5") <= 0; }));
+
+            //work for special engine
             return sqls;
         }
 

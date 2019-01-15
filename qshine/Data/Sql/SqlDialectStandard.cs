@@ -302,7 +302,6 @@ namespace qshine.database
                 uniqueKey, column.Name);
         }
 
-
         public virtual ConditionalSql ColumnAddConstraintClause(string tableName, SqlDDLColumn column)
         {
             var checkConstraintName = SqlDDLTable.GetCheckConstraintName(tableName, column.InternalId);
@@ -379,8 +378,7 @@ namespace qshine.database
             }
             return new ConditionalSql(string.Format("create index {0} on {1} ({2})", index.IndexName, index.TableName, index.IndexColumns));
         }
-
-
+        
         /// <summary>
         /// Convert an object value to database native literals.
         /// </summary>
@@ -786,9 +784,6 @@ namespace qshine.database
             }
             return builder.ToString();
         }
-
-
-
 
         /// <summary>
         /// Transfer C# DbType to native database column type name.

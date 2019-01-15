@@ -1,43 +1,50 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using qshine.Configuration;
 
 namespace qshine
 {
+    /// <summary>
+    /// Manages Unit of Work for all UnitOfWork providers.
+    /// Each unit of work provider can create UnitOfWork instance for transaction management.
+    /// </summary>
 	public class UnitOfWork:IDisposable
 	{
-		static IUnitOfWorkProvider _provider;
+		static IList<IUnitOfWorkProvider> _providers = null;
 		static object lockObject = new object();
-		readonly IUnitOfWork _unitOfWork;
+		readonly List<IUnitOfWork> _unitOfWorks;
 
 		/// <summary>
 		/// Gets or sets the provider.
 		/// </summary>
 		/// <value>The provider.</value>
-		public static IUnitOfWorkProvider Provider {
+		public static IList<IUnitOfWorkProvider> Providers {
 			get{
-				if(_provider==null){
-					_provider = ApplicationEnvironment.GetProvider<IUnitOfWorkProvider>();
-					if (_provider == null)
-					{
-						lock(lockObject)
-						{
-							_provider = new DbUnitOfWorkProvider();
-						}
-					}
+				if(_providers == null){
+                    lock (lockObject)
+                    {
+                        _providers = ApplicationEnvironment.Current.GetProviders<IUnitOfWorkProvider>();
+                        if (_providers == null)
+                        {
+                            _providers = new List<IUnitOfWorkProvider>();
+                        }
+                        _providers.Add(new DbUnitOfWorkProvider());
+                    }
 				}
-				return _provider;
+				return _providers;
 			}
 			set{
 				lock(lockObject)
 				{
-					_provider = value;
+					_providers = value;
 				}
 			}
 		}
 
 		public UnitOfWork(bool requireNew = false)
 		{
-			_unitOfWork = Provider.Create(requireNew);
+			_unitOfWorks = Providers.Select(x=>x.Create(requireNew)).ToList();
 		}
 
 		#region Dispose
@@ -57,7 +64,10 @@ namespace qshine
 			}
 			if (disposing)
 			{
-				_unitOfWork.Dispose();
+				foreach(var u in _unitOfWorks)
+                {
+                    u.Dispose();
+                }
 			}
 			disposed = true;
 		}
@@ -70,7 +80,10 @@ namespace qshine
 		/// <value><c>true</c> if can complete; otherwise, <c>false</c>.</value>
 		public void Complete()
 		{
-			_unitOfWork.Complete();
+            foreach (var u in _unitOfWorks)
+            {
+                u.Complete();
+            }
 		}
 	}
 }

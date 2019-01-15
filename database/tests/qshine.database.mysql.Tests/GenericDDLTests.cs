@@ -143,15 +143,17 @@ namespace qshine.database.Tests
                 var result = db.Retrieve<Dictionary<string, object>>(
                     (x) =>
                     {
-                        var d = new Dictionary<string, object>();
-                        d.Add("v1_int32", x.ReadInt32("v1_int32"));
-                        d.Add("v2_string", x.ReadString("v2_string"));
-                        d.Add("v4_date", x.ReadDateTime("v4_date"));
-                        d.Add("v5_decimal", x.ReadDecimal("v5_decimal"));
-                        d.Add("v6_Boolean", x.ReadBoolean("v6_Boolean"));
-                        d.Add("v7_clob", x.ReadString("v7_clob"));
-                        d.Add("v8_guid", x.ReadString("v8_guid"));
-                        d.Add("v9_binary", x.ReadBytes("v9_binary"));
+                        var d = new Dictionary<string, object>
+                        {
+                            { "v1_int32", x.ReadInt32("v1_int32") },
+                            { "v2_string", x.ReadString("v2_string") },
+                            { "v4_date", x.ReadDateTime("v4_date") },
+                            { "v5_decimal", x.ReadDecimal("v5_decimal") },
+                            { "v6_Boolean", x.ReadBoolean("v6_Boolean") },
+                            { "v7_clob", x.ReadString("v7_clob") },
+                            { "v8_guid", x.ReadString("v8_guid") },
+                            { "v9_binary", x.ReadBytes("v9_binary") }
+                        };
                         return d;
                     },
                     string.Format("select v1_int32,v2_string,v3_long,v4_date,v5_decimal,v6_Boolean,v7_clob,v8_guid,v9_binary from {0} where v3_long=123456789012345",

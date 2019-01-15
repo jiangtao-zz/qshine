@@ -39,6 +39,8 @@ namespace qshine.database
 			Indexes = new Dictionary<string, SqlDDLIndex>();
 			Version = version;
             HistoryTableNames = new Dictionary<int, string>();
+            AdditionalCreationSqls = new Dictionary<string, ConditionalSql>();
+            AdditionalUpdateSqls = new Dictionary<string, ConditionalSql>();
 
         }
 
@@ -227,7 +229,7 @@ namespace qshine.database
         public bool IsTableRenamed { get; private set; }
 
         /// <summary>
-        /// Add additional database provider specific SQL.
+        /// Add additional database provider specific SQL for table creation.
         /// The SQL only run for a given database provider
         /// </summary>
         /// <param name="customSql">Sql statement</param>
@@ -236,19 +238,48 @@ namespace qshine.database
         /// Example,
         ///   "*" match to all database providrs
         /// </param>
-        /// <returns></returns>
+        /// <returns>This instance</returns>
         public SqlDDLTable AddCustomSqlAfterTableCreation(DbSqlStatement customSql, string supportedProviderName)
         {
+            Check.HaveValue(supportedProviderName);
+
+            if (!AdditionalCreationSqls.ContainsKey(supportedProviderName))
+            {
+                AdditionalCreationSqls.Add(supportedProviderName, new ConditionalSql(customSql.Sql,customSql.Parameters));
+            }
+            else
+            {
+                AdditionalCreationSqls[supportedProviderName].Sqls.Add(customSql);
+            }
             return this;
         }
+
+        /// <summary>
+        /// Add additional database provider specific SQL for table update
+        /// The SQL only run for a given database provider
+        /// </summary>
+        /// <param name="customSql">Sql statement</param>
+        /// <param name="supportedProviderName">Comma separated supported database provider name match list.
+        /// <returns>This instance</returns>
         public SqlDDLTable AddCustomSqlAfterTableUpdated(DbSqlStatement customSql, string supportedProviderName)
         {
+            Check.HaveValue(supportedProviderName);
+
+            if (!AdditionalUpdateSqls.ContainsKey(supportedProviderName))
+            {
+                AdditionalUpdateSqls.Add(supportedProviderName, new ConditionalSql(customSql.Sql, customSql.Parameters));
+            }
+            else
+            {
+                AdditionalUpdateSqls[supportedProviderName].Sqls.Add(customSql);
+            }
             return this;
         }
 
 
         #endregion
 
+        #region static methods
         /// <summary>
         /// Get possible index name
         /// </summary>
@@ -292,10 +323,18 @@ namespace qshine.database
             return GetName("uk", tableName, internalId);
         }
 
+        /// <summary>
+        /// Get table constraint name
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="internalId"></param>
+        /// <returns></returns>
         public static string GetDefaultConstraintName(string tableName , int internalId)
         {
             return GetName("df", tableName, internalId);
         }
+
+        #endregion
 
         #region public properties
         /// <summary>
@@ -409,6 +448,9 @@ namespace qshine.database
         }
 
         #endregion
+
+        Dictionary<string, ConditionalSql> AdditionalCreationSqls { get; set; }
+        Dictionary<string, ConditionalSql> AdditionalUpdateSqls { get; set; }
 
         /// <summary>
         /// Define historic table name used in previous version.

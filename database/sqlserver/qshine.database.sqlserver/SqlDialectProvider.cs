@@ -362,10 +362,14 @@ To drop auto increment you need manually perform below actions:
                     return "TINYINT";
 
                 case "Binary":
+                    if (size <= 0)
+                    {
+                        return "VARBINARY(MAX)";
+                    }
                     return string.Format("BINARY({0})", size);
 
                 case "Object":
-                    if (size == 0)
+                    if (size <= 0)
                     {
                         return "IMAGE";
                     }
@@ -375,7 +379,7 @@ To drop auto increment you need manually perform below actions:
                     return "UNIQUEIDENTIFIER";
 
                 case "Double":
-                    if (size == 0)
+                    if (size <= 0)
                     {
                         return "FLOAT";
                     }

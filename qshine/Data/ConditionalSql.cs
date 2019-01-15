@@ -43,6 +43,8 @@ namespace qshine
 
         public ConditionalSql(List<DbSqlStatement> sqls, DbSqlStatement conditionalSql, Func<string, bool> condition)
         {
+            Check.HaveValue(sqls);
+
             Sqls = sqls;
             ConditionSql = conditionalSql;
             Condition = condition;

@@ -11,8 +11,14 @@ namespace qshine
 	{
 		/// <summary>
 		/// Complete the unit of work.
-		/// Uncompleted unit of work will not be committed when it out of the scope.
+		/// Completed unit of work must be done before end of the scope.
 		/// </summary>
 		void Complete();
+
+        /// <summary>
+        /// Rollback the unit of work when UoW is out of scope without Complete()
+		/// Uncompleted unit of work will not be committed when it out of the scope.
+        /// </summary>
+        //void Rollback();
 	}
 }

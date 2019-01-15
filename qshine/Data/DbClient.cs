@@ -9,48 +9,67 @@ using System.Text;
 namespace qshine
 {
 	/// <summary>
-	/// Database client class
+	/// Provide database access service.
+    /// DbClient is not a thread safe class. 
+    /// 
 	/// </summary>
 	public class DbClient:IDisposable
 	{
-		Database _database;
-
 		/// <summary>
 		/// The interceptor must be a static instance (singleton).
 		/// </summary>
 		static Interceptor _interceptor =Interceptor.Register(typeof(DbClient));
+        readonly Database _database;
+        bool _inscopeSession = false;
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="T:qshine.DbClient"/> class for current database context.
-		/// Current database context can be set by external.
-		/// The default current context is configured by environment configuration default database connection string.
-		/// </summary>
-		public DbClient()
+        #region Ctor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:qshine.DbClient"/> class for default configued database.
+        /// The default default configured database is set by environment configuration default database connection string.
+        /// </summary>
+        public DbClient()
+            :this(new Database())
 		{
-            _context = DbContext.Current;
-            _database = _context.Database;
-		}
+        }
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="T:qshine.DbClient"/> class for a given database instance.
-		/// The database instance will be added in current database context.
-		/// </summary>
-		/// <param name="database">Database instance.</param>
-		public DbClient(Database database)
-		{
-			_database = database;
-		}
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:qshine.DbClient"/> class with given database provider name and connection string.
+        /// Same database context will be reused within same call context.
+        /// </summary>
+        /// <param name="providerName">database provider name</param>
+        /// <param name="connectionString">database connection string</param>
 		public DbClient(string providerName, string connectionString)
+            :this(new Database(providerName, connectionString))
 		{
-			_database = new Database(providerName, connectionString);
 		}
 
-		#region Implementation of IDsiposable interface
-		/// <summary>
-		/// Dispose
-		/// </summary>
-		public void Dispose()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:qshine.DbClient"/> class for a given database instance.
+        /// Same database context will be reused within same call context.
+        /// </summary>
+        /// <param name="database">Database instance.</param>
+        public DbClient(Database database)
+        {
+            _database = database;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:qshine.DbClient"/> class for a given database context.
+        /// </summary>
+        /// <param name="context"></param>
+        public DbClient(DbSession session)
+        {
+            Session = session;
+            _database = Session.Database;
+        }
+
+        #endregion
+
+        #region Implementation of IDsiposable interface
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        public void Dispose()
 		{
 			Dispose(true);
 			GC.SuppressFinalize(this);
@@ -61,89 +80,73 @@ namespace qshine
 		{
 			if (!_disposed)
 			{
-				if (disposing)
+				if (disposing && _inscopeSession)
 				{
-					CloseConnection();
-					_disposed = true;
+                    Session.Dispose();
+                    _disposed = true;
 				}
 			}
 		}
 
-		#endregion
+        #endregion
 
-		DbContext _context;
-		public DbContext Context
+        #region public Properties
+        DbSession _session;
+        /// <summary>
+        /// Get current database context
+        /// </summary>
+        public DbSession Session 
 		{
-			get
-			{
-				if (_context == null)
-				{
-					_context = new DbContext(_database);
-				}
-				return _context;
-			}
+            get
+            {
+                if (_session == null)
+                {
+                    _session = DbSession.GetCurrentSession(_database);
+                    if (_session == null)
+                    {
+                        _session = new DbSession(_database, false);
+                        _inscopeSession = true;
+                    }
+                }
+                return _session;
+            }
+            private set { _session = value; }
 		}
+        #endregion
 
 		/// <summary>
-		/// Get current database connection object
-		/// </summary>
-		IDbConnection Connection
-		{
-			get
-			{
-				return Context.Connection;
-			}
-		}
-
-		/// <summary>
-		/// Get an opened database connection
-		/// </summary>
-		IDbConnection ActiveConnection
-		{
-			get
-			{
-				return Context.ActiveConnection;
-			}
-		}
-
-		void CloseConnection()
-		{
-			Context.CloseConnection();
-		}
-
-		/// <summary>
-		/// Execute Sql statement or a stored procedure
+		/// Execute Sql statement or a stored procedure and return number of rows affected.
 		/// </summary>
 		/// <param name="commandType">A CommandType object to indicate a Sql command or a storedprocedure command</param>
 		/// <param name="commandString">SQL statement or stored procedure</param>
 		/// <param name="parameters">input parameters and output parameters</param>
 		public int ExecuteNonQuery(CommandType commandType, string commandString, DbParameters parameters=null)
 		{
-            Func<int> method = () =>
-               {
-                   var result = 0;
-                   using (var command = ActiveConnection.CreateCommand())
-                   {
-                       command.CommandType = commandType;
-                       command.CommandText = commandString;
-                       if (parameters != null && parameters.Params != null && parameters.Params.Count > 0)
-                       {
-                           AddCommandParameters(command, parameters.Params);
-                       }
-                       result = command.ExecuteNonQuery();
-                       if (parameters != null && parameters.Params != null && parameters.Params.Count > 0)
-                       {
-                           RetrieveCommandParameterValues(command, parameters.Params);
-                       }
-                   }
-                   return result;
-               };
+            int method()
+            {
+                var result = 0;
+                using (var command = CreateCommand())
+                {
+                    command.CommandType = commandType;
+                    command.CommandText = commandString;
+                    if (parameters != null && parameters.Params != null && parameters.Params.Count > 0)
+                    {
+                        AddCommandParameters(command, parameters.Params);
+                    }
+                    result = command.ExecuteNonQuery();
+                    if (parameters != null && parameters.Params != null && parameters.Params.Count > 0)
+                    {
+                        RetrieveCommandParameterValues(command, parameters.Params);
+                    }
+                }
+                return result;
+            }
 
             return _interceptor.JoinPoint(method, this, "ExecuteNonQuery", commandType, commandString, parameters);
 		}
 
         /// <summary>
-        /// Execute Sql statement or a stored procedure
+        /// Execute Sql statement or a stored procedure and return first value selected from the sql.
         /// 
         /// ExecuteScalar(CommandType.Text,"select 1 from tb1 where name=:p1 and age=:p2", DbParameters.New.Input("p1",name).Input("p2",age).Output<int>("p3"))
         /// </summary>
@@ -156,7 +159,7 @@ namespace qshine
 			return _interceptor.JoinPoint<object>(() =>
 			 {
 				 object result = null;
-				 using (var command = ActiveConnection.CreateCommand())
+				 using (var command = CreateCommand())
 				 {
 					 command.CommandType = commandType;
 					 command.CommandText = commandString;
@@ -176,7 +179,8 @@ namespace qshine
 
 
         /// <summary>
-        /// Execute a SQL statement or StoredProcedure and retrieve batch data from IDataReader
+        /// Execute a SQL statement or StoredProcedure and retrieve batch data from IDataReader through callback method.
+        /// The callback method need deal with data reader for each record.
         /// </summary>
         /// <param name="readerData">A function to process data reader. The reader will be dispose after process completed</param>
         /// <param name="commandType">A CommandType object to indicate a Sql command or a storedprocedure command</param>
@@ -186,7 +190,7 @@ namespace qshine
 		{
 			_interceptor.JoinPoint(() =>
 			{
-                using (var command = ActiveConnection.CreateCommand())
+                using (var command = CreateCommand())
 				{
 					command.CommandType = commandType;
 					command.CommandText = commandString;
@@ -204,14 +208,13 @@ namespace qshine
 			},this, "ExecuteReader", commandType, commandString, parameters);
 		}
 
-
-		/// <summary>
-		/// Execute a SQL statement with parameters
-		/// </summary>
-		/// <param name="commandString">SQL statement</param>
-		/// <param name="parameters">input and output parameters for SQL statement.</param>
-		/// <returns>Return rows affected</returns>
-		public int Sql(string commandString, DbParameters parameters=null)
+        /// <summary>
+        /// Execute a SQL statement with parameters
+        /// </summary>
+        /// <param name="commandString">SQL statement</param>
+        /// <param name="parameters">input and output parameters for SQL statement.</param>
+        /// <returns>Return rows affected</returns>
+        public int Sql(string commandString, DbParameters parameters=null)
 		{
 			return Sql(new DbSqlStatement(commandString,parameters));
 		}
@@ -388,9 +391,9 @@ namespace qshine
 			return _interceptor.JoinPoint(() =>
 			 {
                  DataSet ds = new DataSet();
-                 using (var adapter = Context.Database.CreateAdapter())
+                 using (var adapter = Session.Database.CreateAdapter())
                  {
-                     using (var command = ActiveConnection.CreateCommand())
+                     using (var command = CreateCommand())
                      {
                          command.CommandType = CommandType.Text;
                          command.CommandText = commandString;
@@ -431,7 +434,14 @@ namespace qshine
                     while (reader.Read())
                     {
                         var t = ParseObjectFromReader(reader);
-                        result.Add(t);
+                        if (t != null)
+                        {
+                            result.Add(t);
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
                 }, commandString, parameters);
                 return result;
@@ -479,13 +489,22 @@ namespace qshine
         /// <returns></returns>
         public string ParameterName(string p)
         {
-            return _database.ParameterPrefix + p;
+            return Session.Database.ParameterPrefix + p;
         }
 
 
 
-		#region Private
-		private void AddCommandParameters(IDbCommand command, IList<IDbDataParameter> parameters)
+        #region Private
+
+        /// <summary>
+        /// Get an opened database connection
+        /// </summary>
+        private IDbCommand CreateCommand()
+        {
+            return Session.CreateCommand();
+        }
+
+        private void AddCommandParameters(IDbCommand command, IList<IDbDataParameter> parameters)
 		{
 			if (parameters != null)
 			{
@@ -521,7 +540,7 @@ namespace qshine
             {
                 if (_customDbTypeMapper == null)
                 {
-                    _customDbTypeMapper = _database.DbTypeMappers;
+                    _customDbTypeMapper = Session.Database.DbTypeMappers;
                 }
                 return _customDbTypeMapper;
             }
