@@ -373,33 +373,38 @@ namespace qshine.database
         }
 
 
-		static bool _internalTableExists = false;
+	    bool _internalTableExists = false;
 		static readonly object lockObject = new object();
 		void EnsureTrackingTableExists()
 		{
 			if (!_internalTableExists)
 			{
-				lock (lockObject)
-				{
-					if (!_internalTableExists)
+                if (!_internalTableExists)
+                {
+                    if (!IsTableExists(SqlDDLTracking.TrackingTableName))
+                    {
+                        lock (lockObject)
+                        {
+                            CreateTable(_trackingTable.TrackingTable);
+                        }
+					}
+					if (!IsTableExists(SqlDDLTracking.TrackingColumnTableName))
 					{
-						if (!IsTableExists(SqlDDLTracking.TrackingTableName))
-						{
-							CreateTable(_trackingTable.TrackingTable);
-						}
-						if (!IsTableExists(SqlDDLTracking.TrackingColumnTableName))
-						{
-							CreateTable(_trackingTable.TrackingColumnTable);
-						}
+                        lock (lockObject)
+                        {
+                            CreateTable(_trackingTable.TrackingColumnTable);
+                        }
+					}
 
-                        if (!IsTableExists(SqlDDLTracking.TrackingNameTableName))
+                    if (!IsTableExists(SqlDDLTracking.TrackingNameTableName))
+                    {
+                        lock (lockObject)
                         {
                             CreateTable(_trackingTable.TrackingRenameTable);
                         }
-
-                        _internalTableExists = true;
-					}
-				}
+                    }
+                    _internalTableExists = true;
+                }
 			}
 		}
 	}

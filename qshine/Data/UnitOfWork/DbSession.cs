@@ -43,7 +43,12 @@ namespace qshine
         /// <returns></returns>
         public IDbCommand CreateCommand()
         {
-            return ActiveConnection.CreateCommand();
+            var cmd = ActiveConnection.CreateCommand();
+            if (Transaction != null)
+            {
+                cmd.Transaction = Transaction;
+            }
+            return cmd;
         }
 
         private void Close()

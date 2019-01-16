@@ -400,19 +400,36 @@ namespace qshine
 		{
 			return reader.ReadBytes(reader.GetOrdinal(columnName));
 		}
-		#endregion
 
-		#region ReadBoolean
 
-		/// <summary>
-		/// Read a boolean value by column index
-		/// </summary>
-		/// <param name="index">index of column</param>
-		/// <returns>return boolean value. 
-		/// The boolean true could be:
-		///    1, -1, Y, T
-		/// </returns>
-		public static bool ReadBoolean(this IDataReader reader, int index)
+        public static Guid ReadGuid(this IDataReader reader, string columnName)
+        {
+            var value = reader.GetValue(reader.GetOrdinal(columnName));
+            if(value is DBNull)
+            {
+                return Guid.Empty;
+            }
+            if(value is Guid)
+            {
+                return (Guid)value;
+            }else
+            {
+                return new Guid(value.ToString());
+            }
+        }
+        #endregion
+
+        #region ReadBoolean
+
+        /// <summary>
+        /// Read a boolean value by column index
+        /// </summary>
+        /// <param name="index">index of column</param>
+        /// <returns>return boolean value. 
+        /// The boolean true could be:
+        ///    1, -1, Y, T
+        /// </returns>
+        public static bool ReadBoolean(this IDataReader reader, int index)
 		{
 			if (reader.IsDBNull(index))
 			{

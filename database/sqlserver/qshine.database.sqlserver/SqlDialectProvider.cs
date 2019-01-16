@@ -15,6 +15,12 @@ namespace qshine.database.sqlserver
     /// </summary>
     public class SqlDialectProvider : ISqlDialectProvider
     {
+        static SqlDialectProvider()
+        {
+            //Register Oracle specific DbType mapper
+            //Database.RegisterDbTypeMapper(new DbParameterMapper());
+        }
+
         public ISqlDialect GetSqlDialect(string dbConnectionString)
         {
             return new SqlDialect(dbConnectionString);

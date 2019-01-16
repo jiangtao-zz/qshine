@@ -151,7 +151,7 @@ namespace qshine.database.Tests
                             { "v5_decimal", x.ReadDecimal("v5_decimal") },
                             { "v6_Boolean", x.ReadBoolean("v6_Boolean") },
                             { "v7_clob", x.ReadString("v7_clob") },
-                            { "v8_guid", x.ReadString("v8_guid") },
+                            { "v8_guid", x.ReadGuid("v8_guid") },
                             { "v9_binary", x.ReadBytes("v9_binary") }
                         };
                         return d;
