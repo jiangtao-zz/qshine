@@ -6,21 +6,22 @@ namespace qshine
     /// <summary>
     /// Database session
     /// </summary>
-    public class DbSession:IDisposable
+    public class DbSession : IDisposable
     {
         /// <summary>
         /// Create a database session
         /// </summary>
         /// <param name="database">database instance</param>
         /// <param name="isTransaction">indicates a transaction session.</param>
-        public DbSession(Database database, bool isTransaction)
+        public DbSession(Database database, DbUnitOfWork uow)
         {
             Database = database;
+            UnitOfWork = uow;
             Connection = Database.CreateConnection();
             Connection.Open();
-            if (isTransaction)
+            if (uow != null)
             {
-                Transaction = Connection.BeginTransaction();
+                Transaction = Connection.BeginTransaction(uow.RequireNew? IsolationLevel.ReadCommitted: IsolationLevel.Unspecified);
             }
         }
 
@@ -31,11 +32,13 @@ namespace qshine
         /// <summary>
         /// Database connection
         /// </summary>
-        private IDbConnection Connection { get;  set; }
+        private IDbConnection Connection { get; set; }
         /// <summary>
         /// Database transaction
         /// </summary>
         public IDbTransaction Transaction { get; private set; }
+
+        public DbUnitOfWork UnitOfWork { get; private set; }
 
         /// <summary>
         /// Create Sql command from current session
@@ -90,26 +93,6 @@ namespace qshine
 
         #endregion
 
-
-        public static DbSession GetCurrentSession(Database database)
-        {
-            DbSession session;
-
-            var uow = DbUnitOfWork.CurrentUnitOfWork;
-            if (uow == null)
-            {
-                return null;
-            }
-
-            session = uow.GetTransactionSession(database);
-            if (session == null)
-            {
-                session = new DbSession(database,true);
-                uow.SetTransactionSession(database, session);
-            }
-            return session;
-        }
-
         /// <summary>
         /// Gets the active connection for current database.
         /// </summary>
@@ -124,6 +107,25 @@ namespace qshine
                 }
                 return Connection;
             }
+        }
+
+        public static DbSession GetCurrentSession(Database database, bool ignoreUoW)
+        {
+            DbSession session;
+
+            var uow = DbUnitOfWork.CurrentUnitOfWork;
+            if (uow == null)
+            {
+                return new DbSession(database, null);
+            }
+            uow = uow.ActiveUnitOfWork;
+            session = uow.GetTransactionSession(database);
+            //if (session == null)
+            //{
+            //    session = new DbSession(database, uow);
+            //    uow.SetTransactionSession(database, session);
+            //}
+            return session;
         }
 
     }

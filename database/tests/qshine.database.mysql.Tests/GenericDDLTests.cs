@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using qshine.Configuration;
 
@@ -160,10 +161,459 @@ namespace qshine.database.Tests
                     table.TableName));
                 Assert.AreEqual(99, Convert.ToInt32(result[0]["v1_int32"]));
             }
+        }
 
+        [TestMethod]
+        public void Unitwork_level2_Tests()
+        {
+            var table1 = new SampleTable_u("sampleTable_u1");
+            var table2 = new SampleTable_u("sampleTable_u2");
+            var table3 = new SampleTable_u("sampleTable_u3");
+            DropTable(table1.TableName);
+            DropTable(table2.TableName);
+            DropTable(table3.TableName);
 
+            using (var dbBuilder = new SqlDDLBuilder(_testDb))
+            {
+                //Register Common tables
+                dbBuilder.Database
+                    .AddTable(table1)
+                    .AddTable(table2)
+                    .AddTable(table3);
+
+                dbBuilder.Build(BatchException.LastException, true);
+            }
+
+            using (var unitwork = new UnitOfWork())
+            {
+                using (var db = new DbClient(_testDb))
+                {
+                    db.Insert(table1.TableName,
+                        "v1_int32,v2_string",
+                        1, "A1");
+                }
+
+                using (var uow2 = new UnitOfWork())
+                {
+                    using (var db = new DbClient(_testDb))
+                    {
+                        db.Insert(table2.TableName,
+                            "v1_int32,v2_string",
+                            2, "A2");
+                    }
+                    uow2.Complete();
+                }
+
+                using (var db = new DbClient(_testDb))
+                {
+                    db.Insert(table3.TableName,
+                        "v1_int32,v2_string",
+                        3, "A3");
+                }
+
+                unitwork.Complete();
+            }
+
+            using (var db = new DbClient(_testDb))
+            {
+                var v1 = db.SqlSelect($"select v2_string from {table1.TableName} where v1_int32=1");
+                var v2 = db.SqlSelect($"select v2_string from {table2.TableName} where v1_int32=2");
+                var v3 = db.SqlSelect($"select v2_string from {table3.TableName} where v1_int32=3");
+                Assert.AreEqual("A1", v1.ToString());
+                Assert.AreEqual("A2", v2.ToString());
+                Assert.AreEqual("A3", v3.ToString());
+            }
+        }
+
+        [TestMethod]
+        public void UoW_level2_Tests()
+        {
+            var table1 = new SampleTable_u("sampleTable_u11");
+            var table2 = new SampleTable_u("sampleTable_u12");
+            var table3 = new SampleTable_u("sampleTable_u13");
+            DropTable(table1.TableName);
+            DropTable(table2.TableName);
+            DropTable(table3.TableName);
+
+            using (var dbBuilder = new SqlDDLBuilder(_testDb))
+            {
+                //Register Common tables
+                dbBuilder.Database
+                    .AddTable(table1)
+                    .AddTable(table2)
+                    .AddTable(table3);
+
+                dbBuilder.Build(BatchException.LastException, true);
+            }
+            //child roleback
+            using (var unitwork = new UnitOfWork())
+            {
+                using (var db = new DbClient(_testDb))
+                {
+                    db.Insert(table1.TableName,
+                        "v1_int32,v2_string",
+                        1, "A1");
+                }
+
+                using (var uow2 = new UnitOfWork())
+                {
+                    using (var db = new DbClient(_testDb))
+                    {
+                        db.Insert(table2.TableName,
+                            "v1_int32,v2_string",
+                            2, "A2");
+                    }
+                    //uow2.Complete();
+                }
+
+                using (var db = new DbClient(_testDb))
+                {
+                    db.Insert(table3.TableName,
+                        "v1_int32,v2_string",
+                        3, "A3");
+                }
+
+                unitwork.Complete();
+            }
+
+            using (var db = new DbClient(_testDb))
+            {
+                var v1 = db.SqlSelect($"select v2_string from {table1.TableName} where v1_int32=1");
+                var v2 = db.SqlSelect($"select v2_string from {table2.TableName} where v1_int32=2");
+                var v3 = db.SqlSelect($"select v2_string from {table3.TableName} where v1_int32=3");
+                Assert.IsNull(v1);
+                Assert.IsNull(v2);
+                Assert.IsNull(v3);
+            }
+
+            //parent rollback
+            using (var unitwork = new UnitOfWork())
+            {
+                using (var db = new DbClient(_testDb))
+                {
+                    db.Insert(table1.TableName,
+                        "v1_int32,v2_string",
+                        1, "A1");
+                }
+
+                using (var uow2 = new UnitOfWork())
+                {
+                    using (var db = new DbClient(_testDb))
+                    {
+                        db.Insert(table2.TableName,
+                            "v1_int32,v2_string",
+                            2, "A2");
+                    }
+                    uow2.Complete();
+                }
+
+                using (var db = new DbClient(_testDb))
+                {
+                    db.Insert(table3.TableName,
+                        "v1_int32,v2_string",
+                        3, "A3");
+                }
+
+                //unitwork.Complete();
+            }
+
+            using (var db = new DbClient(_testDb))
+            {
+                var v1 = db.SqlSelect($"select v2_string from {table1.TableName} where v1_int32=1");
+                var v2 = db.SqlSelect($"select v2_string from {table2.TableName} where v1_int32=2");
+                var v3 = db.SqlSelect($"select v2_string from {table3.TableName} where v1_int32=3");
+                Assert.IsNull(v1);
+                Assert.IsNull(v2);
+                Assert.IsNull(v3);
+            }
+
+            //parent rollback and child isolate commit
+            using (var unitwork = new UnitOfWork())
+            {
+                using (var db = new DbClient(_testDb))
+                {
+                    db.Insert(table1.TableName,
+                        "v1_int32,v2_string",
+                        1, "A1");
+                }
+
+                using (var uow2 = new UnitOfWork(true))
+                {
+                    using (var db = new DbClient(_testDb))
+                    {
+                        db.Insert(table2.TableName,
+                            "v1_int32,v2_string",
+                            2, "A2");
+                    }
+                    uow2.Complete();
+                }
+
+                using (var db = new DbClient(_testDb))
+                {
+                    db.Insert(table3.TableName,
+                        "v1_int32,v2_string",
+                        3, "A3");
+                }
+
+                //unitwork.Complete();
+            }
+
+            using (var db = new DbClient(_testDb))
+            {
+                var v1 = db.SqlSelect($"select v2_string from {table1.TableName} where v1_int32=1");
+                var v2 = db.SqlSelect($"select v2_string from {table2.TableName} where v1_int32=2");
+                var v3 = db.SqlSelect($"select v2_string from {table3.TableName} where v1_int32=3");
+                Assert.IsNull(v1);
+                Assert.AreEqual("A2",v2.ToString());
+                Assert.IsNull(v3);
+            }
+        }
+
+        [TestMethod]
+        public void UoW_level2_Multi_Threads_Tests()
+        {
+            var table1 = new SampleTable_u("sampleTable_u21");
+            var table2 = new SampleTable_u("sampleTable_u22");
+            var table3 = new SampleTable_u("sampleTable_u23");
+            DropTable(table1.TableName);
+            DropTable(table2.TableName);
+            DropTable(table3.TableName);
+
+            using (var dbBuilder = new SqlDDLBuilder(_testDb))
+            {
+                //Register Common tables
+                dbBuilder.Database
+                    .AddTable(table1)
+                    .AddTable(table2)
+                    .AddTable(table3);
+
+                dbBuilder.Build(BatchException.LastException, true);
+            }
+            
+            using (var unitwork = new UnitOfWork())
+            {
+                //parent level
+                AddData(table1.TableName, 1, "B1");
+
+                using (var uow2 = new UnitOfWork())
+                {
+                    //child level
+                    AddData(table2.TableName, 1, "B2");
+                    uow2.Complete();
+                }
+
+                //child thread but same call context
+                var task = AddDataAsync(table3.TableName, 1, "B3");
+                task.Wait();
+
+                using (var uow2 = new UnitOfWork())
+                {
+                    //child level
+                    AddData(table2.TableName, 2, "B4");
+                    uow2.Complete();
+                }
+
+                unitwork.Complete();
+            }
+
+            Assert.AreEqual("B1", GetData(table1.TableName,1));
+            Assert.AreEqual("B2", GetData(table2.TableName, 1));
+            Assert.AreEqual("B3", GetData(table3.TableName, 1));
+            Assert.AreEqual("B4", GetData(table2.TableName, 2));
+
+            //Rollback parent
+            using (var unitwork = new UnitOfWork())
+            {
+                //parent level
+                AddData(table1.TableName, 11, "B1");
+
+                using (var uow2 = new UnitOfWork())
+                {
+                    //child level
+                    AddData(table2.TableName, 11, "B2");
+                    uow2.Complete();
+                }
+
+                //child thread but same call context
+                var task = AddDataAsync(table3.TableName, 11, "B3");
+                task.Wait();
+
+                using (var uow2 = new UnitOfWork())
+                {
+                    //child level
+                    AddData(table2.TableName, 12, "B4");
+                    uow2.Complete();
+                }
+
+                //unitwork.Complete();
+            }
+
+            Assert.IsNull(GetData(table1.TableName, 11));
+            Assert.IsNull(GetData(table2.TableName, 11));
+            Assert.IsNull(GetData(table3.TableName, 11));
+            Assert.IsNull(GetData(table2.TableName, 12));
+
+            //Rollback child
+            using (var unitwork = new UnitOfWork())
+            {
+                //parent level
+                AddData(table1.TableName, 11, "B1");
+
+                using (var uow2 = new UnitOfWork())
+                {
+                    //child level
+                    AddData(table2.TableName, 11, "B2");
+                    uow2.Complete();
+                }
+
+                //child thread but same call context
+                var task = AddDataAsync(table3.TableName, 11, "B3");
+                task.Wait();
+
+                using (var uow2 = new UnitOfWork())
+                {
+                    //child level
+                    AddData(table2.TableName, 12, "B4");
+                    //uow2.Complete();
+                }
+
+                unitwork.Complete();
+            }
+
+            Assert.IsNull(GetData(table1.TableName, 11));
+            Assert.IsNull(GetData(table2.TableName, 11));
+            Assert.IsNull(GetData(table3.TableName, 11));
+            Assert.IsNull(GetData(table2.TableName, 12));
+
+            //Using non-uow persistence operation if an unwanted uow operations in separated thread.
+            //Rollback child uows, but not non-uow operation
+            var task1 = AddDataAsyncWithoutUow(table3.TableName, 11, "B3");
+
+            using (var unitwork = new UnitOfWork())
+            {
+                //parent level
+                AddData(table1.TableName, 11, "B1");
+
+                using (var uow2 = new UnitOfWork())
+                {
+                    //child level
+                    AddData(table2.TableName, 11, "B2");
+                    uow2.Complete();
+                }
+
+                using (var uow2 = new UnitOfWork())
+                {
+                    //child level
+                    AddData(table2.TableName, 12, "B4");
+                    //uow2.Complete();
+                }
+
+                task1.Wait();
+                unitwork.Complete();
+            }
+
+            Assert.IsNull(GetData(table1.TableName, 11));
+            Assert.IsNull(GetData(table2.TableName, 11));
+            Assert.AreEqual("B3", GetData(table3.TableName, 11));
+            Assert.IsNull(GetData(table2.TableName, 12));
 
         }
+
+        [TestMethod]
+        public async Task UoW_Parallel_TestsAsync()
+        {
+            var table1 = new SampleTable_u("sampleTable_u31");
+            var table2 = new SampleTable_u("sampleTable_u32");
+            var table3 = new SampleTable_u("sampleTable_u33");
+            DropTable(table1.TableName);
+            DropTable(table2.TableName);
+            DropTable(table3.TableName);
+
+            using (var dbBuilder = new SqlDDLBuilder(_testDb))
+            {
+                //Register Common tables
+                dbBuilder.Database
+                    .AddTable(table1)
+                    .AddTable(table2)
+                    .AddTable(table3);
+
+                dbBuilder.Build(BatchException.LastException, true);
+            }
+
+            var task1 = AddDataAsyncUoW(table1.TableName, 11, "B1", true);
+            var task2 = AddDataAsyncUoW(table2.TableName, 11, "B2", true);
+            var task3 = AddDataAsyncUoW(table3.TableName, 11, "B3", false);
+
+            await Task.WhenAll(task1, task2, task3);
+
+            Assert.AreEqual("B1", GetData(table1.TableName, 11));
+            Assert.AreEqual("B2", GetData(table2.TableName, 11));
+            Assert.AreEqual("B3", GetData(table3.TableName, 11));
+
+        }
+
+        static async Task AddDataAsyncUoW(string tableName, int id, string value, bool uowControl)
+        {
+            if(uowControl)
+                await Task.Run(() => AddDataUoW(tableName, id, value));
+            else
+                await Task.Run(() => AddData(tableName, id, value));
+        }
+
+        static private void AddDataUoW(string tableName, int id, string value)
+        {
+            using (var uow = new UnitOfWork())
+            {
+                using (var db = new DbClient(_testDb))
+                {
+                    db.Insert(tableName,
+                        "v1_int32,v2_string",
+                        id, value);
+                }
+                uow.Complete();
+            }
+        }
+
+        static async Task AddDataAsync(string tableName, int id, string value)
+        {
+            await Task.Run(()=> AddData(tableName, id, value));
+        }
+
+        static private void AddData(string tableName, int id, string value)
+        {
+            using (var db = new DbClient(_testDb))
+            {
+                db.Insert(tableName,
+                    "v1_int32,v2_string",
+                    id, value);
+            }
+        }
+
+        static async Task AddDataAsyncWithoutUow(string tableName, int id, string value)
+        {
+            await Task.Run(() => AddDataWithoutUoW(tableName, id, value));
+        }
+
+        static private void AddDataWithoutUoW(string tableName, int id, string value)
+        {
+            using (var db = new DbClient(_testDb,true))
+            {
+                db.Insert(tableName,
+                    "v1_int32,v2_string",
+                    id, value);
+            }
+        }
+
+        private string GetData(string tableName, int id)
+        {
+            using (var db = new DbClient(_testDb))
+            {
+                var v1 = db.SqlSelect($"select v2_string from {tableName} where v1_int32={id}");
+                if (v1 == null) return null;
+                return v1.ToString();
+            }
+        }
+
 
 
         public void DropTable(string tableName)
@@ -355,6 +805,18 @@ namespace qshine.database.Tests
                 .AddColumn("v8_guid", System.Data.DbType.Guid, -1, allowNull: true, comments: "sample Guid.")
                 .AddColumn("v9_binary", System.Data.DbType.Binary, -1, allowNull: true, comments: "sample binary.")
                 .AddAuditColumn();
+        }
+    }
+
+    public class SampleTable_u : SqlDDLTable
+    {
+        public SampleTable_u(string name)
+            : base(name, "UnitTest", "Unit test table "+ name, "utData", "utIndex")
+        {
+            //Update PK column with auto increase.
+            AddPKColumn("id", System.Data.DbType.Int64)
+                .AddColumn("v1_int32", System.Data.DbType.Int32, 0, allowNull: false, defaultValue: 0, comments: "u1")
+                .AddColumn("v2_string", System.Data.DbType.String, 200, allowNull: false, comments: "u2");
         }
     }
 

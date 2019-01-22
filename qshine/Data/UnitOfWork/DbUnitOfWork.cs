@@ -48,7 +48,8 @@ namespace qshine
             //store individual database transaction
             Databases = new Dictionary<Database, DbSession>();
             //push this unit of work into store
-            UnitOfWorks.Add(this);
+            ParentUoW = CurrentUnitOfWork;
+            SetCurrentUnitOfWork(this);
         }
 
         /// <summary>
@@ -68,20 +69,41 @@ namespace qshine
         /// <value><c>true</c> if require new; otherwise, <c>false</c>.</value>
         public bool RequireNew { get; private set; }
 
+        /// <summary>
+        /// Parent UoW
+        /// </summary>
+        internal DbUnitOfWork ParentUoW { get; set; }
+
 
         private Dictionary<Database, DbSession> Databases { get; set; }
 
+        internal DbUnitOfWork ActiveUnitOfWork
+        {
+            get
+            {
+                var uow = this;
+                while(!uow.RequireNew && uow.ParentUoW != null)
+                {
+                    uow = ParentUoW;
+                }
+                return uow;
+            }
+        }
+
         internal DbSession GetTransactionSession(Database database)
         {
+
             if (Databases.ContainsKey(database))
             {
                 return Databases[database];
             }
-            return null;
+            return CreateTransactionSession(database);
         }
 
-        internal void SetTransactionSession(Database database, DbSession session)
+        internal DbSession CreateTransactionSession(Database database)
         {
+            var session = new DbSession(database, this);
+
             if (Databases.ContainsKey(database))
             {
                 Databases[database] = session;
@@ -90,6 +112,7 @@ namespace qshine
             {
                 Databases.Add(database, session);
             }
+            return session;
         }
 
 
@@ -102,54 +125,17 @@ namespace qshine
         {
             get
             {
-                var ulist = UnitOfWorks;
-                //no uow found 
-                if (ulist.Count == 0)
-                {
-                    return null;
-                }
-
-                if (_threadCode == 0)
-                {
-                    //no UoW found in current thread, use top most UoW in current context
-                    return ulist[0];//topmost UoW
-                }
-                //find closest thread specifc uow in current context
-                for(int i=ulist.Count-1;i>=0;i--)
-                {
-                    var uow = ulist[i];
-                    if (uow.ThreadCode == _threadCode)
-                    {
-                        if (uow.RequireNew)
-                        {
-                            //found closest committable transaction uow
-                            return uow;
-                        }
-                    }
-                }
-                //get topmost uow
-                return ulist[0];
+                return ContextManager.GetData(ContextName) as DbUnitOfWork;
             }
         }
-        /// <summary>
-        /// Gets a list of unit of works in the same call context.
-        /// The context maintains a list of Nested UoWs
-        /// </summary>
-        /// <value><c>true</c> if under unit of work; otherwise, <c>false</c>.</value>
-        static List<DbUnitOfWork> UnitOfWorks
-		{
-			get
-			{
-                if (!(ContextManager.GetData(ContextName) is List<DbUnitOfWork> unitOfWorkChains))
-                {
-                    unitOfWorkChains = new List<DbUnitOfWork>();
-                    ContextManager.SetData(ContextName, unitOfWorkChains);
-                }
-                return unitOfWorkChains;
-			}
-		}
 
-		bool CanComplete
+        public static void SetCurrentUnitOfWork(DbUnitOfWork uow)
+        {
+            ContextManager.SetData(ContextName, uow);
+        }
+
+
+        bool CanComplete
 		{
 			get
 			{
@@ -168,14 +154,13 @@ namespace qshine
 
         void RemoveUnitOfWork()
         {
-            bool result = false;
-            if (ContextManager.GetData(ContextName) is List<DbUnitOfWork> unitOfWorkChains)
+            if (ParentUoW != null)
             {
-                result = unitOfWorkChains.Remove(this);
+                SetCurrentUnitOfWork(ParentUoW);
             }
-            if (!result)
+            else
             {
-                throw new InvalidOperationException("Cannot complete the unit of work with an active child unit of work."._G());
+                ContextManager.FreeData(ContextName);
             }
         }
 
@@ -214,7 +199,7 @@ namespace qshine
                 //if a merageable unit of work is incompleted, it should rollback the up level active unit of work
                 if (!_canComplete && Databases.Count == 0 && !RequireNew)
 				{
-					var activeUnitOfWork = DbUnitOfWork.CurrentUnitOfWork;
+					var activeUnitOfWork = ActiveUnitOfWork;
 					if (activeUnitOfWork != null)
 					{
 						activeUnitOfWork.Rollback();

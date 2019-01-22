@@ -6,9 +6,22 @@ namespace qshine
 {
     public enum ContextStoreType
     {
+        /// <summary>
+        /// Static context across entire application.
+        /// It is same as static variable
+        /// </summary>
         Static,
-        CallLocal,
-        CallLogic,
-        Thread
+        /// <summary>
+        /// Local thread static context within same thread.
+        /// Each thread maintain its own context.
+        /// It is same as ThreadStatic variable.
+        /// </summary>
+        ThreadLocal,
+        /// <summary>
+        /// Call static context within same call execution path through its child threads.
+        /// The context value set in parent thread will be shared by child thread.
+        /// 
+        /// </summary>
+        CallContext
     }
 }

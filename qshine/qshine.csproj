@@ -138,8 +138,8 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Context\ContextManager.cs" />
-    <Compile Include="Context\CallContextLogicStore.cs" />
-    <Compile Include="Context\CallContextLocalStore.cs" />
+    <Compile Include="Context\CallContextStore.cs" />
+    <Compile Include="Context\LocalContextStore.cs" />
     <Compile Include="Context\IContextStore.cs" />
     <Compile Include="IProvider.cs" />
     <Compile Include="Cache\ICacheProvider.cs" />

@@ -8,18 +8,17 @@ using System.Text;
 
 namespace qshine
 {
-	/// <summary>
-	/// Provide database access service.
+    /// <summary>
+    /// Provide database access service.
     /// DbClient is not a thread safe class. 
     /// 
-	/// </summary>
-	public class DbClient:IDisposable
-	{
-		/// <summary>
-		/// The interceptor must be a static instance (singleton).
-		/// </summary>
-		static Interceptor _interceptor =Interceptor.Register(typeof(DbClient));
-        readonly Database _database;
+    /// </summary>
+    public class DbClient : IDisposable
+    {
+        /// <summary>
+        /// The interceptor must be a static instance (singleton).
+        /// </summary>
+        static Interceptor _interceptor = Interceptor.Register(typeof(DbClient));
         bool _inscopeSession = false;
 
         #region Ctor
@@ -28,8 +27,8 @@ namespace qshine
         /// The default default configured database is set by environment configuration default database connection string.
         /// </summary>
         public DbClient()
-            :this(new Database())
-		{
+            : this(new Database())
+        {
         }
 
         /// <summary>
@@ -39,9 +38,9 @@ namespace qshine
         /// <param name="providerName">database provider name</param>
         /// <param name="connectionString">database connection string</param>
 		public DbClient(string providerName, string connectionString)
-            :this(new Database(providerName, connectionString))
-		{
-		}
+            : this(new Database(providerName, connectionString))
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:qshine.DbClient"/> class for a given database instance.
@@ -50,17 +49,58 @@ namespace qshine
         /// <param name="database">Database instance.</param>
         public DbClient(Database database)
         {
-            _database = database;
+            Session = GetCurrentSession(database,false);//, DbUnitOfWork.CurrentUnitOfWork);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:qshine.DbClient"/> class for a given database instance.
+        /// </summary>
+        /// <param name="database">Database instance</param>
+        /// <param name="ignorUow">Ignore UnitofWork if the flag is set to true</param>
+        public DbClient(Database database, bool ignorUow)
+        {
+            Session = GetCurrentSession(database, ignorUow);//, DbUnitOfWork.CurrentUnitOfWork);
+        }
+
+        private DbSession GetCurrentSession(Database database, bool ignoreUoW)
+        {
+            
+            var session = DbSession.GetCurrentSession(database, ignoreUoW);
+
+            if (session.UnitOfWork == null)
+            {
+                _inscopeSession = true;
+            }
+            return session;
+
+            //DbUnitOfWork uow = null;
+
+            //if (!ignoreUoW)
+            //{
+            //    uow = DbUnitOfWork.CurrentUnitOfWork;
+            //}
+
+            //if (uow == null)
+            //{
+            //    _inscopeSession = true;
+            //    return new DbSession(database, null);
+            //}
+
+            //var session = uow.GetTransactionSession(database);
+            //if (session == null)
+            //{
+            //    session = uow.CreateTransactionSession(database);
+            //}
+            //return session;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:qshine.DbClient"/> class for a given database context.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="session"></param>
         public DbClient(DbSession session)
         {
             Session = session;
-            _database = Session.Database;
         }
 
         #endregion
@@ -70,58 +110,36 @@ namespace qshine
         /// Dispose
         /// </summary>
         public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-		private bool _disposed;
-		private void Dispose(bool disposing)
-		{
-			if (!_disposed)
-			{
-				if (disposing && _inscopeSession)
-				{
+        private bool _disposed;
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing && _inscopeSession)
+                {
                     Session.Dispose();
                     _disposed = true;
-				}
-			}
-		}
-
-        #endregion
-
-        #region public Properties
-        DbSession _session;
-        /// <summary>
-        /// Get current database context
-        /// </summary>
-        public DbSession Session 
-		{
-            get
-            {
-                if (_session == null)
-                {
-                    _session = DbSession.GetCurrentSession(_database);
-                    if (_session == null)
-                    {
-                        _session = new DbSession(_database, false);
-                        _inscopeSession = true;
-                    }
                 }
-                return _session;
             }
-            private set { _session = value; }
-		}
+        }
+
         #endregion
 
-		/// <summary>
-		/// Execute Sql statement or a stored procedure and return number of rows affected.
-		/// </summary>
-		/// <param name="commandType">A CommandType object to indicate a Sql command or a storedprocedure command</param>
-		/// <param name="commandString">SQL statement or stored procedure</param>
-		/// <param name="parameters">input parameters and output parameters</param>
-		public int ExecuteNonQuery(CommandType commandType, string commandString, DbParameters parameters=null)
-		{
+        public DbSession Session { get; private set; }
+
+        /// <summary>
+        /// Execute Sql statement or a stored procedure and return number of rows affected.
+        /// </summary>
+        /// <param name="commandType">A CommandType object to indicate a Sql command or a storedprocedure command</param>
+        /// <param name="commandString">SQL statement or stored procedure</param>
+        /// <param name="parameters">input parameters and output parameters</param>
+        public int ExecuteNonQuery(CommandType commandType, string commandString, DbParameters parameters = null)
+        {
             int method()
             {
                 var result = 0;
@@ -143,7 +161,7 @@ namespace qshine
             }
 
             return _interceptor.JoinPoint(method, this, "ExecuteNonQuery", commandType, commandString, parameters);
-		}
+        }
 
         /// <summary>
         /// Execute Sql statement or a stored procedure and return first value selected from the sql.
@@ -154,28 +172,28 @@ namespace qshine
         /// <param name="commandString">SQL statement or stored procedure</param>
         /// <param name="parameters">input parameters and output parameters</param>
         /// <returns>Return first selected value from query</returns>
-        public object ExecuteScalar(CommandType commandType, string commandString, DbParameters parameters=null)
-		{
-			return _interceptor.JoinPoint<object>(() =>
-			 {
-				 object result = null;
-				 using (var command = CreateCommand())
-				 {
-					 command.CommandType = commandType;
-					 command.CommandText = commandString;
-                     if (parameters != null && parameters.Params != null)
-                     {
-                         AddCommandParameters(command, parameters.Params);
-                     }
-					 result = command.ExecuteScalar();
-                     if (parameters != null && parameters.Params != null)
-                     {
-                         RetrieveCommandParameterValues(command, parameters.Params);
-                     }
-				 }
-				 return result;
-			 }, this, "ExecuteScalar", commandType, commandString, parameters);
-		}
+        public object ExecuteScalar(CommandType commandType, string commandString, DbParameters parameters = null)
+        {
+            return _interceptor.JoinPoint<object>(() =>
+            {
+                object result = null;
+                using (var command = CreateCommand())
+                {
+                    command.CommandType = commandType;
+                    command.CommandText = commandString;
+                    if (parameters != null && parameters.Params != null)
+                    {
+                        AddCommandParameters(command, parameters.Params);
+                    }
+                    result = command.ExecuteScalar();
+                    if (parameters != null && parameters.Params != null)
+                    {
+                        RetrieveCommandParameterValues(command, parameters.Params);
+                    }
+                }
+                return result;
+            }, this, "ExecuteScalar", commandType, commandString, parameters);
+        }
 
 
         /// <summary>
@@ -186,14 +204,14 @@ namespace qshine
         /// <param name="commandType">A CommandType object to indicate a Sql command or a storedprocedure command</param>
         /// <param name="commandString">SQL statement or stored procedure</param>
         /// <param name="parameters">input parameters and output parameters</param>
-        public void ExecuteReader(Action<IDataReader> readerData, CommandType commandType, string commandString, DbParameters parameters=null)
-		{
-			_interceptor.JoinPoint(() =>
-			{
+        public void ExecuteReader(Action<IDataReader> readerData, CommandType commandType, string commandString, DbParameters parameters = null)
+        {
+            _interceptor.JoinPoint(() =>
+            {
                 using (var command = CreateCommand())
-				{
-					command.CommandType = commandType;
-					command.CommandText = commandString;
+                {
+                    command.CommandType = commandType;
+                    command.CommandText = commandString;
                     if (parameters != null)
                     {
                         AddCommandParameters(command, parameters.Params);
@@ -205,8 +223,8 @@ namespace qshine
                     }
                     return 0;
                 }
-			},this, "ExecuteReader", commandType, commandString, parameters);
-		}
+            }, this, "ExecuteReader", commandType, commandString, parameters);
+        }
 
         /// <summary>
         /// Execute a SQL statement with parameters
@@ -214,10 +232,10 @@ namespace qshine
         /// <param name="commandString">SQL statement</param>
         /// <param name="parameters">input and output parameters for SQL statement.</param>
         /// <returns>Return rows affected</returns>
-        public int Sql(string commandString, DbParameters parameters=null)
-		{
-			return Sql(new DbSqlStatement(commandString,parameters));
-		}
+        public int Sql(string commandString, DbParameters parameters = null)
+        {
+            return Sql(new DbSqlStatement(commandString, parameters));
+        }
 
         public bool Sql(List<string> batchStatements, BatchException batchException)
         {
@@ -251,7 +269,7 @@ namespace qshine
         /// <returns>True to indicate success.</returns>
         public bool Sql(List<DbSqlStatement> batchStatements, BatchException batchException)
         {
-            if (batchStatements == null || batchStatements.Count==0) return false;
+            if (batchStatements == null || batchStatements.Count == 0) return false;
 
             bool result = true;
 
@@ -262,7 +280,7 @@ namespace qshine
 
             foreach (var c in batchStatements)
             {
-                if (c==null ||string.IsNullOrWhiteSpace(c.Sql)) continue;
+                if (c == null || string.IsNullOrWhiteSpace(c.Sql)) continue;
 
                 if (batchException != null)
                 {
@@ -303,10 +321,10 @@ namespace qshine
             Check.HaveValue(sql, "sql");
 
             bool result = true;
-            if (sql.ConditionSql!=null && sql.Condition!=null && !string.IsNullOrWhiteSpace(sql.ConditionSql.Sql))
+            if (sql.ConditionSql != null && sql.Condition != null && !string.IsNullOrWhiteSpace(sql.ConditionSql.Sql))
             {
-                object v = SqlSelect(sql.ConditionSql.Sql,sql.ConditionSql.Parameters);
-                result = sql.Condition(v==null?string.Empty:v.ToString());
+                object v = SqlSelect(sql.ConditionSql.Sql, sql.ConditionSql.Parameters);
+                result = sql.Condition(v == null ? string.Empty : v.ToString());
             }
             if (result)
             {
@@ -353,21 +371,21 @@ namespace qshine
         /// <remarks>
         /// Using output parameter object to retrieve data from a stored procedure
         /// </remarks>
-        public void StoredProcedure(string storedProcedure, DbParameters parameters=null)
-		{
-			ExecuteNonQuery(CommandType.StoredProcedure, storedProcedure, parameters);
-		}
+        public void StoredProcedure(string storedProcedure, DbParameters parameters = null)
+        {
+            ExecuteNonQuery(CommandType.StoredProcedure, storedProcedure, parameters);
+        }
 
-		/// <summary>
-		/// Execute a SQL statement
-		/// </summary>
-		/// <param name="commandString">SQL statement</param>
-		/// <param name="parameters">input and output parameters for SQL statement.</param>
-		/// <returns>Return rows affected</returns>
-		public object SqlSelect(string commandString, DbParameters parameters=null)
-		{
-			return ExecuteScalar(CommandType.Text, commandString, parameters);
-		}
+        /// <summary>
+        /// Execute a SQL statement
+        /// </summary>
+        /// <param name="commandString">SQL statement</param>
+        /// <param name="parameters">input and output parameters for SQL statement.</param>
+        /// <returns>Return rows affected</returns>
+        public object SqlSelect(string commandString, DbParameters parameters = null)
+        {
+            return ExecuteScalar(CommandType.Text, commandString, parameters);
+        }
 
         /// <summary>
         /// Execute a SQL statement and retrieve batch data from IDataReader
@@ -375,46 +393,46 @@ namespace qshine
         /// <param name="readerData">A function to process data reader. The reader will be dispose after process completed</param>
         /// <param name="commandString">SQL statement</param>
         /// <param name="parameters">input parameters for SQL statement.</param>
-        public void SqlReader(Action<IDataReader> readerData, string commandString, DbParameters parameters=null)
-		{
-			ExecuteReader(readerData, CommandType.Text, commandString, parameters);
-		}
+        public void SqlReader(Action<IDataReader> readerData, string commandString, DbParameters parameters = null)
+        {
+            ExecuteReader(readerData, CommandType.Text, commandString, parameters);
+        }
 
-		/// <summary>
-		/// Execute SQL and read data into data table and allow data work offline.
-		/// </summary>
-		/// <param name="commandString">Sql statement</param>
-		/// <param name="parameters">arguments for Sql statement</param>
-		/// <returns>A data table that hold a set of records retrieved from Sql</returns>
-		public DataTable SqlDataTable(string commandString, DbParameters parameters=null)
-		{
-			return _interceptor.JoinPoint(() =>
-			 {
-                 DataSet ds = new DataSet();
-                 using (var adapter = Session.Database.CreateAdapter())
-                 {
-                     using (var command = CreateCommand())
-                     {
-                         command.CommandType = CommandType.Text;
-                         command.CommandText = commandString;
-                         if (parameters != null)
-                         {
-                             AddCommandParameters(command, parameters.Params);
-                         }
-                         adapter.SelectCommand = command as DbCommand;
-                         adapter.Fill(ds);
-                         if (ds.Tables.Count > 0)
-                         {
-                             return ds.Tables[0];
-                         }
-                         else
-                         {
-                             return new DataTable();
-                         }
-                     }
-                 }
-			 }, this, "SqlDataTable", commandString, parameters);
-		}
+        /// <summary>
+        /// Execute SQL and read data into data table and allow data work offline.
+        /// </summary>
+        /// <param name="commandString">Sql statement</param>
+        /// <param name="parameters">arguments for Sql statement</param>
+        /// <returns>A data table that hold a set of records retrieved from Sql</returns>
+        public DataTable SqlDataTable(string commandString, DbParameters parameters = null)
+        {
+            return _interceptor.JoinPoint(() =>
+            {
+                DataSet ds = new DataSet();
+                using (var adapter = Session.Database.CreateAdapter())
+                {
+                    using (var command = CreateCommand())
+                    {
+                        command.CommandType = CommandType.Text;
+                        command.CommandText = commandString;
+                        if (parameters != null)
+                        {
+                            AddCommandParameters(command, parameters.Params);
+                        }
+                        adapter.SelectCommand = command as DbCommand;
+                        adapter.Fill(ds);
+                        if (ds.Tables.Count > 0)
+                        {
+                            return ds.Tables[0];
+                        }
+                        else
+                        {
+                            return new DataTable();
+                        }
+                    }
+                }
+            }, this, "SqlDataTable", commandString, parameters);
+        }
 
         /// <summary>
         /// Retrieve a list of entity from a sql statement
@@ -446,7 +464,7 @@ namespace qshine
                 }, commandString, parameters);
                 return result;
             }, "Retrieve", commandString, parameters);
-		}
+        }
 
         public static bool ToBoolean(object value)
         {
@@ -505,33 +523,33 @@ namespace qshine
         }
 
         private void AddCommandParameters(IDbCommand command, IList<IDbDataParameter> parameters)
-		{
-			if (parameters != null)
-			{
-				foreach (var p in parameters)
-				{
-					var parameter = command.CreateParameter();
+        {
+            if (parameters != null)
+            {
+                foreach (var p in parameters)
+                {
+                    var parameter = command.CreateParameter();
                     MapParameterToNative(p, parameter);
-					command.Parameters.Add(parameter);
-				}
-			}
-		}
+                    command.Parameters.Add(parameter);
+                }
+            }
+        }
 
-		private void RetrieveCommandParameterValues(IDbCommand command, IList<IDbDataParameter> parameters)
-		{
-			if (parameters != null)
-			{
-				for (var i = 0; i < parameters.Count; i++)
-				{
-					if (parameters[i].Direction == ParameterDirection.InputOutput ||
-						parameters[i].Direction == ParameterDirection.Output ||
-						parameters[i].Direction == ParameterDirection.ReturnValue)
-					{
+        private void RetrieveCommandParameterValues(IDbCommand command, IList<IDbDataParameter> parameters)
+        {
+            if (parameters != null)
+            {
+                for (var i = 0; i < parameters.Count; i++)
+                {
+                    if (parameters[i].Direction == ParameterDirection.InputOutput ||
+                        parameters[i].Direction == ParameterDirection.Output ||
+                        parameters[i].Direction == ParameterDirection.ReturnValue)
+                    {
                         MapParameterFromNative(parameters[i], (IDbDataParameter)command.Parameters[i]);
-					}
-				}
-			}
-		}
+                    }
+                }
+            }
+        }
 
         List<IDbTypeMapper> _customDbTypeMapper;
         private List<IDbTypeMapper> CustomDbTypeMappers
@@ -601,7 +619,7 @@ namespace qshine
                 }
             }
 
-            if (!hasMapped && native.Direction!= ParameterDirection.Input)
+            if (!hasMapped && native.Direction != ParameterDirection.Input)
             {
                 common.Value = native.Value;
             }
@@ -612,7 +630,7 @@ namespace qshine
     }
 
     public static class DbClientExtension
-	{
+    {
 
         /// <summary>
         /// Shortcut of SqlSelect
@@ -734,6 +752,6 @@ namespace qshine
 			return ConvertObjectValue<T>(value);
 		}
         */
-	}
-	
+    }
+
 }

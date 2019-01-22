@@ -29,8 +29,8 @@ namespace qshine
         static ContextManager()
         {
             _registry[ContextStoreType.Static] = typeof(StaticContextStore);
-            _registry[ContextStoreType.CallLocal] = typeof(CallContextLocalStore);
-            _registry[ContextStoreType.CallLogic] = typeof(CallContextLogicStore);
+            _registry[ContextStoreType.ThreadLocal] = typeof(LocalContextStore);
+            _registry[ContextStoreType.CallContext] = typeof(CallContextStore);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace qshine
 							if (_currentContextStore == null)
 							{
 								//load default
-								_currentContextStore = new CallContextLocalStore();
+								_currentContextStore = new CallContextStore();
                             }
                             else
                             {
@@ -124,7 +124,7 @@ namespace qshine
         {
             get
             {
-                return GetContextStore(ContextStoreType.CallLocal);
+                return GetContextStore(ContextStoreType.CallContext);
             }
         }
 
@@ -138,6 +138,19 @@ namespace qshine
                 return GetContextStore(ContextStoreType.Static);
             }
         }
+
+
+        /// <summary>
+        /// Get call context
+        /// </summary>
+        public static IContextStore ThreadContext
+        {
+            get
+            {
+                return GetContextStore(ContextStoreType.ThreadLocal);
+            }
+        }
+
 
     }
 }
