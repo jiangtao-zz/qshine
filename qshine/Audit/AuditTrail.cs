@@ -1,0 +1,88 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace qshine.Audit
+{
+    /// <summary>
+    /// Audit trail contains entity object auditing information.
+    /// </summary>
+    public class AuditTrail
+    {
+        /// <summary>
+        /// Auditing entity name.
+        /// It is used to classify a particular entity class.
+        /// </summary>
+        public string EntityName { get; set; }
+
+        /// <summary>
+        /// Audit trail unique ID.
+        /// It is audit trail storage record Id.
+        /// </summary>
+        public Guid Id { get; set; }
+
+        /// <summary>
+        /// Entity object key property name.
+        /// </summary>
+        public string KeyFieldName { get; set; }
+
+        /// <summary>
+        /// Entity object key proeprty value.
+        /// </summary>
+        public string Key { get; set; }
+
+        /// <summary>
+        /// Version number of entity object for each change.
+        /// When the version first created, the version is 0.
+        /// Each change cause version increase.
+        /// </summary>
+        /// <remarks>This property may not be used in certain case.</remarks>
+        public int Version { get; set; }
+
+        /// <summary>
+        /// Audit action type enum value.
+        ///     Create - Create a new entity object
+        ///     Update - Update an entity object
+        ///     Delete - Delete an entity object
+        ///     
+        /// It indicates the action of data change.
+        /// </summary>
+        public AuditActionType AuditActionType { get; set; }
+
+        /// <summary>
+        /// When perform the action.
+        /// It should always be UCT time
+        /// </summary>
+        public DateTime AuditActionTime { get; set; }
+
+        /// <summary>
+        /// Who perform the action.
+        /// </summary>
+        public string AuditActionBy { get; set; }
+
+        /// <summary>
+        /// Action source name.
+        /// </summary>
+        public string Source { get; set; }
+
+        /// <summary>
+        /// Name of the computer on which to action.
+        /// </summary>
+        public string Machine { get; set; }
+
+        /// <summary>
+        /// Data values in JSON format.
+        /// It contains new/old value pair for all value modified properties and values.
+        /// The modified daa could be new proeprty, modified property or deleted proeprty.
+        /// </summary>
+        public Dictionary<string,AuditValue> Data { get; set; }
+
+        /// <summary>
+        /// New values in JSON format.
+        /// It contains new entity properties and modified properties.
+        /// </summary>
+        public string NewData { get; set; }
+
+
+    }
+}

@@ -49,49 +49,14 @@ namespace qshine
         /// <param name="database">Database instance.</param>
         public DbClient(Database database)
         {
-            Session = GetCurrentSession(database,false);//, DbUnitOfWork.CurrentUnitOfWork);
-        }
+            var session = DbSession.GetCurrentTransactionSession(database);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="T:qshine.DbClient"/> class for a given database instance.
-        /// </summary>
-        /// <param name="database">Database instance</param>
-        /// <param name="ignorUow">Ignore UnitofWork if the flag is set to true</param>
-        public DbClient(Database database, bool ignorUow)
-        {
-            Session = GetCurrentSession(database, ignorUow);//, DbUnitOfWork.CurrentUnitOfWork);
-        }
-
-        private DbSession GetCurrentSession(Database database, bool ignoreUoW)
-        {
-            
-            var session = DbSession.GetCurrentSession(database, ignoreUoW);
-
-            if (session.UnitOfWork == null)
+            if (session == null)
             {
+                session = new DbSession(database);
                 _inscopeSession = true;
             }
-            return session;
-
-            //DbUnitOfWork uow = null;
-
-            //if (!ignoreUoW)
-            //{
-            //    uow = DbUnitOfWork.CurrentUnitOfWork;
-            //}
-
-            //if (uow == null)
-            //{
-            //    _inscopeSession = true;
-            //    return new DbSession(database, null);
-            //}
-
-            //var session = uow.GetTransactionSession(database);
-            //if (session == null)
-            //{
-            //    session = uow.CreateTransactionSession(database);
-            //}
-            //return session;
+            Session = session;
         }
 
         /// <summary>

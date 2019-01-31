@@ -11,6 +11,21 @@ namespace qshine
     public static partial class EnvironmentEx
     {
 		static string _ip;
+
+        /// <summary>
+        /// Get computer machine name and IP
+        /// </summary>
+        public static string Machine
+        {
+            get
+            {
+                return Environment.MachineName +":" +MachineIp;
+            }
+        }
+
+        /// <summary>
+        /// Get computer machine IP
+        /// </summary>
 		public static string MachineIp
 		{
 			get

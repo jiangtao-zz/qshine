@@ -6,23 +6,18 @@ namespace qshine
     /// <summary>
     /// Database session
     /// </summary>
-    public class DbSession : IDisposable
+    public sealed class DbSession : IDisposable
     {
         /// <summary>
-        /// Create a database session
+        /// Create a database session.
+        /// A session is a database connection and uow transaction.
         /// </summary>
         /// <param name="database">database instance</param>
-        /// <param name="isTransaction">indicates a transaction session.</param>
-        public DbSession(Database database, DbUnitOfWork uow)
+        public DbSession(Database database)
         {
             Database = database;
-            UnitOfWork = uow;
             Connection = Database.CreateConnection();
             Connection.Open();
-            if (uow != null)
-            {
-                Transaction = Connection.BeginTransaction(uow.RequireNew? IsolationLevel.ReadCommitted: IsolationLevel.Unspecified);
-            }
         }
 
         /// <summary>
@@ -32,16 +27,16 @@ namespace qshine
         /// <summary>
         /// Database connection
         /// </summary>
-        private IDbConnection Connection { get; set; }
+        public IDbConnection Connection { get; set; }
         /// <summary>
         /// Database transaction
         /// </summary>
         public IDbTransaction Transaction { get; private set; }
 
-        public DbUnitOfWork UnitOfWork { get; private set; }
+        //public IUnitOfWork UnitOfWork { get; private set; }
 
         /// <summary>
-        /// Create Sql command from current session
+        /// Create a Sql command
         /// </summary>
         /// <returns></returns>
         public IDbCommand CreateCommand()
@@ -54,12 +49,14 @@ namespace qshine
             return cmd;
         }
 
-        private void Close()
+        /// <summary>
+        /// Create a transaction
+        /// </summary>
+        /// <returns></returns>
+        public IDbTransaction CreateTransaction()
         {
-            if (Connection.State == ConnectionState.Open)
-            {
-                Connection.Close();
-            }
+            Transaction = Connection.BeginTransaction();
+            return Transaction;
         }
 
         #region Implementation of IDsiposable interface
@@ -73,7 +70,7 @@ namespace qshine
         }
 
         private bool _disposed;
-        private void Dispose(bool disposing)
+        void Dispose(bool disposing)
         {
             if (!_disposed)
             {
@@ -94,10 +91,28 @@ namespace qshine
         #endregion
 
         /// <summary>
+        /// Get current transaction session if exists
+        /// </summary>
+        /// <param name="database">database instance</param>
+        /// <returns>return a uow transaction session</returns>
+        internal static DbSession GetCurrentTransactionSession(Database database)
+        {
+            return DbUnitOfWork.GetCurrentTransactionSession(database);
+        }
+
+
+        void Close()
+        {
+            if (Connection.State == ConnectionState.Open)
+            {
+                Connection.Close();
+            }
+        }
+        /// <summary>
         /// Gets the active connection for current database.
         /// </summary>
         /// <value>The active connection.</value>
-        private IDbConnection ActiveConnection
+        IDbConnection ActiveConnection
         {
             get
             {
@@ -108,25 +123,5 @@ namespace qshine
                 return Connection;
             }
         }
-
-        public static DbSession GetCurrentSession(Database database, bool ignoreUoW)
-        {
-            DbSession session;
-
-            var uow = DbUnitOfWork.CurrentUnitOfWork;
-            if (uow == null)
-            {
-                return new DbSession(database, null);
-            }
-            uow = uow.ActiveUnitOfWork;
-            session = uow.GetTransactionSession(database);
-            //if (session == null)
-            //{
-            //    session = new DbSession(database, uow);
-            //    uow.SetTransactionSession(database, session);
-            //}
-            return session;
-        }
-
     }
 }

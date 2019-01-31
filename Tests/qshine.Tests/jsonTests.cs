@@ -549,6 +549,140 @@ namespace qshine.Tests
             Assert.AreEqual(3, v2.V4["k3"]);
         }
 
+
+        [TestMethod()]
+        public void Json_Diff_pure()
+        {
+            var v1 = new SampleObject
+            {
+                V1 = "abc\n123\r\nXYZ",
+                V2 = 0.1234M,
+                V3 = new DateTime(2010, 10, 12),
+                V4 = new Dictionary<string, int>()
+                {
+                    {"a",1},
+                    {"b",2},
+                    {"c",3}
+                },
+                V5 = new SampleObject
+                {
+                    V1="111",
+                    V2=123,
+                    V5 = new SampleObject
+                    {
+                        V1 = "X.1",
+                        V2 = 1,
+                        V5 = new SampleObject
+                        {
+                            V1="X.1.1"
+                        },
+                    },
+                    V6 = new int[] { 1, 2 }
+                },
+                V6 = new int[] {7,8}
+            };
+
+            var v2 = new SampleObject
+            {
+                V1 = "xyz",
+                V2 = 0.1234M,
+                V3 = new DateTime(2010, 10, 12),
+                V4 = new Dictionary<string, int>()
+                {
+                    {"t",8},
+                    {"b",2},
+                    {"c",31}
+                },
+                V5 = new SampleObject
+                {
+                    V1 = "113",
+                    V2 =123,
+                    V5 = new SampleObject
+                    {
+                        V1 = "113.1",
+                        V2 = 1,
+                        V9 = true
+                    },
+                    V6 = new int[] { 1, 2 }
+                },
+                V6 = new int[] { 7, 81 }
+            };
+
+            var diff = new JsonDiffer(v1, v2).GetDiff();
+
+            //diff V1 (string)
+            Assert.AreEqual("abc\n123\r\nXYZ", diff["V1"].OldValue);
+            Assert.AreEqual("xyz", diff["V1"].NewValue);
+            
+            //ignore same value V2 (decimal)
+            Assert.IsTrue(!diff.ContainsKey("V2"));
+            
+            //ignore same value V3 (date time)
+            Assert.IsTrue(!diff.ContainsKey("V3"));
+
+            //diff V4 (Dictionary)
+            Assert.AreEqual(2, (diff["V4"].OldValue as Dictionary<string, object>).Count);
+            Assert.AreEqual("1", (diff["V4"].OldValue as Dictionary<string,object>)["a"].ToString());
+            Assert.AreEqual("8", (diff["V4"].NewValue as Dictionary<string, object>)["t"].ToString());
+            Assert.AreEqual("3", (diff["V4"].OldValue as Dictionary<string, object>)["c"].ToString());
+            Assert.AreEqual("31", (diff["V4"].NewValue as Dictionary<string, object>)["c"].ToString());
+            //ignore same value b
+            Assert.IsTrue(!(diff["V4"].OldValue as Dictionary<string, object>).ContainsKey("b"));
+
+            //diff V5 (class object)
+            Assert.AreEqual(2, (diff["V5"].OldValue as Dictionary<string, object>).Count);
+            Assert.AreEqual(2, (diff["V5"].NewValue as Dictionary<string, object>).Count);
+            //diff V5.V1
+            Assert.AreEqual("113", (diff["V5"].NewValue as Dictionary<string, object>)["V1"].ToString());
+            Assert.AreEqual("111", (diff["V5"].OldValue as Dictionary<string, object>)["V1"].ToString());
+
+            //ignore same value V5.V2 (decimal)
+            Assert.IsFalse((diff["V5"].OldValue as Dictionary<string, object>).ContainsKey("V2"));
+            //ignore same value V5.V3 (null)
+            Assert.IsFalse((diff["V5"].OldValue as Dictionary<string, object>).ContainsKey("V3"));
+
+            //diff V5.V5
+            var v5_v5_old = (diff["V5"].OldValue as Dictionary<string, object>)["V5"] as Dictionary<string, object>;
+            var v5_v5_new = (diff["V5"].NewValue as Dictionary<string, object>)["V5"] as Dictionary<string, object>;
+            Assert.IsNotNull(v5_v5_old);
+            Assert.IsNotNull(v5_v5_new);
+            Assert.AreEqual(3, v5_v5_old.Count);
+            Assert.AreEqual(3, v5_v5_new.Count);
+            //old V5.V5.V1
+            Assert.AreEqual("X.1", v5_v5_old["V1"]);
+            //ignore old V5.V5.V2 (same)
+            Assert.IsFalse(v5_v5_old.ContainsKey("V2"));
+            //old V5.V5.V5 (new)
+            Assert.IsNotNull(v5_v5_old["V5"]);
+
+            //old V5.V5.V5 contains all fields
+            var v5_v5_v5 = v5_v5_old["V5"] as Dictionary<string, object>;
+            Assert.IsTrue(v5_v5_v5.Count > 8);
+            //old V5.V5.V5.V1
+            Assert.AreEqual("X.1.1", v5_v5_v5["V1"]);
+
+
+            //old V5.V5.V9 (default bool)
+            Assert.IsFalse((bool)v5_v5_old["V9"]);
+
+            //new V5.V5.V1
+            Assert.AreEqual("113.1", v5_v5_new["V1"]);
+            //ignore old V5.V5.V2 (same)
+            Assert.IsFalse(v5_v5_new.ContainsKey("V2"));
+            //new V5.V5.V5 (default null)
+            Assert.IsNull(v5_v5_new["V5"]);
+            //new V5.V5.V9 (changed)
+            Assert.IsTrue((bool)v5_v5_new["V9"]);
+
+
+            //diff V6 (List)
+            Assert.IsNotNull((diff["V6"].NewValue as List<object>));
+            Assert.AreEqual("81", (diff["V6"].NewValue as List<object>)[0].ToString());
+            Assert.AreEqual("8", (diff["V6"].OldValue as List<object>)[0].ToString());
+
+
+        }
+
         void CustomJsonInterceptor(object sender, InterceptorEventArgs e)
         {
             if (e.MethodName == "Deserialize" && (ulong)e.Args[2] == (ulong)JsonFormat.CustomDateFormat)

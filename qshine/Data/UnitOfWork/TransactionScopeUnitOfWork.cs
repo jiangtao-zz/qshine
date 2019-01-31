@@ -1,13 +1,25 @@
-﻿using System;
-using System.Transactions;
+﻿using System.Transactions;
 namespace qshine
 {
-	public class TransactionScopeUnitOfWork:IUnitOfWork
+    public class TransactionScopeUnitOfWorkProvider : IUnitOfWorkProvider
+    {
+        public IUnitOfWork Create(UnitOfWorkOption option)
+        {
+            return new TransactionScopeUnitOfWork(option);
+        }
+    }
+
+    public class TransactionScopeUnitOfWork:IUnitOfWork
 	{
 		TransactionScope _scope;
-		public TransactionScopeUnitOfWork(bool requireNew)
+		public TransactionScopeUnitOfWork(UnitOfWorkOption option)
 		{
-			_scope = new TransactionScope(requireNew ? TransactionScopeOption.RequiresNew : TransactionScopeOption.Required);
+            _scope = new TransactionScope(
+                option== UnitOfWorkOption.Required? TransactionScopeOption.Required
+                :option== UnitOfWorkOption.RequiresNew? TransactionScopeOption.RequiresNew
+                : option == UnitOfWorkOption.Suppress ? TransactionScopeOption.Suppress
+                :throw new System.NotSupportedException(),
+                TransactionScopeAsyncFlowOption.Enabled);
 		}
 
 		public void Complete()
@@ -19,5 +31,6 @@ namespace qshine
 		{
 			_scope.Dispose();
 		}
+
 	}
 }

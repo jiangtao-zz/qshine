@@ -18,6 +18,9 @@ namespace qshine.database.Tests
         {
             //Log.SysLoggerProvider = new TraceLoggerProvider();
             //Log.SysLogger.EnableLogging(System.Diagnostics.TraceEventType.Verbose);
+            //UnitOfWork.Providers = new List<IUnitOfWorkProvider>();
+            //UnitOfWork.Providers.Add(new TransactionScopeUnitOfWorkProvider());
+
             ApplicationEnvironment.Build("app.config");
             _testDb = new Database("testdb");
         }
@@ -114,10 +117,11 @@ namespace qshine.database.Tests
         }
 
         [TestMethod]
-        public void Unitwork_level1_Tests()
+        public void UoW_SimpleUoW_Test()
         {
+            //Drop table
             DropTable("sampleTable_o1");
-
+            //Create a new table
             var table = new SampleTable_other();
             using (var dbBuilder = new SqlDDLBuilder(_testDb))
             {
@@ -128,15 +132,20 @@ namespace qshine.database.Tests
                 dbBuilder.Build(BatchException.LastException, true);
             }
 
+            //Start UoW
             using(var unitwork = new UnitOfWork())
             {
+                //database operation
                 using(var db = new DbClient(_testDb))
                 {
                     byte[] b = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
                     db.Insert(table.TableName,
-                        "v1_int32,v2_string,v3_long,v4_date,v5_decimal,v6_Boolean,v7_clob,v8_guid",//v9_binary",
-                        99, "ABC", 123456789012345L, new DateTime(2010, 1, 2, 3, 4, 5, 6), 12.2M, true, "11111", Guid.NewGuid());//, b);
+                        "v1_int32,v2_string,v3_long,v4_date,v5_decimal,v6_Boolean,v7_clob,v8_guid",
+                        99, "ABC", 123456789012345L, 
+                        new DateTime(2010, 1, 2, 3, 4, 5, 6), 
+                        12.2M, true, "11111", Guid.NewGuid());
                 }
+                //complete UoW
                 unitwork.Complete();
             }
             using (var db = new DbClient(_testDb))
@@ -184,34 +193,38 @@ namespace qshine.database.Tests
                 dbBuilder.Build(BatchException.LastException, true);
             }
 
-            using (var unitwork = new UnitOfWork())
+            //top-most UoW
+            using (var uow = new UnitOfWork())
             {
+                //databse operation
                 using (var db = new DbClient(_testDb))
                 {
                     db.Insert(table1.TableName,
                         "v1_int32,v2_string",
                         1, "A1");
                 }
-
+                //nested UoW
                 using (var uow2 = new UnitOfWork())
                 {
+                    //database operation
                     using (var db = new DbClient(_testDb))
                     {
                         db.Insert(table2.TableName,
                             "v1_int32,v2_string",
                             2, "A2");
                     }
+                    //complete nested UoW
                     uow2.Complete();
                 }
-
+                //database operation
                 using (var db = new DbClient(_testDb))
                 {
                     db.Insert(table3.TableName,
                         "v1_int32,v2_string",
                         3, "A3");
                 }
-
-                unitwork.Complete();
+                //complete UoW
+                uow.Complete();
             }
 
             using (var db = new DbClient(_testDb))
@@ -263,6 +276,9 @@ namespace qshine.database.Tests
                             "v1_int32,v2_string",
                             2, "A2");
                     }
+                    //Note::TransactionScope do not allow failed nested transaction continue running to next connection.
+                    //throw exception to prevent continue next
+
                     //uow2.Complete();
                 }
 
@@ -328,6 +344,8 @@ namespace qshine.database.Tests
             }
 
             //parent rollback and child isolate commit
+            Task task1=null;
+            bool isSqlite = false;
             using (var unitwork = new UnitOfWork())
             {
                 using (var db = new DbClient(_testDb))
@@ -335,17 +353,28 @@ namespace qshine.database.Tests
                     db.Insert(table1.TableName,
                         "v1_int32,v2_string",
                         1, "A1");
+
+                    isSqlite = db.Session.Database.ProviderName.Contains("SQLite");
                 }
 
-                using (var uow2 = new UnitOfWork(true))
+                //Sqlite cannot have nested transaction in same thread.
+                //using Non block thread to process second transaction
+                if (isSqlite)
                 {
-                    using (var db = new DbClient(_testDb))
+                    task1 = AddDataAsyncUoW(table2.TableName, 2, "A2", true, true);
+                }
+                else
+                {
+                    using (var uow2 = new UnitOfWork(UnitOfWorkOption.Suppress))
                     {
-                        db.Insert(table2.TableName,
-                            "v1_int32,v2_string",
-                            2, "A2");
+                        using (var db = new DbClient(_testDb))
+                        {
+                            db.Insert(table2.TableName,
+                                "v1_int32,v2_string",
+                                2, "A2");
+                        }
+                        uow2.Complete();
                     }
-                    uow2.Complete();
                 }
 
                 using (var db = new DbClient(_testDb))
@@ -356,6 +385,11 @@ namespace qshine.database.Tests
                 }
 
                 //unitwork.Complete();
+            }
+
+            if (isSqlite)
+            {
+                task1.Wait();
             }
 
             using (var db = new DbClient(_testDb))
@@ -370,14 +404,16 @@ namespace qshine.database.Tests
         }
 
         [TestMethod]
-        public void UoW_level2_Multi_Threads_Tests()
+        public void UoW_IsolateUoW_Tests()
         {
-            var table1 = new SampleTable_u("sampleTable_u21");
-            var table2 = new SampleTable_u("sampleTable_u22");
-            var table3 = new SampleTable_u("sampleTable_u23");
+            var table1 = new SampleTable_u("sampleTable_u111");
+            var table2 = new SampleTable_u("sampleTable_u112");
+            var table3 = new SampleTable_u("sampleTable_u113");
             DropTable(table1.TableName);
             DropTable(table2.TableName);
             DropTable(table3.TableName);
+
+            bool isSqlite = false;
 
             using (var dbBuilder = new SqlDDLBuilder(_testDb))
             {
@@ -388,6 +424,78 @@ namespace qshine.database.Tests
                     .AddTable(table3);
 
                 dbBuilder.Build(BatchException.LastException, true);
+                isSqlite = dbBuilder.Database.Database.ProviderName.Contains("SQLite");
+            }
+
+            //parent UoW contains isolated UoW
+            using (var parentUoW = new UnitOfWork())
+            {
+                //database operation
+                using (var db = new DbClient(_testDb))
+                {
+                    db.Insert(table1.TableName,
+                        "v1_int32,v2_string", 1, "A1");
+                }
+                if(!isSqlite)
+                {
+                    //isolated UoW
+                    using (var uow2 = new UnitOfWork(UnitOfWorkOption.RequiresNew))
+                    {
+                        //isolated database operation. 
+                        //Failed operation will not affect parent transaction.
+                        using (var db = new DbClient(_testDb))
+                        {
+                            db.Insert(table2.TableName,
+                                "v1_int32,v2_string", 2, "A2");
+                        }
+                        uow2.Complete();
+                    }
+                }
+                //database operation
+                using (var db = new DbClient(_testDb))
+                {
+                    db.Insert(table3.TableName,
+                        "v1_int32,v2_string", 3, "A3");
+                }
+
+                parentUoW.Complete();
+            }
+
+            using (var db = new DbClient(_testDb))
+            {
+                var v1 = db.SqlSelect($"select v2_string from {table1.TableName} where v1_int32=1");
+                var v2 = db.SqlSelect($"select v2_string from {table2.TableName} where v1_int32=2");
+                var v3 = db.SqlSelect($"select v2_string from {table3.TableName} where v1_int32=3");
+                Assert.AreEqual("A1", v1.ToString());
+                if (!isSqlite)
+                    Assert.AreEqual("A2", v2.ToString());
+                Assert.AreEqual("A3", v3.ToString());
+            }
+        }
+
+        [TestMethod]
+        public void UoW_level2_Multi_Threads_Tests()
+        {
+            var table1 = new SampleTable_u("sampleTable_u21");
+            var table2 = new SampleTable_u("sampleTable_u22");
+            var table3 = new SampleTable_u("sampleTable_u23");
+            DropTable(table1.TableName);
+            DropTable(table2.TableName);
+            DropTable(table3.TableName);
+
+            bool isSqlite = false;
+
+
+            using (var dbBuilder = new SqlDDLBuilder(_testDb))
+            {
+                //Register Common tables
+                dbBuilder.Database
+                    .AddTable(table1)
+                    .AddTable(table2)
+                    .AddTable(table3);
+
+                dbBuilder.Build(BatchException.LastException, true);
+                isSqlite = dbBuilder.Database.Database.ProviderName.Contains("SQLite");
             }
             
             using (var unitwork = new UnitOfWork())
@@ -507,10 +615,13 @@ namespace qshine.database.Tests
                     AddData(table2.TableName, 12, "B4");
                     //uow2.Complete();
                 }
-
-                task1.Wait();
+                if(!isSqlite)
+                    task1.Wait();
                 unitwork.Complete();
             }
+            if (isSqlite)
+                task1.Wait();
+
 
             Assert.IsNull(GetData(table1.TableName, 11));
             Assert.IsNull(GetData(table2.TableName, 11));
@@ -552,17 +663,19 @@ namespace qshine.database.Tests
 
         }
 
-        static async Task AddDataAsyncUoW(string tableName, int id, string value, bool uowControl)
+        static async Task AddDataAsyncUoW(string tableName, int id, string value, bool uowControl, bool suppress=false)
         {
             if(uowControl)
-                await Task.Run(() => AddDataUoW(tableName, id, value));
+                await Task.Run(() => AddDataUoW(tableName, id, value,
+                    suppress? UnitOfWorkOption.Suppress:
+                    UnitOfWorkOption.Required));
             else
                 await Task.Run(() => AddData(tableName, id, value));
         }
 
-        static private void AddDataUoW(string tableName, int id, string value)
+        static private void AddDataUoW(string tableName, int id, string value, UnitOfWorkOption option)
         {
-            using (var uow = new UnitOfWork())
+            using (var uow = new UnitOfWork(option))
             {
                 using (var db = new DbClient(_testDb))
                 {
@@ -596,7 +709,8 @@ namespace qshine.database.Tests
 
         static private void AddDataWithoutUoW(string tableName, int id, string value)
         {
-            using (var db = new DbClient(_testDb,true))
+            using(var u = new DbUnitOfWork(UnitOfWorkOption.Suppress))
+            using (var db = new DbClient(_testDb))
             {
                 db.Insert(tableName,
                     "v1_int32,v2_string",

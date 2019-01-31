@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Transactions;
+
 namespace qshine
 {
 	/// <summary>
@@ -15,10 +17,5 @@ namespace qshine
 		/// </summary>
 		void Complete();
 
-        /// <summary>
-        /// Rollback the unit of work when UoW is out of scope without Complete()
-		/// Uncompleted unit of work will not be committed when it out of the scope.
-        /// </summary>
-        //void Rollback();
 	}
 }

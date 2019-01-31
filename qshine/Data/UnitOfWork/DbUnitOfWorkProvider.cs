@@ -1,5 +1,4 @@
-﻿using System;
-namespace qshine
+﻿namespace qshine
 {
 	/// <summary>
 	/// provides a simple database transaction unit of work.
@@ -12,9 +11,9 @@ namespace qshine
 		/// <returns>Create a new unit of work instance</returns>
 		/// <param name="requireNew">If set to <c>true</c> the unit of work will no merge with an existing active transaction. 
 		/// It will create a new transaction which is independent from others </param>		
-		public IUnitOfWork Create(bool requireNew)
+		public IUnitOfWork Create(UnitOfWorkOption scope)
 		{
-			return new DbUnitOfWork(requireNew);
+			return new DbUnitOfWork(scope);
 		}
 	}
 }

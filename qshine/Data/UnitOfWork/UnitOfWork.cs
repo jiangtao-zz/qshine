@@ -13,10 +13,14 @@ namespace qshine
 	{
 		static IList<IUnitOfWorkProvider> _providers = null;
 		static object lockObject = new object();
+
 		readonly List<IUnitOfWork> _unitOfWorks;
 
 		/// <summary>
-		/// Gets or sets the provider.
+		/// Gets or sets a list of UoW providers.
+        /// Single UoW may contain many UoW transaction implementations for differnt database, transaction process.
+        /// Each UoW transaction implementation different UoW provider.
+        /// The UoW can be injected by DI or configuration.
 		/// </summary>
 		/// <value>The provider.</value>
 		public static IList<IUnitOfWorkProvider> Providers {
@@ -42,11 +46,18 @@ namespace qshine
 			}
 		}
 
-		public UnitOfWork(bool requireNew = false)
+        /// <summary>
+        /// Create a UoW instance
+        /// </summary>
+        /// <param name="option"></param>
+		public UnitOfWork(UnitOfWorkOption option = UnitOfWorkOption.Required)
 		{
-			_unitOfWorks = Providers.Select(x=>x.Create(requireNew)).ToList();
+			_unitOfWorks = Providers.Select(x=>x.Create(option)).ToList();
 		}
 
+        /// <summary>
+        /// Dispose UoW
+        /// </summary>
 		#region Dispose
 
 		bool disposed = false;
@@ -75,9 +86,9 @@ namespace qshine
 		#endregion
 
 		/// <summary>
-		/// Gets or sets a value indicating whether this <see cref="T:qshine.UnitOfWork"/> can complete.
+		/// Indicates all operations within scope are completed sucessfully.
+        /// Note: The UoW will be abort if the Complete() havn't been called in end of UoW.
 		/// </summary>
-		/// <value><c>true</c> if can complete; otherwise, <c>false</c>.</value>
 		public void Complete()
 		{
             foreach (var u in _unitOfWorks)
