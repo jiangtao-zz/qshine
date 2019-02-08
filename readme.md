@@ -3,7 +3,7 @@ QShine is a lightweight pluggable framework library for .NET application. It hel
 The pluggable components added into application through environment configuration setting and file copy. No application code change required.
 
 ## Common library services
-- [Application Environment Configuration](qshine/docs/ApplicationEnvironment.md)
+- [Application Environment Configuration](qshine/docs/applicationEnvironment.md)
 - Database Access
 - Context Store
 - IoC/DI
