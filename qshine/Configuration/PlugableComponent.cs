@@ -56,5 +56,11 @@ namespace qshine
         /// </summary>
         public string Scope { get; set; }
 
+        /// <summary>
+        /// Indicates a default service for given interface.
+        /// If more than one default components found, it always picks first one as default.
+        /// </summary>
+        public bool IsDefault { get; set; }
+
 	}
 }

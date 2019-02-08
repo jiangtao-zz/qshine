@@ -98,6 +98,9 @@
     <Compile Include="Logger\ConsoleLoggerProvider.cs" />
     <Compile Include="Mapper\AuditEntityNameMapper.cs" />
     <Compile Include="Mapper\NameMapper.cs" />
+    <Compile Include="Messaging\EventBus.cs" />
+    <Compile Include="Messaging\EventBusNames.cs" />
+    <Compile Include="Messaging\IEventBusFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IoC\IIocContainer.cs" />
     <Compile Include="IoC\IIocModule.cs" />

@@ -1,12 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\database",
-    "\\database\\oracle\\qshine.database.oracle",
-    "\\input",
-    "\\qshine.extension",
-    "\\qshine.extension\\qshine.ioc.autofac"
+    "\\qshine.extension\\qshine.ioc.autofac",
+    "\\qshine\\Utility"
   ],
-  "SelectedNode": "\\qshine.sln",
+  "SelectedNode": "\\readme.md",
   "PreviewInSolutionExplorer": false
 }

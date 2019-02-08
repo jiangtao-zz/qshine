@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using qshine.Mapper;
+using qshine.Messaging;
 
 namespace qshine.Audit
 {
@@ -20,10 +21,8 @@ namespace qshine.Audit
         where T: IAuditable
     {
         readonly string _entityName;
-        readonly string _originalEntity;
-        string _updatedEntity;
-        AuditActionType _auditAction;
-        AuditTrail _auditTrail;
+        readonly T _originalEntity;
+        readonly object _additionalInfo;
         /// <summary>
         /// Create entity audit service for particular entity object.
         /// </summary>
@@ -32,14 +31,13 @@ namespace qshine.Audit
         /// Use AuditEntityName mapper to customize the audit entity name.
         /// </param>
         /// <param name="entity">original entity object</param>
-        public EntityAudit(string entityName, T entity)
+        /// <param name="additionalInfo">additional audit information to be added into audit trail.
+        /// It is a class object. All object proeprty/value pair will be audited</param>
+        public EntityAudit(string entityName, T entity, object additionalInfo = null)
         {
             _entityName = entityName;
-            if (entity != null)
-            {
-                _originalEntity = entity.Serialize();
-            }
-            _auditAction = AuditActionType.Unknow;
+            _originalEntity = entity;
+            _additionalInfo = additionalInfo;
         }
         /// <summary>
         /// Create entity audit service for particular entity object.
@@ -48,8 +46,10 @@ namespace qshine.Audit
         /// <remarks>The audit object name is a object type specific name. It can utilize for business categorization and usage.
         /// Use AuditEntityName mapper to customize the audit entity name.
         /// </remarks>
-        public EntityAudit(T entity)
-            :this(NameMapper.GetAuditEntityName(typeof(T)), entity)
+        public EntityAudit(T entity, object additionalInfo)
+        /// <param name="additionalInfo">additional audit information to be added in audit trail.
+        /// It could be any class object.</param>
+            : this(NameMapper.GetAuditEntityName(typeof(T)), entity, additionalInfo)
         {
         }
 
@@ -59,9 +59,7 @@ namespace qshine.Audit
         /// <param name="entity">new auditable object</param>
         public void AuditCreate(T entity)
         {
-            _auditAction = AuditActionType.Create;
-            _updatedEntity = entity.Serialize();
-
+            CreateAuditTrail(AuditActionType.Create, _originalEntity, entity);
         }
 
         /// <summary>
@@ -70,22 +68,7 @@ namespace qshine.Audit
         /// <param name="entity">auditable object updated</param>
         public void AuditUpdate(T entity)
         {
-            var differ = new JsonDiffer(_originalEntity, entity);
-
-            _auditTrail = new AuditTrail
-            {
-                EntityName = _entityName,
-                Id = Guid.NewGuid(),
-                KeyFieldName = "Id",
-                //Key =
-                //Version = 
-                AuditActionType = AuditActionType.Update,
-                AuditActionTime = DateTime.UtcNow,
-                AuditActionBy = entity.UpdatedBy,
-                //Source =
-                Machine = EnvironmentEx.Machine,
-                Data = differ.GetDiff(),
-            };
+            CreateAuditTrail(AuditActionType.Update, _originalEntity, entity);
         }
 
         /// <summary>
@@ -94,19 +77,61 @@ namespace qshine.Audit
         /// <param name="entity">deleted auditable object</param>
         public void AuditDelete(T entity)
         {
-            _auditTrail = new AuditTrail
+            CreateAuditTrail(AuditActionType.Delete, default(T), entity);
+        }
+
+        void CreateAuditTrail(AuditActionType action, T oldEntity, T newEntity)
+        {
+            //get difference of two entities
+            var differ = new JsonDiffer(oldEntity, newEntity);
+            var dataDiff = differ.GetDiff();
+
+            //Create audit trail object
+            var auditTrail = new AuditTrail
             {
                 EntityName = _entityName,
                 Id = Guid.NewGuid(),
                 KeyFieldName = "Id",
                 //Key =
                 //Version = 
-                AuditActionType = AuditActionType.Delete,
+                AuditActionType = action,
                 AuditActionTime = DateTime.UtcNow,
-                AuditActionBy = entity.UpdatedBy,
+                AuditActionBy = 
+                    action == AuditActionType.Create? newEntity.UpdatedBy
+                    :action == AuditActionType.Update? newEntity.UpdatedBy
+                    : action == AuditActionType.Delete ? newEntity.UpdatedBy
+                    : "",
                 //Source =
-                Machine = EnvironmentEx.Machine
+                Machine = EnvironmentEx.Machine,
+                Data = dataDiff,
             };
+
+            //add additional audit info
+            if (_additionalInfo != null)
+            {
+                auditTrail.Addition = _additionalInfo.Serialize().DeserializeDictionary();
+            }
+
+            AuditEventBus.Publish(auditTrail);
+
+        }
+
+        EventBus _eventBus;
+        /// <summary>
+        /// Get audit event bus for audit trail message publish.
+        /// </summary>
+        EventBus AuditEventBus
+        {
+            get
+            {
+                if (_eventBus == null)
+                {
+                    _eventBus = new EventBus(EventBusNames.AuditTrailBusName);
+                }
+                return _eventBus;
+            }
+
+            set {_eventBus = value;}
         }
     }
 

@@ -131,6 +131,7 @@ namespace qshine.Configuration
 				InterfaceTypeName = component.InterfaceType,
 				ClassTypeName = component.Type,
                 Scope = component.Scope,
+                IsDefault =component.Default
 			};
             if(!string.IsNullOrEmpty(c.Scope) && String.Equals(c.Scope, "singleton", StringComparison.OrdinalIgnoreCase))
             {

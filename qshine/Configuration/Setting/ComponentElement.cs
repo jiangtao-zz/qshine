@@ -8,12 +8,13 @@ namespace qshine.Configuration.Setting
 		const string TypeAttributeName = "type";
 		const string ScopeAttributeName = "scope";
 		const string ParametersAttributeName = "parameters";
+        const string DefaultAttributeName = "default";
 
-		/// <summary>
-		/// Gets or sets the type of the interface.
-		/// </summary>
-		/// <value>The type of the interface.</value>
-		[ConfigurationProperty(InterfaceTypeName)]
+        /// <summary>
+        /// Gets or sets the type of the interface.
+        /// </summary>
+        /// <value>The type of the interface.</value>
+        [ConfigurationProperty(InterfaceTypeName)]
 		public string InterfaceType
 		{
 			get { return (string)this[InterfaceTypeName]; }
@@ -52,5 +53,11 @@ namespace qshine.Configuration.Setting
 			get { return (ParameterElementCollection)base[ParametersAttributeName];}
 		}
 
-	}
+        [ConfigurationProperty(ParametersAttributeName)]
+        public bool Default
+        {
+            get { return (bool)this[DefaultAttributeName]; }
+            set { this[DefaultAttributeName] = value; }
+        }
+    }
 }

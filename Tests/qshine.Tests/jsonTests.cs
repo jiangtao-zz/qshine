@@ -579,7 +579,9 @@ namespace qshine.Tests
                     },
                     V6 = new int[] { 1, 2 }
                 },
-                V6 = new int[] {7,8}
+                V6 = new int[] {7,8},
+                V7 = new decimal[] {1.1M, 2.2M},
+                V8 = new List<string> { "L1","L2"}
             };
 
             var v2 = new SampleObject
@@ -605,7 +607,9 @@ namespace qshine.Tests
                     },
                     V6 = new int[] { 1, 2 }
                 },
-                V6 = new int[] { 7, 81 }
+                V6 = new int[] { 7, 81 },
+                V7 = new decimal[] { 1.1M, 2.2M },
+                V8 = new List<string> { "L1", "X2" }
             };
 
             var diff = new JsonDiffer(v1, v2).GetDiff();
@@ -661,7 +665,6 @@ namespace qshine.Tests
             //old V5.V5.V5.V1
             Assert.AreEqual("X.1.1", v5_v5_v5["V1"]);
 
-
             //old V5.V5.V9 (default bool)
             Assert.IsFalse((bool)v5_v5_old["V9"]);
 
@@ -674,13 +677,18 @@ namespace qshine.Tests
             //new V5.V5.V9 (changed)
             Assert.IsTrue((bool)v5_v5_new["V9"]);
 
-
-            //diff V6 (List)
+            //diff V6 (List, int)
             Assert.IsNotNull((diff["V6"].NewValue as List<object>));
             Assert.AreEqual("81", (diff["V6"].NewValue as List<object>)[0].ToString());
             Assert.AreEqual("8", (diff["V6"].OldValue as List<object>)[0].ToString());
 
+            //diff V7 (Same)
+            Assert.IsFalse(diff.ContainsKey("V7"));
 
+            //diff V8 (List)
+            Assert.IsNotNull((diff["V8"].NewValue as List<object>));
+            Assert.AreEqual("X2", (diff["V8"].NewValue as List<object>)[0].ToString());
+            Assert.AreEqual("L2", (diff["V8"].OldValue as List<object>)[0].ToString());
         }
 
         void CustomJsonInterceptor(object sender, InterceptorEventArgs e)

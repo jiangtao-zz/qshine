@@ -116,12 +116,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComponentDirectReferenceTes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{402121A4-FD72-407D-AFBE-8D8CDE25E29B}"
 	ProjectSection(SolutionItems) = preProject
+		readme.md = readme.md
 		unitTests.bat = unitTests.bat
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.json.newton", "qshine.extension\qshine.json.newton\qshine.json.newton.csproj", "{4FF442E6-31EC-48DE-B9FE-D715A46BA91C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.json.newton", "qshine.extension\qshine.json.newton\qshine.json.newton.csproj", "{4FF442E6-31EC-48DE-B9FE-D715A46BA91C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qshine.newton.Tests", "qshine.extension\Tests\qshine.newton.Tests\qshine.newton.Tests.csproj", "{B21CE012-0D6B-4749-A9EC-60E5E82EA3F8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qshine.newton.Tests", "qshine.extension\Tests\qshine.newton.Tests\qshine.newton.Tests.csproj", "{B21CE012-0D6B-4749-A9EC-60E5E82EA3F8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

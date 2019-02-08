@@ -7,7 +7,7 @@ namespace qshine.Audit
     /// <summary>
     /// Audit trail contains entity object auditing information.
     /// </summary>
-    public class AuditTrail
+    public class AuditTrail: IEventMessage
     {
         /// <summary>
         /// Auditing entity name.
@@ -78,11 +78,10 @@ namespace qshine.Audit
         public Dictionary<string,AuditValue> Data { get; set; }
 
         /// <summary>
-        /// New values in JSON format.
-        /// It contains new entity properties and modified properties.
+        /// A collect of proeprty/value pair as addition audit information.
+        /// It could be null
         /// </summary>
-        public string NewData { get; set; }
-
+        public Dictionary<string, object> Addition { get; set; }
 
     }
 }
