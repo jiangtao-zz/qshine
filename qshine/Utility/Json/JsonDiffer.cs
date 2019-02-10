@@ -154,8 +154,8 @@ namespace qshine
             }
             else
             {
-                var listObject1 = p1 as List<object>;
-                var listObject2 = p2 as List<object>;
+                var listObject1 = p1 as IEnumerable<object>;
+                var listObject2 = p2 as IEnumerable<object>;
 
                 if (listObject1 != null && listObject2 != null)
                 {
@@ -198,8 +198,8 @@ namespace qshine
             }
             else
             {
-                var listObject1 = left as List<object>;
-                var listObject2 = right as List<object>;
+                var listObject1 = left as IEnumerable<object>;
+                var listObject2 = right as IEnumerable<object>;
 
                 if (listObject1 != null && listObject2 != null)
                 {

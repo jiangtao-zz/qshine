@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace qshine.Tests
@@ -678,17 +679,17 @@ namespace qshine.Tests
             Assert.IsTrue((bool)v5_v5_new["V9"]);
 
             //diff V6 (List, int)
-            Assert.IsNotNull((diff["V6"].NewValue as List<object>));
-            Assert.AreEqual("81", (diff["V6"].NewValue as List<object>)[0].ToString());
-            Assert.AreEqual("8", (diff["V6"].OldValue as List<object>)[0].ToString());
+            Assert.IsNotNull((diff["V6"].NewValue as IEnumerable<object>));
+            Assert.AreEqual("81", (diff["V6"].NewValue as IEnumerable<object>).ToList()[0].ToString());
+            Assert.AreEqual("8", (diff["V6"].OldValue as IEnumerable<object>).ToList()[0].ToString());
 
             //diff V7 (Same)
             Assert.IsFalse(diff.ContainsKey("V7"));
 
             //diff V8 (List)
-            Assert.IsNotNull((diff["V8"].NewValue as List<object>));
-            Assert.AreEqual("X2", (diff["V8"].NewValue as List<object>)[0].ToString());
-            Assert.AreEqual("L2", (diff["V8"].OldValue as List<object>)[0].ToString());
+            Assert.IsNotNull((diff["V8"].NewValue as IEnumerable<object>));
+            Assert.AreEqual("X2", (diff["V8"].NewValue as IEnumerable<object>).ToList()[0].ToString());
+            Assert.AreEqual("L2", (diff["V8"].OldValue as IEnumerable<object>).ToList()[0].ToString());
         }
 
         void CustomJsonInterceptor(object sender, InterceptorEventArgs e)

@@ -79,6 +79,8 @@
     <Compile Include="Configuration\ApplicationAssemblyResolver.cs" />
     <Compile Include="Configuration\ConnectionString.cs" />
     <Compile Include="Configuration\EnvironmentInitializationOption.cs" />
+    <Compile Include="Configuration\Map.cs" />
+    <Compile Include="Configuration\Setting\NamedKeyValueElementCollection.cs" />
     <Compile Include="Context\ContextStoreType.cs" />
     <Compile Include="Context\StaticContextStore.cs" />
     <Compile Include="Data\CommonDbDataTypeMapper.cs" />

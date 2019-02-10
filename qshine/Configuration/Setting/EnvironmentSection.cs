@@ -12,9 +12,10 @@ namespace qshine.Configuration
 		public const string ComponentsAttributeName = "components";
 		public const string ModulesAttributeName = "modules";
 		public const string AppSettingsAttributeName = "appSettings";
+        public const string MapsAttributeName = "maps";
 
 
-		[ConfigurationProperty(EnvironmentsAttributeName)]
+        [ConfigurationProperty(EnvironmentsAttributeName)]
 		[ConfigurationCollection(typeof(EnvironmentElementCollection))]
 		public EnvironmentElementCollection Environments
 		{
@@ -44,6 +45,13 @@ namespace qshine.Configuration
 		{
 			get { return (KeyValueElementCollection<KeyValueElement>)base[AppSettingsAttributeName]; } 
 		}
-	}
+
+        [ConfigurationProperty(MapsAttributeName)]
+        [ConfigurationCollection(typeof(NamedKeyValueElementCollection), AddItemName = "add", RemoveItemName = "remove", ClearItemsName = "clear")]
+        public NamedKeyValueElementCollection Maps
+        {
+            get { return (NamedKeyValueElementCollection)base[MapsAttributeName]; }
+        }
+    }
 
 }

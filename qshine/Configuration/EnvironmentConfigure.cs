@@ -21,6 +21,7 @@ namespace qshine.Configuration
             ConfigureFolders = new List<string>();
             AssemblyFolders = new List<StateObject<bool,string>>();
             Environments = new Dictionary<string, EnvironmentElement>();
+            Maps = new Dictionary<string, Map>();
         }
 
         /// <summary>
@@ -79,6 +80,15 @@ namespace qshine.Configuration
             get;
             private set;
 		}
+
+        /// <summary>
+        /// Get/Set named maps configure
+        /// </summary>
+		public IDictionary<string, Map> Maps
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Get/Set Connection strings
@@ -200,6 +210,44 @@ namespace qshine.Configuration
                 ConnectionStrings.AddOrUpdate(c);
 			}
 		}
+
+        /// <summary>
+        /// Adds the map.
+        /// </summary>
+        /// <returns>The map.</returns>
+        /// <param name="module">map.</param>
+        /// <param name="overWrite">If set to <c>true</c> overwrite existing module.</param>
+        internal void AddMap(string name, string defaultKey, KeyValueElement map, bool overWrite)
+        {
+            if (map == null) return;
+
+            if (string.IsNullOrEmpty(name)) name = "default";
+
+            if (!Maps.ContainsKey(name))
+            {
+                Maps.Add(name, new Map
+                {
+                    Default = defaultKey,
+                    Name = name,
+                });
+                Maps[name][map.Key] = map.Value;
+            }
+            else
+            {
+                if (Maps[name].ContainsKey(map.Key))
+                {
+                    if (overWrite)
+                    {
+                        Maps[name].Default = defaultKey;
+                        Maps[name][map.Key]= map.Value;
+                    }
+
+                }else 
+                {
+                    Maps[name][map.Key]= map.Value;
+                }
+            }
+        }
 
         #endregion
     }

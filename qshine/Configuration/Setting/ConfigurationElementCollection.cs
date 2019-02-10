@@ -54,12 +54,22 @@ namespace qshine.Configuration.Setting
             BaseClear();
         }
 
-		/// <summary>
-		/// Gets the named instance of <typeparamref name="T"/> from the collection.
-		/// </summary>
-		/// <param name="name">The name of the <typeparamref name="T"/> instance to retrieve.</param>
-		/// <returns>The instance of <typeparamref name="T"/> with the specified key; otherwise, <see langword="null"/>.</returns>
-		new public T this[string name]
+        /// <summary>
+        /// Get collection property value
+        /// </summary>
+        /// <param name="name">attribute name</param>
+        /// <returns></returns>
+        public object CollectionProperty(string name)
+        {
+            return base[name];
+        }
+
+        /// <summary>
+        /// Gets the named instance of <typeparamref name="T"/> from the collection.
+        /// </summary>
+        /// <param name="name">The name of the <typeparamref name="T"/> instance to retrieve.</param>
+        /// <returns>The instance of <typeparamref name="T"/> with the specified key; otherwise, <see langword="null"/>.</returns>
+        new public T this[string name]
 		{
 			get
 			{

@@ -53,10 +53,13 @@ namespace qshine.Configuration.Setting
 			get { return (ParameterElementCollection)base[ParametersAttributeName];}
 		}
 
-        [ConfigurationProperty(ParametersAttributeName)]
+        [ConfigurationProperty(DefaultAttributeName, IsRequired =false)]
         public bool Default
         {
-            get { return (bool)this[DefaultAttributeName]; }
+            get {
+                var value = this[DefaultAttributeName];
+                return (bool)value;
+            }
             set { this[DefaultAttributeName] = value; }
         }
     }

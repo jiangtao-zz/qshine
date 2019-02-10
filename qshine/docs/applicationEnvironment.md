@@ -24,19 +24,20 @@ The environment config is a typical .NET application config file which contains 
 	<appEnv>
 		<environments>
 			<!-- global level default setting-->
-			<environment name="global" config="c:/globalSetting/config" bin="commonDependency"/>
+			<environment name="global" path="c:/globalSetting/config" bin="commonDependency"/>
 			<!-- app level common setting-->
-			<environment name="app" config="config"/>
+			<environment name="app" path="config"/>
 			<!--QA environment specific setting. It is only available for specified QA server -->
-			<environment name="qa" config="c:/globalSetting/qa/config" host="192.168.1.10"/>
+			<environment name="qa" path="c:/globalSetting/qa/config" host="192.168.1.10"/>
 			<!--UA environment specific setting. It is only available for specified UA server -->
-			<environment name="ua" config="c:/globalSetting/qa/config" host="192.168.1.11"/>
+			<environment name="ua" path="c:/globalSetting/qa/config" host="192.168.1.11"/>
 			<!--PRODUCTION environment specific setting. It is only available for specified PRODUCTION server -->
-			<environment name="production" config="c:/globalSetting/production/config" host="PRODUCTION_SERVER_NAME"/>
+			<environment name="production" path="c:/globalSetting/production/config" host="PRODUCTION_SERVER_NAME"/>
 		</environments>
 	</appEnv>
 ``` 
 
+---
 ## Environment
 
 The application environment is an infrastructure workspace to host an application with a collection of deployed components and dependency resources. 
@@ -78,15 +79,33 @@ Each environment element points to a setting folder and available for one enviro
 ```xml	
 		<environments>
 			<!--QA environment specific setting. It is only available for specified QA server -->
-			<environment name="qa" config="c:/globalSetting/qa/config" host="192.168.1.10"/>
+			<environment name="qa" path="c:/globalSetting/qa/config" host="192.168.1.10"/>
 			<!--UA environment specific setting. It is only available for specified UA server -->
-			<environment name="ua" config="c:/globalSetting/qa/config" host="192.168.1.11"/>
+			<environment name="ua" path="c:/globalSetting/qa/config" host="192.168.1.11"/>
 			<!--PRODUCTION environment specific setting. It is only available for specified PRODUCTION server -->
-			<environment name="production" config="c:/globalSetting/production/config" host="PRODUCTION_SERVER_NAME"/>
+			<environment name="production" path="c:/globalSetting/production/config" host="PRODUCTION_SERVER_NAME"/>
 		</environments>
 ``` 
 
+### environment element
 
+Embedded next level environment config files and dependency components.
+
+**name**: name of the config setting.
+
+**path**: Specify a location path of the config files and components. The application will load all config files under given location. 
+It also look up the "bin" folder to load pluggable components.
+
+**bin**: Specify alternate bin folder location. If this value presents it will load components from this folder instead of "bin" folder.
+
+**host**: Specify environment host name or ip tha tthe element applied. If the "host" attribute given, the element will not be loaded 
+if the application host environment name or ip doesn't match.
+
+
+
+ 
+
+---
 ## Environment Levels and Hierarchy
 The highest level config file is the application config file. As a .NET application this config file is app.config or web.config (web application).
 To keep configure setting structure simple, this config file environment section usually only contains next level environment config file paths, but not detail environment variables.
@@ -113,9 +132,9 @@ myApp.config
 
 ```xml	
 		<environments>
-			<environment name="myApp" config="config"/>
-			<environment name="moduleA" config="c:\company\programs\moduleA\config" />
-			<environment name="global" config="c:\company\programs\config" />
+			<environment name="myApp" path="config"/>
+			<environment name="moduleA" path="c:\company\programs\moduleA\config" />
+			<environment name="global" path="c:\company\programs\config" />
 		</environments>
 ``` 
 	
@@ -138,11 +157,14 @@ The environment contain gloabl setting for all the applications
 The environment contain module level setting for moduleA
 	c:\company\programs\moduleA\config\
 
+---
 
 
 ## Environment variables
 
 Environment variable is a key/value pair setting.
+
+```xml
 
 	<!--environment setting -->
 	<appEnv>
@@ -153,6 +175,8 @@ Environment variable is a key/value pair setting.
 		</appSettings>
 	</appEnv>
 
+```
+
 Get the environment variable in code:
 
 ```c#
@@ -162,3 +186,133 @@ Get the environment variable in code:
 ```
 
 ## Pluggable components
+
+Add a pluggable component into application through application environment setting. 
+A pluggable components packaged under a folder with an environment config file.
+
+Example: Add NLog component into application.
+
+folder nlog contains:
+
+	nlog
+    |
+    |---plugin.config
+    |---bin
+    |   |--net461
+    |   |   |--NLog.dll
+    |   |   |--qshine.log.nlog.dll
+    |   |
+    |   |--netcoreapp2.1
+    |   |   |--NLog.dll
+    |   |   |--qshine.log.nlog.dll
+
+plugin.config file
+
+    <appEnv>
+        <!--plug-in component -->
+        <components>
+            <component name="nlog" interface="qshine.ILoggerProvider" 
+                type="qshine.log.nlog.Provider, qshine.log.nlog"/>
+        </components>
+    </appEnv>
+
+The plugin config file contains a component element which is used to define plugin component. 
+
+---
+### component element
+Represents a component to be plugin to the application.
+
+
+**name**: Specify component name. The name can be used to locate component if the environment have more than one components with same interface type.
+
+**interface**: Specify component interface type. The application access the component through the interface.
+
+**type**: Specify component class type which implemented the given interface. 
+
+**parameters**: a collection of parameters for component constructor.
+
+**parameter**: Specify a constructor parameter by a name/value pair element.
+
+            <component name="nservicebus" 
+				interface="qshine.IEventBusProvider"
+				type="qshine.extension.messaging.eventbus.nservicebus.eventProvider"
+              scope="singleton">
+				<parameters>
+					<parameter name="path" value="//192.168.10.12/fileServer" /> 
+					<parameter name="user" value="dev" /> 
+					<parameter name="password" value="xxxxx" /> 
+					<parameter name="domain" value="mydomain" /> 
+				</parameters>
+            </component>
+
+**scope**: Specify a scope of component lifecycle. It could be a singlton, transient. The default is singleton.
+The pluggable component usually is a factory component which can create particular object through code.
+
+---
+
+Consume default plugin object in application code.
+
+```c#
+    //publish event message by plugin event bus.
+    var busProvider = ApplicationEnvironment.GetProvider<IEventBusProvider>();
+    var bus = busProvider.Create(busName);
+    bus.Publish(myEvent);
+
+```
+
+Consume named plugin object in application code.
+
+```c#
+    //publish event message by plugin event bus.
+    var busProvider = ApplicationEnvironment.GetProvider<IEventBusProvider>("nservicebus");
+    var bus = busProvider.Create(busName);
+    bus.Publish(myEvent);
+
+```
+
+---
+## Modules
+
+Module is a self instantiated component loaded by application from config file. 
+It is usually be used for components registeration, initialization or running as a background task.
+The module do not take any parameter for component constructor.
+
+**name**: module name.
+
+**type**: component class type.
+
+        <modules>
+            <module name="iocRegistry"  type="myApp.ext.componentRegistry myApp.ext" />
+        </modules>
+
+---
+## Maps
+
+Map is a named collection of keys and values object in config file.
+The keys are unique in all map elements in one named map collection.
+
+A named map could be associated to one plugin component or application code looking up.
+
+**maps name**: map collection name.
+
+**maps default**: indicates map collection default item key or value.
+
+**add key**: map element key value.
+
+**add value**: map element mapped value for particular key.
+
+```xml
+        <maps name="postcode">
+            <add key="1"  value="M1R 0E9" />
+            <add key="2"  value="M3C 0C1" />
+        </maps>
+```
+
+other config file
+
+```xml
+        <maps name="bus-Name-Provider-map" default="defaultBusProvider">
+            <add key="apInvoiceBus"  value="rabbitMQProvider" />
+            <add key="securityAuditBus"  value="kafkaProvider" />
+        </maps>
+```

@@ -48,6 +48,15 @@ namespace qshine.Tests
             Assert.IsTrue(ApplicationEnvironment.AssemblyMaps["qshine.log.nlog"].Path.Contains("qshine.log.nlog.dll"));
             //            Assert.IsTrue(ApplicationEnvironment.AssemblyMaps["NLog"].Path.Contains("NLog.dll"));
 
+            Assert.IsTrue(configure.Maps.ContainsKey("bus"));
+            Assert.AreEqual("A", configure.Maps["bus"]["1"]);
+            Assert.AreEqual("B", configure.Maps["bus"]["2"]);
+            Assert.AreEqual("2", configure.Maps["bus"].Default);
+
+            Assert.IsFalse(configure.Maps["bus"].ContainsKey("X"));
+            Assert.IsFalse(configure.Maps.ContainsKey("busx"));
+
+
             Log.SysLogger.Info("LoadConfig_Default_File End");
 
         }

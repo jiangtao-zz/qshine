@@ -508,7 +508,7 @@ namespace qshine.Configuration
                 }
 #endregion
 
-#region Load Applistion Settings
+                #region Load Application Settings
                 foreach (var setting in section.AppSettings)
                 {
                     Logger.Info("AE.LoadEnvironmentSection:: App Settings {0} = {1}, Overwrite={2}", setting.Key, setting.Value, _options.OverwriteAppSetting);
@@ -523,7 +523,14 @@ namespace qshine.Configuration
                         EnvironmentConfigure.AppSettings[setting.Key] = setting.Value;
                     }
                 }
-#endregion
+                #endregion
+
+                #region Load Maps
+                foreach (var maps in section.Maps)
+                {
+                    EnvironmentConfigure.AddMap(section.Maps.Name, section.Maps.Default, maps, _options.OverwriteMap);
+                }
+                #endregion
 
 #region Load other level configures
                 foreach (var environment in section.Environments)

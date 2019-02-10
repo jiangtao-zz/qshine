@@ -30,6 +30,12 @@ namespace qshine
         /// </summary>
         public bool OverwriteModule { get; set; }
 
+        /// <summary>
+        /// Option to overwrite later loaded named maps
+        /// </summary>
+        public bool OverwriteMap { get; set; }
+
+
         string _configFilePattern = "*.config";
         /// <summary>
         /// Specifies configure file pattern.
