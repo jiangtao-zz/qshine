@@ -4,7 +4,8 @@ The pluggable components added into application through environment configuratio
 
 ## Common library services
 - [Application Environment Configuration](qshine/docs/applicationEnvironment.md)
-- Database Access
+- [Application Startup](qshine/docs/applicationStartup.md)
+- Database
 - Context Store
 - IoC/DI
 - Cache

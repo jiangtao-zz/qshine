@@ -34,6 +34,11 @@ namespace qshine.Tests
         {
             IStartupInitializerTests.TestValue = 2;
         }
+
+        public void Start(string name)
+        {
+
+        }
     }
 
     /// <summary>

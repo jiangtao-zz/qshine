@@ -26,9 +26,12 @@ namespace qshine.Configuration
     /// </summary>
 	public partial class ApplicationEnvironment
     {
+        static SafeDictionary<string, IStartupInitializer> StartupInstances { get; set; }
         static Interceptor _interceptor;
         static ApplicationEnvironment()
         {
+            StartupInstances = new SafeDictionary<string, IStartupInitializer>();
+
             //Load runtime assemblies
             LoadRuntimeComponents();
 
@@ -39,14 +42,24 @@ namespace qshine.Configuration
             StartupInitializer();
         }
 
-        static void StartupInitializer()
+        static void StartupInitializer(bool isCompleted=false, string environmentName="")
         {
             var types = SafeGetInterfacedTypes(typeof(IStartupInitializer), InitializationType.IStartupInitializerType);
             foreach (var type in types)
             {
-                var dummy = Activator.CreateInstance(type);
+                var name = type.FullName;
+                if (!StartupInstances.ContainsKey(name))
+                {
+                    var dummy = Activator.CreateInstance(type);
+                    StartupInstances.Add(name, dummy as IStartupInitializer);
+                }
+                if (isCompleted && StartupInstances[name]!=null)
+                {
+                    StartupInstances[name].Start(environmentName);
+                }
             }
         }
+
 
         #region Ctor
         /// <summary>
@@ -285,7 +298,7 @@ namespace qshine.Configuration
             LoadInterceptHandlers();
 
             //Initialize plugin types.
-            StartupInitializer();
+            StartupInitializer(true, Name);
 
             _interceptor.RaiseOnSuccessEvent(this, eventArg);
             Logger.Info("AE.Init end {0}", Name);
@@ -999,9 +1012,9 @@ namespace qshine.Configuration
         /// The ApplicationEnvironment.Build() need be put in begin of the applciation execution path.
         /// Otherwise, default ApplicationEnvironment instance will be used.
         /// </remarks>
-        public static void Build(string rootConfigFile = "")
+        public static ApplicationEnvironment Build(string rootConfigFile = "")
         {
-            Build("",
+            return Build("",
                 new EnvironmentInitializationOption() {
                     RootConfigFile = rootConfigFile
                 }
@@ -1014,7 +1027,7 @@ namespace qshine.Configuration
         /// </summary>
         /// <param name="name">name of application environment</param>
         /// <param name="options">Specifies options to initialize application environment</param>
-        public static void Build(string name, EnvironmentInitializationOption options)
+        public static ApplicationEnvironment Build(string name, EnvironmentInitializationOption options)
         {
             var contextName = GetEnvironmentContextName(name);
             var appEnvironment = CurrentEnvironmentContextStore.GetData(contextName) as ApplicationEnvironment;
@@ -1029,6 +1042,7 @@ namespace qshine.Configuration
                     }
                 }
             }
+            return appEnvironment;
         }
 
         /// <summary>

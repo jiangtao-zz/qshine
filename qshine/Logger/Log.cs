@@ -48,6 +48,12 @@ namespace qshine
             var interceptor = Interceptor.Get<ApplicationEnvironment>();
             interceptor.OnSuccess += reloadLogProvider;
         }
+
+        public void Start(string name)
+        {
+
+        }
+
         static void reloadLogProvider(object sender, InterceptorEventArgs args)
         {
             if (args.MethodName == "Init")

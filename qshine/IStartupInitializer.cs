@@ -5,8 +5,9 @@ using System.Text;
 namespace qshine
 {
     /// <summary>
-    /// Indicate a static constructor has been implemented.
-    /// This static constructor will be called no later ApplicationEnvironment is built.
+    /// Indicate a default constructor has been implemented.
+    /// This constructor will be called no later ApplicationEnvironment is built.
+    /// The Start() method will be called after application environment built completed.
     /// The purpose of this interface is to initialize a specific type of class when the application environment begin.
     /// 
     /// The typical usage of the interface is to hook ApplicationEnvironment interceptor events
@@ -43,6 +44,11 @@ namespace qshine
     /// </summary>
     public interface IStartupInitializer
     {
-
+        /// <summary>
+        /// Start application after default application environment built completed
+        /// </summary>
+        /// <param name="name">application environment name. The default app environment has no name.</param>
+        void Start(string name);
     }
+
 }

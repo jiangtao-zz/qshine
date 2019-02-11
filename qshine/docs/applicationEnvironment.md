@@ -40,9 +40,10 @@ The environment config is a typical .NET application config file which contains 
 ---
 ## Environment
 
-The application environment is an infrastructure workspace to host an application with a collection of deployed components and dependency resources. 
-The host usually is a physcal machine, virtual machine, or a cloud system built with infrastructure. Same host could have many applications running in different application environment.
-In the application development lifcycle, a set of application environments are required for each stage of application deployment and testing. 
+The application environment is an infrastructure workspace to host an application with a collection of deployed components and dependency resources.
+The host usually is a physcal machine, virtual machine, or a cloud system built with infrastructure.
+Same host could have many applications running in different application environments.
+In the application development lifcycle, a set of application environments are required for each stage of application deployment and testing.
 
 The common application environments are:
 
@@ -52,8 +53,8 @@ The common application environments are:
 - STAGING/PRE-PRODUCTION environment
 - PRODUCTION environment
 
-An application environment configuration setting could contain many config files and each can be located in different config folder. 
-One config file is responsible for one type of dependency service configuration settings. The dependecy components are located in same folder.
+An application environment configuration setting could contain many config files. Each file is located in a config folder.
+One config file is responsible for one type of dependency service configuration settings. The dependecy binary components are located in same folder.
 
 Example:
 
@@ -87,6 +88,41 @@ Each environment element points to a setting folder and available for one enviro
 		</environments>
 ``` 
 
+An application environment configuration could contain all possible binary components for different running environment, 
+such as target .NET framework version, cpu architecture, operating system and library versions. 
+
+The application choose suitable running-time support libraries from binary configure folders automatically.
+
+The binary components configure folders can have below structure.
+
+- bin/[target framework name]/[target specific components]
+- bin/[cpu architecture]/[cpu specific components]
+- bin/[os]/[os specific components]
+- bin/[qshine library versions]/[target specific components]
+- bin/[one of above folder]/
+
+Example of binary folder structure,
+
+- bin/net461/
+- bin/netcoreapp2.1/
+- bin/x86/
+- bin/x64/
+- bin/win/
+- bin/linux/
+- bin/4/
+- bin/4.5/
+- bin/4.5.1/
+- plugin/mysql/bin/win/x64/netcoreapp2.2/
+- plugin/mysql/bin/linux/x64/netcoreapp2.2/4.5/
+
+The application component version searching path start from nearest version number folder and the first found component win.
+For example in below component folder structure, if the running qshine library is version 5.5.1 it will search version specific components from 5.5.1, 5.5 to 5 and only folder /5.5 components will be loaded.
+
+- bin/4.2
+- bin/5
+- bin/5.5
+- bin/6.5 
+
 ### environment element
 
 Embedded next level environment config files and dependency components.
@@ -101,9 +137,6 @@ It also look up the "bin" folder to load pluggable components.
 **host**: Specify environment host name or ip tha tthe element applied. If the "host" attribute given, the element will not be loaded 
 if the application host environment name or ip doesn't match.
 
-
-
- 
 
 ---
 ## Environment Levels and Hierarchy
