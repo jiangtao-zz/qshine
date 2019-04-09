@@ -12,7 +12,7 @@ namespace qshine
 	public class UnitOfWork:IDisposable
 	{
 		static IList<IUnitOfWorkProvider> _providers = null;
-		static object lockObject = new object();
+		static readonly object lockObject = new object();
 
 		readonly List<IUnitOfWork> _unitOfWorks;
 
@@ -61,12 +61,18 @@ namespace qshine
 		#region Dispose
 
 		bool disposed = false;
+        /// <summary>
+        /// Dispose
+        /// </summary>
 		public void Dispose()
 		{
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
-
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        /// <param name="disposing"></param>
 		protected virtual void Dispose(bool disposing)
 		{
 			if (disposed)

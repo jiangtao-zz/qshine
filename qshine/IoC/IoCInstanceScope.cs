@@ -6,8 +6,7 @@ using System.Text;
 namespace qshine
 {
     /// <summary>
-    /// The options to control instance life time scope.
-	/// It do not have per-request scope. Use context bind/unbind to release instance per-request.
+    /// The options to control instance lifetime scope.
     /// </summary>
     public enum IocInstanceScope
     {
@@ -16,8 +15,13 @@ namespace qshine
         /// </summary>
         Singleton,  
         /// <summary>
-        /// New instance for each resolve.
+        /// New instance for each request.
         /// </summary>
         Transient,
+        /// <summary>
+        /// New instance per call context scoped. It could be a web request, logic call context or any scope of the context implemented IContextStore.
+        /// Use context bind/unbind to scope and release instance per-context request.
+        /// </summary>
+        Scoped,
     }
 }

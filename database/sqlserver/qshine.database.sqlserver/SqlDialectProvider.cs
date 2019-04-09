@@ -33,8 +33,8 @@ namespace qshine.database.sqlserver
     public class SqlDialect : SqlDialectStandard
     {
         //ILogger _logger;
-        string _dataSource;
-        string _connectionString;
+        readonly string _dataSource;
+        readonly string _connectionString;
         SqlConnectionStringBuilder _connectionBuilder;
 
 
@@ -155,7 +155,7 @@ namespace qshine.database.sqlserver
         public override ConditionalSql ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
             return new ConditionalSql(
-                string.Format("exec sp_rename '{0}.{1}', '{2}', 'COLUMN'", tableName, oldColumnName, newColumnName)
+                string.Format("exec sp_rename '{0}.{1}', '{2}', 'COLUMN'", tableName, oldColumnName, newColumnName, column)
                 );
         }
 
@@ -291,14 +291,12 @@ To drop auto increment you need manually perform below actions:
                 return "'" + ((string)value).Replace("'", "''") + "'";
             }
 
-            if (value is DateTime)
+            if (value is DateTime datetime)
             {
-                var datetime = (DateTime)value;
                 return string.Format("convert('{0,4}-{1,2}-{2,2} {3,2}:{4,2}:{5,2}', 120)", datetime.Year, datetime.Month, datetime.Day, datetime.Hour, datetime.Minute, datetime.Second);
             }
 
-            var reservedWord = value as SqlReservedWord;
-            if (reservedWord != null)
+            if (value is SqlReservedWord reservedWord)
             {
                 if (reservedWord.IsSysDate)
                 {

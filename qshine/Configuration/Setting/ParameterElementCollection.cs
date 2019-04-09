@@ -12,6 +12,9 @@ namespace qshine.Configuration.Setting
     /// </summary>
     public class ParameterElementCollection : ConfigurationElementCollection<NamedValueElement>
     {
+        /// <summary>
+        /// Ctro.
+        /// </summary>
         public ParameterElementCollection()
             : base("parameter")
         {

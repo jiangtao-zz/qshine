@@ -1,20 +1,24 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace qshine.Utility
 {
     /// <summary>
-    /// A simple version Thread-Safe Collections
+    /// A simple version of Thread-Safe Collections
     /// </summary>
     /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
     /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
-    public class SafeDictionary<TKey, TValue>
+    public class SafeDictionary<TKey, TValue>: IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable
     {
         private ConcurrentDictionary<TKey, TValue> _dictionary;
 
         private object _safeLocker = new object();
 
+        /// <summary>
+        /// Ctro.
+        /// </summary>
         public SafeDictionary()
         {
             _dictionary = new ConcurrentDictionary<TKey, TValue>();
@@ -48,6 +52,9 @@ namespace qshine.Utility
             }
         }
 
+        /// <summary>
+        /// Get collection of keys.
+        /// </summary>
         public ICollection<TKey> Keys
         {
             get
@@ -83,12 +90,19 @@ namespace qshine.Utility
             _dictionary.TryAdd(key, value);
         }
 
+        /// <summary>
+        /// Determine whether a keyvalue pair exists in the collection.
+        /// </summary>
+        /// <param name="keyValuePair">key value pair</param>
+        /// <returns></returns>
         public bool Contains(KeyValuePair<TKey, TValue> keyValuePair)
         {
             return _dictionary.Contains(keyValuePair);
         }
 
-
+        /// <summary>
+        /// Clear collection
+        /// </summary>
         public void Clear()
         {
             _dictionary.Clear();
@@ -106,9 +120,33 @@ namespace qshine.Utility
             return _dictionary.TryRemove(key, out value);
         }
 
+        /// <summary>
+        /// Try to get the value by key
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public bool TryGetValue(TKey key, out TValue value)
         {
             return _dictionary.TryGetValue(key, out value);
+        }
+
+        /// <summary>
+        /// Returns enumerator
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            return _dictionary.GetEnumerator();
+        }
+
+        /// <summary>
+        /// Returns enumerator
+        /// </summary>
+        /// <returns></returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _dictionary.GetEnumerator();
         }
     }
 }

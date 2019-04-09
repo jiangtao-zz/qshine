@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace qshine
+namespace qshine.Logger
 {
     /// <summary>
     /// Trace logger provider.

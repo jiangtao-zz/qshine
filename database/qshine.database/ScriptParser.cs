@@ -39,10 +39,9 @@ namespace qshine.database
 		readonly string _document;
 		readonly string[] _preDefinedVariables;
 		readonly List<string> _variables = new List<string>();
-
-		bool _withinTrueBlock;
-		bool _hasInit;
-		Stack<PreCondition> _conditionStack = new Stack<PreCondition>();
+        //readonly bool _withinTrueBlock;
+        //readonly bool _hasInit;
+		readonly Stack<PreCondition> _conditionStack = new Stack<PreCondition>();
 
 		public ScriptParser(string document, params string[] preDefinedVariables)
 		{
@@ -50,8 +49,8 @@ namespace qshine.database
 			_preDefinedVariables = preDefinedVariables;
 		}
 
-		//pre-defined boolean variables
-		string[] _predefinedBooleans = new [] {
+        //pre-defined boolean variables
+        readonly string[] _predefinedBooleans = new [] {
 			"ORACLE",
 			"MSSQL",
 			"MYSQL",
@@ -67,10 +66,10 @@ namespace qshine.database
 		const string KeyVar = "var";
 		const string KeyComments = "//";
 
-		/// <summary>
-		/// The keywords.
-		/// </summary>
-		string[] _keywords = new[] {
+        /// <summary>
+        /// The keywords.
+        /// </summary>
+        readonly string[] _keywords = new[] {
 			KeyIf, 		//if condition
 			KeyElse, 	//else condition
 			KeyElseIf, 	//else if
@@ -78,14 +77,13 @@ namespace qshine.database
 			KeyVar,		//define variable
 			KeyComments	//comments
 		};
-
-		string[] _logicOperators = new string[] {
+        readonly string[] _logicOperators = new string[] {
 			"or",
 			"and"
 		};
 
 		private readonly string _leadingDirective = "#@";
-		string _variablePlaceholder = "#@{{0}}";
+		//string _variablePlaceholder = "#@{{0}}";
 
 		/// <summary>
 		/// Transfer a document based on directive script syntax.
@@ -125,10 +123,9 @@ namespace qshine.database
 
 		string ParseBlock(string block)
 		{
-			int index;
-			var directiveLine = ReadLine(block, out index);
+            var directiveLine = ReadLine(block, out int index);
 
-			PreCondition condition = PreCondition.Null;
+            PreCondition condition = PreCondition.Null;
 
             if (_conditionStack.Count > 0)
             {

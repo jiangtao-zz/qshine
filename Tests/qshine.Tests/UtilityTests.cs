@@ -178,7 +178,7 @@ namespace qshine.Tests
             var v1 = SampleEnum.Status2;
             Assert.AreEqual("Status2", v1.GetStringValue());
             Assert.AreEqual("101", v1.GetStringValue(EnumValueType.OriginalValue));
-            Assert.AreEqual("Status2", v1.GetStringValue(EnumValueType.OrigunalString));
+            Assert.AreEqual("Status2", v1.GetStringValue(EnumValueType.OriginalString));
             Assert.AreEqual("Status 2", v1.GetStringValue(EnumValueType.StringValue));
         }
 

@@ -4,9 +4,12 @@ using qshine.Compiler;
 
 namespace qshine.Compiler
 {
+    /// <summary>
+    /// Not implemented
+    /// </summary>
 	public class ScriptCompiler
 	{
-		string _leadingSymbol = "#@";
+        readonly string _leadingSymbol = "#@";
 		ScriptBuilder  _scriptBuilder = new ScriptBuilder();
 
 		/// <summary>
@@ -69,14 +72,23 @@ namespace qshine.Compiler
 
 	}
 	
-
+    /// <summary>
+    /// 
+    /// </summary>
 	public class BlockSection
 	{
-		long _length;
+        readonly long _length;
 		char _currentChar;
 		int _currentPosition;
 		string _input;
+        /// <summary>
+        /// 
+        /// </summary>
 		public BlockSection() { }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
 		public BlockSection(string input)
 		{
 			_input = input;
@@ -223,12 +235,24 @@ namespace qshine.Compiler
 					|| _currentChar == '\u2029');
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
 		public string Code { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
 		public string Variable { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
 		public string Text { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
 		public bool HasText
 		{
 			get
@@ -237,6 +261,9 @@ namespace qshine.Compiler
 			}
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
 		public bool HasVariable
 		{
 			get

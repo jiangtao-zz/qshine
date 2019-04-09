@@ -6,6 +6,11 @@ namespace qshine.Configuration.Setting
     /// </summary>
     public class NamedKeyValueElementCollection : ConfigurationElementCollection<KeyValueElement>
     {
+        /// <summary>
+        /// Get element key
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
         protected override object GetElementKey(ConfigurationElement element)
         {
             KeyValueElement namedElement = (KeyValueElement)element;

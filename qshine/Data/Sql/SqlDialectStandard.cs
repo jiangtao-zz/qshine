@@ -125,7 +125,6 @@ namespace qshine.database
         /// or
         ///     references otherTableName(column)
         /// </param>
-        /// <param name="referenceColumn">foreign key table column</param>
         /// <returns></returns>
         public virtual string ColumnReferenceKeyword(SqlDDLColumn reference)
         {
@@ -152,7 +151,8 @@ namespace qshine.database
         /// </summary>
         /// <param name="tableName">table name</param>
         /// <param name="oldColumnName">old column name</param>
-        /// <param name="column">column definition</param>
+        /// <param name="newColumnName">column definition</param>
+        /// <param name="column">column information. Not use in base class.</param>
         /// <returns></returns>
         public virtual ConditionalSql ColumnRenameClause(string tableName, string oldColumnName, string newColumnName, SqlDDLColumn column)
         {
@@ -183,6 +183,12 @@ namespace qshine.database
             return new ConditionalSql(ColumnModifyClause(tableName, column.Name, ToNativeDBType(column.DbType, column.Size, column.Scale)));
         }
 
+        /// <summary>
+        /// Get column PK creation clause
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual ConditionalSql ColumnAddPKClause(string tableName, SqlDDLColumn column)
         {
             return new ConditionalSql(
@@ -192,6 +198,12 @@ namespace qshine.database
                 ));
         }
 
+        /// <summary>
+        /// Get column PK remove clause
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual ConditionalSql ColumnRemovePKClause(string tableName, SqlDDLColumn column)
         {
             return new ConditionalSql(
@@ -200,6 +212,12 @@ namespace qshine.database
                 ));
         }
 
+        /// <summary>
+        /// Get column unique adding clause
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual ConditionalSql ColumnAddUniqueClause(string tableName,  SqlDDLColumn column)
         {
             return new ConditionalSql(
@@ -209,6 +227,12 @@ namespace qshine.database
                 ));
         }
 
+        /// <summary>
+        /// Get a list of DDL statements to remove column unique key.
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual List<ConditionalSql> ColumnRemoveUniqueClause(string tableName, SqlDDLColumn column)
         {
             var sqls = new List<ConditionalSql>();
@@ -245,6 +269,12 @@ namespace qshine.database
             return sqls;
         }
 
+        /// <summary>
+        /// Get a conditional sql to add column index
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual ConditionalSql ColumnAddIndexClause(string tableName, SqlDDLColumn column)
         {
             return CreateIndexClause(new SqlDDLIndex
@@ -256,6 +286,12 @@ namespace qshine.database
             });
         }
 
+        /// <summary>
+        /// Get a consitional sql to remove column index
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual ConditionalSql ColumnRemoveIndexClause(string tableName, SqlDDLColumn column)
         {
             var indexName = SqlDDLTable.GetIndexName(tableName, column);
@@ -265,6 +301,12 @@ namespace qshine.database
                 indexName));
         }
 
+        /// <summary>
+        /// Get conditional sql to create a column FK
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual ConditionalSql ColumnAddReferenceClause(string tableName, SqlDDLColumn column)
         {
             var foreignKey = SqlDDLTable.GetForeignKeyName(tableName, column.InternalId);
@@ -275,6 +317,12 @@ namespace qshine.database
                 );
         }
 
+        /// <summary>
+        /// Get a conditional sql to remove column FK
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual ConditionalSql ColumnRemoveReferenceClause(string tableName, SqlDDLColumn column)
         {
             var foreignKey = SqlDDLTable.GetForeignKeyName(tableName, column.InternalId);
@@ -284,6 +332,12 @@ namespace qshine.database
                 tableName, foreignKey));
         }
 
+        /// <summary>
+        /// Get inline FK constraint sql
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual string InlineFKConstraint(string tableName, SqlDDLColumn column)
         {
             var foreignKey = SqlDDLTable.GetForeignKeyName(tableName, column.InternalId);
@@ -293,6 +347,12 @@ namespace qshine.database
                 foreignKey, column.Name, ColumnReferenceKeyword(column.Reference));
         }
 
+        /// <summary>
+        /// Get inline column unique key constraint sql.
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual string InlineUniqueConstraint(string tableName, SqlDDLColumn column)
         {
             var uniqueKey = SqlDDLTable.GetUniqueKeyName(tableName, column.InternalId);
@@ -302,6 +362,12 @@ namespace qshine.database
                 uniqueKey, column.Name);
         }
 
+        /// <summary>
+        /// Get conditional sql to create column constraint
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual ConditionalSql ColumnAddConstraintClause(string tableName, SqlDDLColumn column)
         {
             var checkConstraintName = SqlDDLTable.GetCheckConstraintName(tableName, column.InternalId);
@@ -311,6 +377,12 @@ namespace qshine.database
                 tableName, checkConstraintName, column.CheckConstraint));
         }
 
+        /// <summary>
+        /// Get conditional sql to remove column constraint
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual ConditionalSql ColumnRemoveConstraintClause(string tableName, SqlDDLColumn column)
         {
             var checkConstraintName = SqlDDLTable.GetCheckConstraintName(tableName, column.InternalId);
@@ -320,36 +392,78 @@ namespace qshine.database
                 tableName, checkConstraintName));
         }
 
+        /// <summary>
+        /// Get sql to add column value not null constraint
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual string ColumnNotNullClause(string tableName, SqlDDLColumn column)
         {
             return ColumnModifyClause(tableName, column.Name, "not null");
         }
 
+        /// <summary>
+        /// Get sql to set column value nullable
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual string ColumnNullClause(string tableName, SqlDDLColumn column)
         {
             return ColumnModifyClause(tableName, column.Name, "null");
         }
 
+        /// <summary>
+        /// Get sql to set column default value
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual string ColumnModifyDefaultClause(string tableName, SqlDDLColumn column)
         {
             return ColumnModifyClause(tableName, column.Name, ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
         }
 
+        /// <summary>
+        /// Get sql to set column default value
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual string ColumnAddDefaultClause(string tableName,  SqlDDLColumn column)
         {
             return ColumnModifyClause(tableName, column.Name, ColumnDefaultKeyword(ToNativeValue(column.DefaultValue)));
         }
 
+        /// <summary>
+        /// Get sql to remove column default value
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual string ColumnRemoveDefaultClause(string tableName, SqlDDLColumn column)
         {
             return ColumnModifyClause(tableName, column.Name, ColumnDefaultKeyword("null"));
         }
 
+        /// <summary>
+        /// Get conditional sqls to set column auto-increment
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual List<ConditionalSql> ColumnAddAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Get conditional sqls to remove column auto-increment
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         public virtual List<ConditionalSql> ColumnRemoveAutoIncrementClauses(string tableName, SqlDDLColumn column)
         {
             throw new NotImplementedException();
@@ -364,10 +478,7 @@ namespace qshine.database
         /// <summary>
         /// Get create index sql statement
         /// </summary>
-        /// <param name="indexName"></param>
-        /// <param name="tableName"></param>
-        /// <param name="indexValue"></param>
-        /// <param name="isUnique"></param>
+        /// <param name="index"></param>
         /// <returns></returns>
         public virtual ConditionalSql CreateIndexClause(SqlDDLIndex index)
         {
@@ -395,6 +506,13 @@ namespace qshine.database
         /// <returns>Native database column type name.</returns>
         public abstract string ToNativeDBType(string dbType, int size, int scale);
 
+        /// <summary>
+        /// Make sql condition clause
+        /// </summary>
+        /// <param name="columnName"></param>
+        /// <param name="op"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public virtual string ToSqlCondition(string columnName, string op, object value)
         {
             return string.Format("{0} {1} {2}", columnName, op, ToNativeValue(value));
@@ -710,11 +828,23 @@ namespace qshine.database
             return sqls;
         }
 
+        /// <summary>
+        /// Get PK constraint name
+        /// </summary>
+        /// <param name="tableName"></param>
+        /// <param name="columnName"></param>
+        /// <returns></returns>
         public virtual string GetPKConstraintName(string tableName, string columnName)
         {
             return string.Format("{0}_PK", tableName);
         }
 
+        /// <summary>
+        /// Format sql command
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
         public string FormatCommandSqlLine(string format, params object[] parameters)
         {
             return string.Format(format, parameters);

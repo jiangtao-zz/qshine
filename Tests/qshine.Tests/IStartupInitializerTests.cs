@@ -13,14 +13,14 @@ namespace qshine.Tests
         [TestMethod()]
         public void Initialized_By_ApplicationEnvironment_Build()
         {
-            ApplicationEnvironment.Build();
+            ApplicationEnvironment.Build().StartUp<SampleStaticInitializerClass>();
             Assert.AreEqual(2, TestValue);
         }
 
         [TestMethod()]
         public void Initialized_By_ApplicationEnvironment_Module_Configure()
         {
-            ApplicationEnvironment.Build();
+            ApplicationEnvironment.Build().StartUp<SampleStaticInitializerClass>();
             Assert.AreEqual(4, TestValue2);
         }
     }
@@ -28,14 +28,21 @@ namespace qshine.Tests
     /// <summary>
     /// Class load automatically based on interface
     /// </summary>
-    public class SampleStaticInitializerClass : IStartupInitializer
+    public class SampleStaticInitializerClass
     {
         static SampleStaticInitializerClass()
         {
             IStartupInitializerTests.TestValue = 2;
         }
 
-        public void Start(string name)
+        public SampleStaticInitializerClass()
+        {
+            //Initialize before build environment
+            IStartupInitializerTests.TestValue = 2;
+        }
+
+        public SampleStaticInitializerClass(ApplicationEnvironment env)
+            :this()
         {
 
         }

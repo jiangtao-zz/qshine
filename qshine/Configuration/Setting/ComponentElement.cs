@@ -2,6 +2,9 @@
 
 namespace qshine.Configuration.Setting
 {
+    /// <summary>
+    /// Component configuration element
+    /// </summary>
 	public class ComponentElement : NamedConfigurationElement
 	{
 		const string InterfaceTypeName = "interface";
@@ -44,7 +47,7 @@ namespace qshine.Configuration.Setting
 		}
 
 		/// <summary>
-		/// Gets the parameters.
+		/// Gets the parameters collection.
 		/// </summary>
 		/// <value>The parameters.</value>
 		[ConfigurationProperty(ParametersAttributeName)]
@@ -53,6 +56,9 @@ namespace qshine.Configuration.Setting
 			get { return (ParameterElementCollection)base[ParametersAttributeName];}
 		}
 
+        /// <summary>
+        /// Get the default property
+        /// </summary>
         [ConfigurationProperty(DefaultAttributeName, IsRequired =false)]
         public bool Default
         {

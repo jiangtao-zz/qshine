@@ -59,12 +59,19 @@ namespace qshine.database
         #endregion
 
         #region IDisposable
+        /// <summary>
+        /// Dispose
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -92,6 +99,9 @@ namespace qshine.database
         /// <value>The name of the database.</value>
         public string ConnectionStringName { get; private set; }
 
+        /// <summary>
+        /// Get tracking table
+        /// </summary>
         public SqlDDLTracking TrackingTable
         {
             get
@@ -285,6 +295,7 @@ namespace qshine.database
         /// Rename and update table structure if it has any change.
         /// </summary>
         /// <param name="table">Table.</param>
+        /// <param name="trackingTable">The table tracking information</param>
         void RenameAndUpdateTable(SqlDDLTable table, TrackingTable trackingTable)
         {
             if (trackingTable != null)

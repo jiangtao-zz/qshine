@@ -7,10 +7,10 @@ using System.Security;
 using System.Linq;
 using System.Configuration;
 using qshine.Utility;
+using qshine.Logger;
 using qshine.Configuration.Setting;
-using System.Xml;
-using System.Dynamic;
-using System.Data;
+using qshine.Configuration.ConfigurationStore;
+
 #if NETCORE
 using System.Runtime.Loader;
 #endif
@@ -26,41 +26,7 @@ namespace qshine.Configuration
     /// </summary>
 	public partial class ApplicationEnvironment
     {
-        static SafeDictionary<string, IStartupInitializer> StartupInstances { get; set; }
-        static Interceptor _interceptor;
-        static ApplicationEnvironment()
-        {
-            StartupInstances = new SafeDictionary<string, IStartupInitializer>();
-
-            //Load runtime assemblies
-            LoadRuntimeComponents();
-
-            //Register ApplicationEnvironment interceptor
-            _interceptor = Interceptor.Register(typeof(ApplicationEnvironment));
-
-            //Invoke runtime assemblies startup initializers
-            StartupInitializer();
-        }
-
-        static void StartupInitializer(bool isCompleted=false, string environmentName="")
-        {
-            var types = SafeGetInterfacedTypes(typeof(IStartupInitializer), InitializationType.IStartupInitializerType);
-            foreach (var type in types)
-            {
-                var name = type.FullName;
-                if (!StartupInstances.ContainsKey(name))
-                {
-                    var dummy = Activator.CreateInstance(type);
-                    StartupInstances.Add(name, dummy as IStartupInitializer);
-                }
-                if (isCompleted && StartupInstances[name]!=null)
-                {
-                    StartupInstances[name].Start(environmentName);
-                }
-            }
-        }
-
-
+        bool _initialized = false;
         #region Ctor
         /// <summary>
         /// Ctor:: build default application environment
@@ -77,31 +43,30 @@ namespace qshine.Configuration
         /// <param name="options">Options to initialize application environment.</param>
         public ApplicationEnvironment(string name, EnvironmentInitializationOption options)
         {
-            var contextName = GetEnvironmentContextName(name);
-            //Set current Application Environment
-            CurrentEnvironmentContextStore.SetData(contextName, this);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                name = string.Empty;
-            }
-            Name = name;
-
-            if (options == null)
-            {
-                options = new EnvironmentInitializationOption();
-            }
-            _options = options;
+            //init fields
+            _options = options ?? new EnvironmentInitializationOption();
 
             EnvironmentConfigure = new EnvironmentConfigure();
-            _configFiles = new List<string>();
-            _modules = new SafeDictionary<string, object>();
+            Name = string.IsNullOrEmpty(name) ? string.Empty : name;
 
+            //Set current Application Environment context
+            var contextName = GetEnvironmentContextName(name);
+            EnvironmentContext.SetData(contextName, this);
+
+            ConfigurationStore = new XmlConfigurationStore();
+
+            //Initialize application environment
             Init();
         }
         #endregion
 
         #region public properties
+
+        /// <summary>
+        /// Configuration Store
+        /// </summary>
+        public IConfigurationStore ConfigurationStore { get; set; }
+
         /// <summary>
         /// Name of the application environment
         /// </summary>
@@ -124,51 +89,304 @@ namespace qshine.Configuration
             }
         }
 
+        /// <summary>
+        /// The reason of application environment construction failure. 
+        /// </summary>
+        public string InvalidReason { get; set; }
+
+        /// <summary>
+        /// Get connection strings
+        /// </summary>
+        public ConnectionStrings ConnectionStrings
+        {
+            get
+            {
+                return EnvironmentConfigure.ConnectionStrings;
+            }
+        }
+
         #endregion
 
         #region public Methods
 
         /// <summary>
-        /// Create a named provider by given type (or interface)
+        /// it will invoke all instances that implemented type T interface or base class.
+        /// The type T constructor()
         /// </summary>
-        /// <param name="name">provider name. If name is not provided, it will create first given type instance.</param>
-        /// <param name="providerInterface">provider interface type or base type or given class type.</param>
-        /// <returns>Returns a given type instance.</returns>
-        public IProvider CreateProvider(string name, Type providerInterface)
+        /// <typeparam name="T">An interface or base class for start up class implementation.</typeparam>
+        public ApplicationEnvironment StartUp<T>()
         {
-            PlugableComponent providerComponent = null;
-            foreach (var component in EnvironmentConfigure.Components)
+            var types = PluggableAssembly.SafeGetInterfacedTypes(typeof(T));
+
+            foreach (var type in types)
             {
-                if (component.Value.InterfaceType != null && component.Value.InterfaceType.Name == providerInterface.Name &&
-                    (component.Value.Name == name || string.IsNullOrEmpty(name)))
+                //Try to create startup instance using current ApplicationEnvironment instance as parameter
+                var instance = type.TryCreateInstance(this);
+
+                if (instance == null)
                 {
-                    providerComponent = component.Value;
-                    break;
+                    //If parameter is not type of ApplicationEnvironment. use default constructor. 
+                    type.TryCreateInstance();
                 }
             }
+            return this;
+        }
 
-            if (providerComponent != null && providerComponent.ClassType != null)
-            {
-                return CreateInstance(providerComponent.ClassType, providerComponent.Parameters.Values.ToArray()) as IProvider;
-            }
-            return null;
+        #region CreateProvider/CreateMappedProvider
+
+        /// <summary>
+        /// Create a specific interface type provider. The provider interface must inherit from IProvider
+        /// If the provider name is specified it create instance from named provider.
+        /// Get default or first interface provider if the name is not specified.
+        /// </summary>
+        /// <typeparam name="T">Specifies provider interface type or base type.</typeparam>
+        /// <param name="name">Provider name. If name is not specified, it will create default or first provider instance.
+        /// The default one can be configured in provider Maps section.</param>
+        /// <returns></returns>
+        public T CreateProvider<T>(string name = "")
+            where T : IProvider
+        {
+            return (T)CreateProvider(typeof(T), name);
+        }
+
+        /// <summary>
+        /// Create a specific interface type provider. The provider interface must inherit from IProvider.
+        /// If the provider name is specified it create instance from named provider.
+        /// Get default or first interface provider if the name is not specified.
+        /// </summary>
+        /// <param name="providerInterface">Specifies provider interface type or base type.</param>
+        /// <param name="name">Provider name. If name is not specified, it will create default or first provider instance.
+        /// The default one can be configured in provider Maps section.</param>
+        /// <returns>Returns a given interface type instance.</returns>
+        public IProvider CreateProvider(Type providerInterface, string name="")
+        {
+            var component = CreateComponent(providerInterface, name);
+
+            return (component != null) ? component as IProvider : null;
+        }
+
+        /// <summary>
+        /// Create a mapped specific interface type provider. The provider interface must inherit from IProvider.
+        /// If the mapped name is specified it create instance from named provider.
+        /// </summary>
+        /// <typeparam name="T">The provider interface type.</typeparam>
+        /// <param name="mapKey">The provider map name. 
+        /// If the mapKey is not configured or the mapped provider is invalid, it will create the default typed provider instance instead.</param>
+        /// <returns>Returns mapped provider instance</returns>
+        public T CreateMappedProvider<T>(string mapKey)
+            where T : IProvider
+        {
+            return (T)CreateMappedProvider(typeof(T), mapKey);
+        }
+
+        /// <summary>
+        /// Create a mapped specific interface type provider. The provider interface must inherit from IProvider.
+        /// If the mapped name is specified it create instance from named provider.
+        /// </summary>
+        /// <param name="providerInterface">The provider interface type.</param>
+        /// <param name="mapKey">The provider map name. 
+        /// If the mapKey is not configured or the mapped provider is invalid, it will create the default typed provider instance instead.</param>
+        /// <returns>Returns mapped provider instance</returns>
+        public IProvider CreateMappedProvider(Type providerInterface, string mapKey)
+        {
+            var component = CreatedMappedComponent(providerInterface, mapKey);
+
+            return (component != null) ? component as IProvider : null;
         }
 
         /// <summary>
         /// Get all given type of providers from configured components
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">type of provider interface</typeparam>
         /// <returns></returns>
         public IList<T> GetProviders<T>()
-            where T:IProvider
+            where T : IProvider
         {
+            if (!CheckInitialized()) return null;
+
             return EnvironmentConfigure.Components.Where(
-                x=>x.Value.InterfaceType != null &&
-                x.Value.InterfaceType == typeof(T) && 
-                x.Value.ClassType!=null)
+                x => x.Value.InterfaceType != null &&
+                x.Value.InterfaceType == typeof(T) &&
+                x.Value.ClassType != null)
                 .Select(
-                    y=> (T)CreateInstance(y.Value.ClassType, y.Value.Parameters.Values.ToArray()))
+                    y => (T)y.Value.CreateInstance()
+                    )
                 .ToList();
+        }
+
+        /// <summary>
+        /// Create a specific interface type component instance.
+        /// If the component name is specified it create instance from named component.
+        /// Get default or first typed component if the name is not specified.
+        /// </summary>
+        /// <typeparam name="T">The interface type of the component.</typeparam>
+        /// <param name="name">The component name defined in component setting configure. If name is blank, it will try to get default or first component listed in configure setting.</param>
+        /// <returns>returns typed component instance</returns>
+        public T CreateComponent<T>(string name = "")
+            where T : class
+        {
+            var component = CreateComponent(typeof(T), name);
+
+            return (component != null) ? component as T : null;
+        }
+
+        /// <summary>
+        /// Create a specific interface type component instance.
+        /// If the component name is specified it create instance from named component.
+        /// Get default or first typed component if the name is not specified.
+        /// </summary>
+        /// <param name="interfaceType">The interface type of the component.</param>
+        /// <param name="name">The component name defined in component setting configure. If name is blank, it will try to get default or first component listed in configure setting.</param>
+        /// <returns>returns typed component instance object</returns>
+        public object CreateComponent(Type interfaceType, string name = "")
+        {
+            if (!CheckInitialized()) return null;
+
+            //provider always be a single instance
+            PlugableComponent provider = GetPluggableComponent(interfaceType, name);
+
+            object instance = null;
+
+            if (provider != null)
+            {
+                instance = provider.CreateInstance();
+            }
+
+            return instance;
+        }
+
+        /// <summary>
+        /// Get or create a mapped provider.
+        /// A mapped provider is one of the provider built from configure file component maps setting.
+        /// The component map setting is a list of map key and provider name pair. 
+        /// Provider configure setting map sample:
+        /// <![CDATA[
+        ///     <maps name="providerTypeName" default="defaultProviderName">
+        ///         <add key="mapKey" value="providerName" />
+        ///     </maps>
+        ///     <components>
+        ///         <component name="providerName1" interface="Ixxx" type="xxx" />
+        ///         <component name="providerName" interface="Ixxx" type="xxx2" />
+        ///     </components>
+        /// ]]>
+        /// </summary>
+        /// <typeparam name="T">Provider interface type</typeparam>
+        /// <param name="mapKey">A map key associated to named provider. If the mapKey or associated provider name is blank, get the default provider</param>
+        /// <returns>A provider instance mapped mapKey</returns>
+        public T CreateMappedComponent<T>(string mapKey)
+            where T : class
+        {
+            return (T)CreatedMappedComponent(typeof(T), mapKey);
+        }
+
+        /// <summary>
+        /// See above CreatedMappedComponent() comments.
+        /// </summary>
+        /// <param name="componentInterfaceType"></param>
+        /// <param name="mapKey"></param>
+        /// <returns></returns>
+        public object CreatedMappedComponent(Type componentInterfaceType, string mapKey)
+        {
+            var componentName = GetMappedComponentName(componentInterfaceType, mapKey);
+            return CreateComponent(componentInterfaceType, componentName);
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Get component interface mapped name.
+        /// </summary>
+        /// <param name="componentInterfaceType">Component interface type</param>
+        /// <param name="mapKey">Component map key</param>
+        /// <returns>Returns configured component map key.</returns>
+        public string GetMappedComponentName(Type componentInterfaceType, string mapKey)
+        {
+            //Map name usually is the type name
+            string componentMapName = Map.GetMapName(componentInterfaceType);
+
+            var maps = EnvironmentConfigure.Maps;
+            if (maps != null)
+            {
+                //if the component map is found
+                if (maps.ContainsKey(componentMapName))
+                {
+                    //get particular provider map and find mapped provider name
+                    var componentMaps = maps[componentMapName];
+                    if (componentMaps != null && componentMaps.ContainsKey(mapKey))
+                    {
+                        return componentMaps[mapKey];
+                    }
+                }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Get specific interface plugin component by given name. if the name is not specified, it returns default or first typed component.
+        /// </summary>
+        /// <param name="interfaceType">Specifies component interface type</param>
+        /// <param name="name">Specifies the component name. If teh name is blank, it will get default or first component.
+        /// if plugin associated to a maps collection, the name parameter will be a map key instead a component name.
+        /// The component name is a map key associated value.
+        /// </param>
+        /// <returns>pluggable component</returns>
+        public PlugableComponent GetPluggableComponent(Type interfaceType, string name="")
+        {
+            bool defaultOrFirst = string.IsNullOrEmpty(name); //search for default or first
+
+            //if name is blank, try to find default provider name from component map.
+            //  <maps name="interafceType" default="defaultComponentname">
+            //    <add key="mapKey" value="providerName" />
+            //  </maps>
+            //
+            var map = GetComponentMap(interfaceType);
+            if(map!=null)
+            {
+                //Get default mapped component if the name is not specified.
+                if (defaultOrFirst && !string.IsNullOrEmpty(map.Default))
+                {
+                    name = map.Default;
+                }
+                if(!string.IsNullOrEmpty(name))
+                {
+                    //try to find first matched map key
+                    var matchedMap = map.Items.Keys.FirstOrDefault(x => name.Match(x));
+                    if (matchedMap != null)
+                    {
+                        //get mapped key
+                        name = map.Items[matchedMap];
+                    }
+                }
+            }
+
+            PlugableComponent pluginComponent = null;
+            foreach (var component in EnvironmentConfigure.Components)
+            {
+                if (component.Value.InterfaceType != null && component.Value.InterfaceType.Name == interfaceType.Name)
+                {
+                    if (component.Value.Name == name)
+                    {
+                        //found named component
+                        pluginComponent = component.Value;
+                        break;
+                    }
+
+                    if (defaultOrFirst)
+                    {
+                        //reserve first component and continue keep looking for named component. 
+                        pluginComponent = component.Value;
+                        defaultOrFirst = false;
+                    }
+                }
+            }
+
+            if (pluginComponent != null)
+            {
+                pluginComponent.Instantiate();
+            }
+
+            return pluginComponent;
         }
 
         /// <summary>
@@ -183,56 +401,29 @@ namespace qshine.Configuration
                 return null;
             }
             var fileName = configFileName.ToLower();
-            if (_configFiles.Any(x=>x.EndsWith(fileName)))
+            if (EnvironmentConfigure.ConfigFiles.Any(x => x.EndsWith(fileName)))
             {
-                return _configFiles.SingleOrDefault(x => x.EndsWith(fileName));
+                return EnvironmentConfigure.ConfigFiles.SingleOrDefault(x => x.EndsWith(fileName));
             }
             return null;
         }
 
+        #endregion
+
+        #region private
+
+        const string environmentContextStoreName = "_$$envContext.current";
+
+        EnvironmentInitializationOption _options;
+
+        List<string> _externalDepsJsonPaths = new List<string>();
+
         /// <summary>
-        /// Load a qualified type without throw exception
+        /// Load assembly from plugin folder
         /// </summary>
-        /// <returns>The type or null.</returns>
-        /// <param name="typeValue">Type value.</param>
-        public Type SafeLoadType(string typeValue)
-        {
-            Type type = null;
-            try
-            {
-                type = Type.GetType(typeValue);
-
-                if (type == null)
-                {
-                    //This should not happen. Just in case type cannot be resolved by previous assembly_resolver, need load type from assembly directly
-                    var assemblyNameParts = typeValue.Split(',');
-                    if (assemblyNameParts.Length > 1)
-                    {
-                        var assemblyName = assemblyNameParts[1].Trim();
-                        var typeNameOnly = assemblyNameParts[0].Trim();
-                        if (_assemblyMaps.ContainsKey(assemblyName))
-                        {
-                            var assembly = _assemblyMaps[assemblyName].Assembly;
-                            if (assembly != null)
-                            {
-                                type = assembly.GetType(typeNameOnly, true);
-                            }
-                        }
-                    }
-                }
-                if (type == null)
-                {
-                    Logger.Error("AE.SafeLoadType:: Invalid type [{0}].", typeValue);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("AE.SafeLoadType:: {0} throw exception: {1}", typeValue, ex.Message);
-            }
-            return type;
-        }
-
-        public Assembly SafeLoadAssembly(string path)
+        /// <param name="path">path of plugin component</param>
+        /// <returns></returns>
+        Assembly SafeLoadAssembly(string path)
         {
             try
             {
@@ -242,68 +433,75 @@ namespace qshine.Configuration
             var assembly = Assembly.LoadFrom(path);
 #endif
                 return assembly;
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
-                Logger.Error("AE.SafeLoadAssembly:: {0} throw exception: {1}", path, ex.Message);
+                AddInnerException("AE:: Failed to load assembly path {0}. ({1})", path, ex.Message);
                 return null;
             }
         }
 
-        #endregion
+        void AddInnerException (string format, params object[] args)
+        {
+            if (_options.InnerException == null)
+            {
+                _options.InnerException = new ConfigurationException();
+            }
+            string error = string.Format(format, args);
+            _options.InnerException.InnerErrorMessages.Add(error);
 
-        #region private
+        }
 
-        const string environmentContextStoreName = "_$$envContext.current";
-        /// <summary>
-        /// Contains all environment configure files 
-        /// </summary>
-        //SafeDictionary<string, string> _configFiles;
-        List<string> _configFiles;
+        bool CheckInitialized()
+        {
+            if (!_initialized)
+            {
+                InvalidReason = "The application environment has not been initialized.";
+            }
+            return _initialized;
+        }
 
-        /// <summary>
-        /// Contains all named modules from configure environment.
-        /// A module is an auto loaded component which can perform self initialization. 
-        /// </summary>
-        SafeDictionary<string, object> _modules;
-
-        EnvironmentInitializationOption _options;
-
-        List<string> _externalDepsJsonPaths = new List<string>();
 
         /// <summary>
         /// Initializes the <see cref="T:qshine.Configuration.ApplicationEnvironment"/>.
         /// </summary>
         void Init()
         {
-            Logger.Info("AE.Init {0} begin", Name);
-
-            //Set application assembly resolver
+            //Set application assembly resolver for find pluggable assembly
             SetAssemblyResolve();
 
-            var eventArg = new InterceptorEventArgs("Init",Name, _options);
+            //Raise enter event
+            var eventArg = new InterceptorEventArgs("Init", Name, _options);
             _interceptor.RaiseOnEnterEvent(this, eventArg);
 
             //Load configure setting
-            LoadConfig(_options.RootConfiguration==null?_options.RootConfigFile:null);
+            if (ConfigurationStore != null)
+            {
+                EnvironmentConfigure = ConfigurationStore.LoadConfig(_options);
+            }
+
             //Load binary setting
             LoadBinaryFiles();
 
-            //Load type from binary assembly
+            //Load components from binary assembly
             LoadComponents();
+
             //Load modules
             LoadModules();
 
-
-            //Load intercept handlers after plugin components loaded
+            //Load intercept handlers after all plugin components loaded
             LoadInterceptHandlers();
 
-            //Initialize plugin types.
-            StartupInitializer(true, Name);
+            //Component loaded
+            _initialized = true;
 
+            //Raise completion event
             _interceptor.RaiseOnSuccessEvent(this, eventArg);
-            Logger.Info("AE.Init end {0}", Name);
         }
 
+        /// <summary>
+        /// Logger
+        /// </summary>
         ILogger _logger;
         ILogger Logger
         {
@@ -311,390 +509,14 @@ namespace qshine.Configuration
             {
                 if (_logger == null)
                 {
-                    _logger = _options.Logger;
-                }
-                if (_logger == null)
-                {
                     _logger = Log.SysLogger;
                 }
                 return _logger;
             }
-        }
-
-        /// <summary>
-        /// Load application environment configuration from a specific configure files.
-        /// It is a recursive function which will load user application environment configur files 
-        /// from top to down until all level configure information loaded into EnvironmentConfigure object.
-        /// </summary>
-        /// <param name="configFile">Config file. The default is application domain configuration file: app.config or web.config</param>
-        /// <returns>Return EnvironmentConfigure object.</returns>
-        EnvironmentConfigure LoadConfig(string configFile = null)
-        {
-            System.Configuration.Configuration config;
-            try
+            set
             {
-                if (string.IsNullOrEmpty(configFile))
-                {
-                    // Get the current configuration file.
-                    if (_options.RootConfiguration == null)
-                    {
-                        Logger.Info("AE.LoadConfig:: Open default config file.");
-                        config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                    }
-                    else
-                    {
-                        //using option to get application configuration in case system cannot figure out the location of 
-                        //the entrypoint config file.
-                        Logger.Info("AE.LoadConfig:: Set option.RootConfiguration.");
-                        config = _options.RootConfiguration;
-                    }
-
-                    //var fileName = configFile.ToLower();
-                    _configFiles.Add(configFile.ToLower());
-                }
-                else
-                {
-                    var fileName = configFile.ToLower();
-                    if (_configFiles.Contains(fileName))
-                    {
-                        //Do not load the file if it already loaded
-                        return EnvironmentConfigure;
-                    }
-                    _configFiles.Add(fileName);
-
-                    var fileMap = new ExeConfigurationFileMap { ExeConfigFilename = configFile };
-                    Logger.Info("AE.LoadConfig:: Open config {0}.", configFile);
-                    config = ConfigurationManager.OpenMappedExeConfiguration(fileMap, ConfigurationUserLevel.None);
-                }
+                _logger = value;
             }
-            catch (Exception ex)
-            {
-                Logger.Error("AE.LoadConfig:: {0} throw an exception {1}", configFile ?? "default", ex.Message);
-                return EnvironmentConfigure;
-            }
-
-            if (config != null)
-            {
-                //Load ConnectionString sections first
-                foreach (ConfigurationSection section in config.Sections)
-                {
-                    if (section is ConnectionStringsSection)
-                    {
-                        //Load connection strings
-                        LoadDbConnectionStrings(section as ConnectionStringsSection);
-                    }
-                    else
-                    {
-                        var sectionInformation = section.SectionInformation;
-                        if (sectionInformation != null && sectionInformation.Name == "system.data")
-                        {
-                            var rawXml = sectionInformation.GetRawXml();
-                            if (rawXml != null)
-                            {
-                                var factories = new XmlSection(rawXml);
-                                if(factories.Items.Count>0 && factories.Items[0].Name== "DbProviderFactories"
-                                    && factories.Items[0].Items.Count>0)
-                                {
-                                    foreach(var item in factories.Items[0].Items)
-                                    {
-                                        if (item.Name == "remove")
-                                        {
-                                            UnRegisterDbProviderFactory(item["invariant"]);
-                                        }
-                                        else if(item.Name == "add")
-                                        {
-                                            RegisterDbProviderFactory(item["invariant"],item["type"]);
-                                        }
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                }
-
-                                    //Load application environment specific sections
-                foreach (var section in config.Sections)
-                {
-                    if (section is EnvironmentSection)
-                    {
-                        //Load environment section
-                        LoadEnvironmentSection(section as EnvironmentSection);
-                    }
-                }
-            }
-
-            return EnvironmentConfigure;
-        }
-
-        /// <summary>
-        /// Register DbProviderFactories for .NET CORE.
-        /// .NET CORE doesn't implement the factory register.
-        /// We have to add piece of code here to make it compatiable with >NET framework
-        /// </summary>
-        void RegisterDbProviderFactory(string invariantName, string assemblyQualifiedName)
-        {
-#if NETCORE
-            System.Data.Common.DbProviderFactories.RegisterFactory(invariantName,  assemblyQualifiedName);                  
-#else
-            //var table = System.Data.Common.DbProviderFactories.GetFactoryClasses();
-            //if (table != null)
-            //{
-            //    foreach (DataRow row in table.Rows)
-            //    {
-            //        if (row[2].ToString() == invariantName)
-            //        {
-            //            string name = (string)row[0];
-            //            string description = (string)row[1];
-            //            string invariant = (string)row[2];
-            //            string assemblyType = (string)row[3];
-            //            if (assemblyType != assemblyQualifiedName)
-            //            {
-            //                table.Rows.Remove(row);
-            //                table.Rows.Add(name, description, invariant, assemblyQualifiedName);
-            //                break;
-            //            }
-            //        }
-            //    }
-            //}
-#endif
-        }
-
-        void UnRegisterDbProviderFactory(string invariantName)
-        {
-#if NETCORE
-             System.Data.Common.DbProviderFactories.UnregisterFactory(invariantName);
-#endif
-        }
-
-        /// <summary>
-        /// Load connection strings
-        /// </summary>
-        /// <param name="section">ConnectionStrings section</param>
-		void LoadDbConnectionStrings(ConnectionStringsSection section)
-        {
-            if (section != null)
-            {
-                //If the section is a protected (encrypted), unprotect section data
-                //https://docs.microsoft.com/en-us/dotnet/api/system.configuration.rsaprotectedconfigurationprovider?redirectedfrom=MSDN&view=netframework-4.7.2
-                if (section.SectionInformation.IsProtected)
-                {
-                    section.SectionInformation.UnprotectSection();
-                }
-
-                foreach (ConnectionStringSettings c in section.ConnectionStrings)
-                {
-                    Logger.Info("AE.LoadDbConnectionStrings:: {0}, {1}. Overwrite={2}", c.Name, c.ConnectionString, _options.OverwriteConnectionString);
-
-                    EnvironmentConfigure.AddConnectionString(new ConnectionStringElement(c.Name, c.ConnectionString, c.ProviderName),
-                        _options.OverwriteConnectionString);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Load environment section
-        /// </summary>
-        /// <param name="section">Application Environment section</param>
-		void LoadEnvironmentSection(EnvironmentSection section)
-        {
-            if (section != null)
-            {
-#region Load Components
-                foreach (var component in section.Components)
-                {
-                    Logger.Info("AE.LoadEnvironmentSection:: Add Component {0}, Overwrite={1}", component.Name, _options.OverwriteComponent);
-                    EnvironmentConfigure.AddComponent(component, _options.OverwriteComponent);
-                }
-#endregion
-
-#region Load Modules
-                foreach (var module in section.Modules)
-                {
-                    Logger.Info("AE.LoadEnvironmentSection:: Add Module {0}, Overwrite={1}", module.Name, _options.OverwriteModule);
-                    EnvironmentConfigure.AddModule(new PlugableComponent
-                    {
-                        Name = module.Name,
-                        ClassTypeName = module.Type,
-                        ConfigureFilePath = section.CurrentConfiguration.FilePath
-                    }, _options.OverwriteModule);
-                }
-#endregion
-
-                #region Load Application Settings
-                foreach (var setting in section.AppSettings)
-                {
-                    Logger.Info("AE.LoadEnvironmentSection:: App Settings {0} = {1}, Overwrite={2}", setting.Key, setting.Value, _options.OverwriteAppSetting);
-
-                    //Add or Update
-                    if (!EnvironmentConfigure.AppSettings.ContainsKey(setting.Key))
-                    {
-                        EnvironmentConfigure.AppSettings.Add(setting.Key, setting.Value);
-                    }
-                    if (_options.OverwriteAppSetting)
-                    {
-                        EnvironmentConfigure.AppSettings[setting.Key] = setting.Value;
-                    }
-                }
-                #endregion
-
-                #region Load Maps
-                foreach (var maps in section.Maps)
-                {
-                    EnvironmentConfigure.AddMap(section.Maps.Name, section.Maps.Default, maps, _options.OverwriteMap);
-                }
-                #endregion
-
-#region Load other level configures
-                foreach (var environment in section.Environments)
-                {
-                    Logger.Info("AE.LoadEnvironmentSection:: Add Environment {0}", environment.Name);
-                    EnvironmentConfigure.AddEnvironment(environment);
-                    //Only load environment related setting
-                    if (string.IsNullOrEmpty(environment.Host) ||//match all
-                        environment.Host == Environment.MachineName || //machine name match
-                       environment.Host == EnvironmentEx.MachineIp) //Ip match
-                    {
-
-                        var folder = Path.GetDirectoryName(section.CurrentConfiguration.FilePath);
-                        var path = UnifiedFullPath(folder, environment.Path);
-                        if (!Directory.Exists(path))
-                        {
-                            Logger.Warn("AE.LoadEnvironmentSection:: Config path {0} does not exist.", path);
-                        }
-                        else if (!EnvironmentConfigure.ConfigureFolders.Contains(path))
-                        {
-                            EnvironmentConfigure.ConfigureFolders.Add(path);
-
-                            string binfolders = "bin";
-                            if (!string.IsNullOrEmpty(environment.Bin))
-                            {
-                                binfolders = environment.Bin;
-                            }
-
-                            var folders = binfolders.Split(',');
-                            if (folders.Length > 0)
-                            {
-                                foreach (var binfolder in folders)
-                                {
-                                    if (!string.IsNullOrEmpty(binfolder))
-                                    {
-                                        var binFolder = Path.Combine(Path.GetFullPath(path), binfolder);
-                                        ResolveBinaryFolders(binFolder);
-                                    }
-                                }
-                            }
-
-                            //Find all configure files and load all
-                            var files = Directory.GetFiles(path, _options.ConfigureFilePattern);
-                            if (files != null)
-                            {
-                                for (int i = 0; i < files.Length; i++)
-                                {
-                                    LoadConfig(files[i]);
-                                }
-                            }
-                        }
-                    }
-                }
-#endregion
-            }
-        }
-
-        int _deeps = 0;
-        /// <summary>
-        /// Add configured binary folders in binary components search path.
-        /// The available binary folders could be:
-        /// 1. [given binary folder] ex: bin. Usually, add common non-version specific component
-        /// 2. [given binary folder]/[qshine version folder] ex: bin/2.1. Usually, add qshine extension components
-        /// 3. [given binary folder]/[Microsoft .NET version folder] ex: bin/net461 or bin/netcoreapp2.1. Usually, add components built with specific .NET library
-        /// 4. [given binary folder]/[cpu architecture folder] ex: bin/x86 or bin/x64. Usually, add 3rd-party plug-in components
-        /// The x86 only components should be in x86 folder.
-        /// The x64 only components should be in x64 folder.
-        /// The Any CPU components should be in bin folder directly.
-        /// 5. [given binary folder]/[os folder] ex: bin/win or bin/linux.
-        /// 6. [given binary folder]/[one of above folder]/[one of above folder]/...
-        /// </summary>
-        /// <param name="binFolder">binary folder entry</param>
-        /// <remark>
-        /// The binary folder may contain any level of below type sub-folder. Only matched folder dlls will be loaded
-        ///  binary Folder --
-        ///        |-- qshine version folder: 1.0, 2.1
-        ///        |-- cpu-architecture folder: x86, x64, arm, arm64
-        ///        |-- target framework moniker folder: net461, netcoreapp2.1
-        ///        |-- os folder: win, linux, osx
-        ///        |
-        /// </remark>
-		void ResolveBinaryFolders(string binFolder)
-        {
-            if (_deeps > 50)
-            {
-                //The environment configure loop infinity.
-                throw new ArgumentOutOfRangeException("AE.ResolveBinaryFolders:: Too many sub-folder levels.");
-            }
-            _deeps++;
-            if (Directory.Exists(binFolder) && !EnvironmentConfigure.AssemblyFolders.Any(x => x.ObjectData == binFolder))
-            {
-                Logger.Info("AE.ResolveBinaryFolders:: Add binary folder {0}", binFolder);
-
-                //add specified binary folder
-                EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, binFolder));
-
-                //add components based on specific qshine version.
-                for (int i = GetFrameworkVersionPaths().Length - 1; i >= 0; i--)
-                {
-                    var versionPath = Path.Combine(binFolder, GetFrameworkVersionPaths()[i]);
-                    if (Directory.Exists(versionPath) && !EnvironmentConfigure.AssemblyFolders.Any(x => x.ObjectData == versionPath))
-                    {
-                        //EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, versionPath));
-                        Logger.Info("AE.ResolveBinaryFolders:: Found version path {0}", versionPath);
-                        //Search for sub folder
-                        ResolveBinaryFolders(versionPath);
-                        break;
-                    }
-                }
-
-                //add components built for specific cpu architecture
-                var cpuArchitecturePath = Path.Combine(binFolder, EnvironmentEx.CpuArchitecture);
-                if (Directory.Exists(cpuArchitecturePath) && !EnvironmentConfigure.AssemblyFolders.Any(x => x.ObjectData == cpuArchitecturePath))
-                {
-                    //EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, cpuArchitecturePath));
-                    Logger.Info("AE.ResolveBinaryFolders:: Found CPU Architecture path {0}", cpuArchitecturePath);
-                    //Search for sub folder
-                    ResolveBinaryFolders(cpuArchitecturePath);
-                }
-
-                //add components built for specific .net library version
-                if (!string.IsNullOrEmpty(EnvironmentEx.TargetFramework))
-                {
-                    //add cpu architecture binary folder
-                    var targetDotNetFrameworkPath = Path.Combine(binFolder, EnvironmentEx.TargetFramework);
-                    if (Directory.Exists(targetDotNetFrameworkPath) && !EnvironmentConfigure.AssemblyFolders.Any(x => x.ObjectData == targetDotNetFrameworkPath))
-                    {
-                        //EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, targetDotNetFrameworkPath));
-                        Logger.Info("AE.ResolveBinaryFolders:: Found DotNet target framework path {0}", targetDotNetFrameworkPath);
-                        //Search for sub folder
-                        ResolveBinaryFolders(targetDotNetFrameworkPath);
-                    }
-                }
-
-                //add components built for specific operation system
-                if (!string.IsNullOrEmpty(EnvironmentEx.OSPlatform))
-                {
-                    //add cpu architecture binary folder
-                    var osPath = Path.Combine(binFolder, EnvironmentEx.OSPlatform);
-                    if (Directory.Exists(osPath) && !EnvironmentConfigure.AssemblyFolders.Any(x => x.ObjectData == osPath))
-                    {
-                        //EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, targetDotNetFrameworkPath));
-                        Logger.Info("AE.ResolveBinaryFolders:: Found OS path {0}", osPath);
-                        //Search for sub folder
-                        ResolveBinaryFolders(osPath);
-                    }
-                }
-
-            }
-            _deeps--;
-
         }
 
         [SecuritySafeCritical]
@@ -712,6 +534,7 @@ namespace qshine.Configuration
         {
             return ApplicationAssemblyResolve(context, new ResolveEventArgs(name.FullName));
         }
+
 #endif
 
         /// <summary>
@@ -735,12 +558,9 @@ namespace qshine.Configuration
             //We only allow single version assembly loaded from mapping list.
             //Load sequence is based on searching order starting from application configuration entrypoint.
             //To avoid version conflict, DO NOT add multiple versions in configuration binary folder.
-            if (_assemblyMaps.ContainsKey(assemblyName) && _assemblyMaps[assemblyName].Assembly != null)
-            {
-                return _assemblyMaps[assemblyName].Assembly;
-            }
+            Assembly assembly = PluggableAssembly.GetAssembly(assemblyName);
 
-            Assembly assembly=null;
+            if (assembly != null) return assembly;
 
             ////2. ** try to load assembly from default load context ***
             ////The default load context runtime components should be loaded first before load other components to "load-from context".
@@ -748,78 +568,42 @@ namespace qshine.Configuration
             ////in other configuration binary folder, try load dependency dll earlier before load plugable component. 
             //// check for assemblies already loaded by the current application domain. It is necessary. See. 
             //// https://docs.microsoft.com/en-us/dotnet/framework/deployment/best-practices-for-assembly-loading
-            //if (_options.RuntimeComponents == null)
-            //{
-            //    _options.RuntimeComponents = AppDomain.CurrentDomain.GetAssemblies();
-            //}
-            //Assembly[] assemblies = _options.RuntimeComponents;
-            //var assembly = assemblies.FirstOrDefault(a => a.GetName().FullName.Equals(args.Name) ||
-            //                                        a.GetName().Name.Equals(args.Name) ||
-            //                                        a.GetName().Name.Equals(assemblyName));
-            ////Add "default load context" dlls in the mapping list
-            //if (assembly != null)
-            //{
-            //    if (!_assemblyMaps.ContainsKey(assemblyName))
-            //    {
-            //        _assemblyMaps[assemblyName] = new PlugableAssembly
-            //        {
-            //            Path = assembly.CodeBase
-            //        };
-            //    }
-            //    _assemblyMaps[assemblyName].Assembly = assembly;
-
-            //    Logger.Info("AE.AssemblyResolve:: Loaded from default load context:: Assembly {0},{1}", assembly.FullName, assembly.CodeBase);
-            //}
-            //else
             {
+                var pluggableAssembly = PluggableAssembly.GetPluggableAssembly(assemblyName);
+
                 //Try to load assembly from different application configuration folders
-                if (!_assemblyMaps.ContainsKey(assemblyName))
+                if (pluggableAssembly==null)
                 {
                     //Try to load configuration binary folders into mapping list, if not loaded yet
                     LoadBinaryFiles();
                 }
 
                 //3. ** Try get assembly from "load-from context" and put in mapping list
-                if (_assemblyMaps.ContainsKey(assemblyName))
+                pluggableAssembly = PluggableAssembly.GetPluggableAssembly(assemblyName);
+
+                if (pluggableAssembly!=null)
                 {
                     //Assembly already in "load-from context" 
-                    if (_assemblyMaps[assemblyName].Assembly != null)
+                    if (pluggableAssembly.Assembly != null)
                     {
-                        return _assemblyMaps[assemblyName].Assembly;
+                        return pluggableAssembly.Assembly;
                     }
                     //Load assembly from configured path and add in "load-from context"
                     //This may throw exception. The exception will be captured when call assemby Load()
 #if NETCORE
-                    assembly = ApplicationAssemblyResolver.Resolve(_assemblyMaps[assemblyName].Path);
+                    assembly = ApplicationAssemblyResolver.Resolve(pluggableAssembly.Path);
 #else
-                    assembly = Assembly.LoadFrom(_assemblyMaps[assemblyName].Path);
+                    assembly = Assembly.LoadFrom(pluggableAssembly.Path);
 #endif
                     if (assembly != null)
                     {
-                        _assemblyMaps[assemblyName].Assembly = assembly;
+                        pluggableAssembly.Assembly = assembly;
                     }
                 }
                 else
                 {
-//#if NETCORE
-//                    if (_externalDepsJsonPaths.Count > 0)
-//                    {
-//                        assembly = ApplicationAssemblyResolver.Resolve(_externalDepsJsonPaths, args.RequestingAssembly, args.Name);
-//                        if (assembly != null)
-//                        {
-//                            if (!_assemblyMaps.ContainsKey(assemblyName))
-//                            {
-//                                _assemblyMaps[assemblyName] = new PlugableAssembly
-//                                {
-//                                    Path = assembly.CodeBase,
-//                                    Assembly = assembly
-//                                };
-//                            }
-//                        }
-//                    }
-//#endif
                     //Couldn't find assembly
-                    Log.SysLogger.Warn("AE.AssemblyResolve:: Couldn't find assembly {0}", args.Name);
+                    AddInnerException("AE.AssemblyResolve:: Couldn't find assembly {0}", args.Name);
                 }
             }
 
@@ -859,34 +643,20 @@ namespace qshine.Configuration
         /// </remarks>
         void LoadModule(PlugableComponent module)
         {
-            if (_modules.ContainsKey(module.Name))
+            if (module.Instantiate())
             {
-                //Do not load named module twice.
-                return;
+                module.CreateInstance();
             }
-
-            module.ClassType = SafeLoadType(module.ClassTypeName);
-            if (module.ClassType != null)
+            else
             {
-                object instance = CreateInstance(module.ClassType);
-                if (instance != null)
-                {
-                    if (!_modules.ContainsKey(module.Name))
-                    {
-                        _modules.Add(module.Name, instance);
-                        Logger.Info("AE.LoadModule:: {0}", module.FormatObjectValues());
-                    }
-                }
+                //do not raise exception.
+                AddInnerException("AE.LoadModule:: {0}", module.FormatObjectValues());
             }
         }
 
         void LoadComponent(PlugableComponent component)
         {
-            component.InterfaceType = SafeLoadType(component.InterfaceTypeName);
-            if (component.InterfaceType != null)
-            {
-                component.ClassType = SafeLoadType(component.ClassTypeName);
-            }
+            component.Instantiate();
             Logger.Info("AE.LoadComponent:: {0}", component.FormatObjectValues());
         }
 
@@ -902,13 +672,25 @@ namespace qshine.Configuration
             {
                 if (!binPath.State && Directory.Exists(binPath.ObjectData))
                 {
-                    bool hasBinary = false;
+#if NETCORE
+                    foreach (var depFile in new DirectoryInfo(binPath.ObjectData).GetFiles("*.deps.json"))
+                    {
+                        if (!_externalDepsJsonPaths.Contains(depFile.FullName))
+                        {
+                            _externalDepsJsonPaths.Add(depFile.FullName);
+                        }
+                    }
+#endif
+
+                    //bool hasBinary = false;
                     foreach (var dll in new DirectoryInfo(binPath.ObjectData).GetFiles("*.dll"))
                     {
                         var assemblyName = Path.GetFileNameWithoutExtension(dll.FullName);
-                        if (!_assemblyMaps.ContainsKey(assemblyName))
+                        var pluggableAssembly = PluggableAssembly.GetPluggableAssembly(assemblyName);
+
+                        if (pluggableAssembly==null)
                         {
-                            _assemblyMaps.Add(assemblyName, new PlugableAssembly
+                            PluggableAssembly.AddAssembly(assemblyName, new PluggableAssembly
                             {
                                 Path = dll.FullName,
                                 Assembly = SafeLoadAssembly(dll.FullName)
@@ -918,455 +700,46 @@ namespace qshine.Configuration
                             //Found new binary file.
                             hasNewBinaryFile = true;
                         }
-                        else if (_assemblyMaps[assemblyName].Path != dll.FullName)
+                        else if (pluggableAssembly.Path != dll.FullName)
                         {
                             Logger.Info("AE.LoadBinary:: Ignore assembly {0}", dll.FullName);
                         }
-                        hasBinary = true;
+                        //hasBinary = true;
                     }
                     //Mark the flag that assembly folder dlls loaded in folder mapping list
                     binPath.State = true;
-                    if (hasBinary)
-                    {
-#if NETCORE
-                        foreach (var depFile in new DirectoryInfo(binPath.ObjectData).GetFiles("*.deps.json"))
-                        {
-                            if (!_externalDepsJsonPaths.Contains(depFile.FullName))
-                            {
-                                _externalDepsJsonPaths.Add(depFile.FullName);
-                            }
-                        }
-#endif
-                    }
                 }
             }
             return hasNewBinaryFile;
         }
 
-#endregion
-
-#region public static methods and properties
         /// <summary>
-        /// Get/Set current environment context store.
-        /// The default current environment context store is Static Context store. It allows single current application environment.
-        /// You may want to have a different context store to have current application environment based on different context. 
-        /// In this case you can implement a special CurrentEnvironmentContextStore.
-        /// The CurrentEnvironmentContextStore need be set in application Startup before ApplicationEnvironment.Boot()
+        /// Get the component map
         /// </summary>
-        public static IContextStore CurrentEnvironmentContextStore
+        /// <param name="componentType">type of component</param>
+        /// <returns>type specific component map</returns>
+        Map GetComponentMap(Type componentType)
         {
-            get
+            return GetEnvironmentMap(componentType.FullName);
+        }
+
+        /// <summary>
+        /// Get map by name
+        /// </summary>
+        /// <param name="mapName">map name</param>
+        /// <returns>return a environment map</returns>
+        Map GetEnvironmentMap(string mapName)
+        {
+            var maps = EnvironmentConfigure.Maps;
+            if (maps != null && maps.ContainsKey(mapName))
             {
-                if (_contextStore == null)
-                {
-                    lock (lockObject)
-                    {
-                        if (_contextStore == null)
-                        {
-                            _contextStore = ContextManager.StaticContext;
-                        }
-                    }
-                }
-                return _contextStore;
+                //get particular provider map and find mapped provider name
+                return maps[mapName];
             }
-            set
-            {
-                lock (lockObject)
-                {
-                    _contextStore = value;
-                }
-            }
+            return null;
         }
 
-        /// <summary>
-        /// Get current application environment. The current application environment is a global
-        /// </summary>
-        public static ApplicationEnvironment Current
-        {
-            get
-            {
-                var current = CurrentEnvironmentContextStore.GetData(environmentContextStoreName) as ApplicationEnvironment;
-                if (current == null)
-                {
-                    //Create default environment manager
-                    lock (lockObject)
-                    {
-                        current = CurrentEnvironmentContextStore.GetData(environmentContextStoreName) as ApplicationEnvironment;
-                        if (current == null)
-                        {
-                            current = new ApplicationEnvironment();
-                        }
-                    }
-                }
-                return current;
-            }
-        }
-
-        /// <summary>
-        /// Build and Initialize current application environment from a specific configure file.
-        /// Ignore if current application environment already built.
-        /// </summary>
-        /// <param name="rootConfigFile">Specifies a root configure file which contains application environment setting. 
-        /// If the root config file is not set, a default application configure file such as app.config, web.config or others loaded by host .net application as config file.</param>
-        /// <remarks>
-        /// The ApplicationEnvironment.Build() need be put in begin of the applciation execution path.
-        /// Otherwise, default ApplicationEnvironment instance will be used.
-        /// </remarks>
-        public static ApplicationEnvironment Build(string rootConfigFile = "")
-        {
-            return Build("",
-                new EnvironmentInitializationOption() {
-                    RootConfigFile = rootConfigFile
-                }
-                );
-        }
-
-        /// <summary>
-        /// Build and Initialize a named application environment with different options.
-        /// Ignore if current application environment already built.
-        /// </summary>
-        /// <param name="name">name of application environment</param>
-        /// <param name="options">Specifies options to initialize application environment</param>
-        public static ApplicationEnvironment Build(string name, EnvironmentInitializationOption options)
-        {
-            var contextName = GetEnvironmentContextName(name);
-            var appEnvironment = CurrentEnvironmentContextStore.GetData(contextName) as ApplicationEnvironment;
-            if (appEnvironment == null)
-            {
-                lock (lockObject)
-                {
-                    appEnvironment = CurrentEnvironmentContextStore.GetData(contextName) as ApplicationEnvironment;
-                    if (appEnvironment == null)
-                    {
-                        appEnvironment = new ApplicationEnvironment(name, options);
-                    }
-                }
-            }
-            return appEnvironment;
-        }
-
-        /// <summary>
-        /// Gets a given type provider instance from current application environment.
-        /// The provider must implemented IProvider interface.
-        /// </summary>
-        /// <returns>The provider instance.</returns>
-        /// <typeparam name="T">The type of the provider.</typeparam>
-        /// <remarks>The provider is a plugable component configured in application environment.
-        /// It will load first defined component if many components found.
-        /// </remarks>
-        public static T GetProvider<T>()
-        where T : class, IProvider
-        {
-            return GetProvider(typeof(T)) as T;
-        }
-
-        /// <summary>
-        /// Gets the provider component by name from current application environment.
-        /// The provider must implemented IProvider interface.
-        /// </summary>
-        /// <returns>The provider instance.</returns>
-        /// <param name="name">Name of the provider.</param>
-        /// <typeparam name="T">The type of the provider.</typeparam>
-        /// <remarks>The provider is a plugable component configured in application environment with a given name.
-        /// </remarks>
-        public static T GetProvider<T>(string name)
-        where T : class, IProvider
-        {
-            return GetProvider(name, typeof(T)) as T;
-        }
-
-        /// <summary>
-        /// Gets a given type provider instance from current application environment.
-        /// The provider must implemented IProvider interface.
-        /// </summary>
-        /// <returns>The provider instance.</returns>
-        /// <param name="providerInterface">type of provider.</param>
-        public static IProvider GetProvider(Type providerInterface)
-        {
-            return GetProvider(string.Empty, providerInterface);
-        }
-
-        /// <summary>
-        /// Gets a named given type provider instance from current application environment.
-        /// The provider must implemented IProvider interface.
-        /// </summary>
-        /// <returns>The provider instance.</returns>
-        /// <param name="providerInterface">type of provider.</param>
-        ///<param name="name">provider name</param>
-        public static IProvider GetProvider(string name, Type providerInterface)
-        {
-            return Current.CreateProvider(name, providerInterface);
-        }
-
-        /// <summary>
-        /// Creates the instance from a type.
-        /// </summary>
-        /// <returns>The instance.</returns>
-        /// <param name="type">Type.</param>
-        /// <param name="parameters">Parameters.</param>
-        public static object CreateInstance(Type type, params object[] parameters)
-        {
-            if (type == null) return null;
-            return Activator.CreateInstance(type, parameters);
-        }
-
-        /// <summary>
-        /// Gets the configure.
-        /// </summary>
-        /// <value>The configure.</value>
-        public static EnvironmentConfigure Configure
-        {
-            get
-            {
-                return Current.EnvironmentConfigure;
-            }
-        }
-
-        /// <summary>
-        /// Gets the assembly maps.
-        /// </summary>
-        /// <value>The assembly maps.</value>
-        public static SafeDictionary<string, PlugableAssembly> AssemblyMaps
-        {
-            get
-            {
-                return _assemblyMaps;
-            }
-        }
-
-        /// <summary>
-        /// Gets the type by type name. The type name could be a qualified type name accessible by the environment.
-        /// The plugable assembly always be accessible.
-        /// </summary>
-        /// <returns>The named type.</returns>
-        /// <param name="typeName">Type name.</param>
-        public static Type GetTypeByName(string typeName)
-        {
-            var type = Type.GetType(typeName);
-            if (type == null)
-            {
-                if (_commonNamedType.ContainsKey(typeName))
-                {
-                    return _commonNamedType[typeName];
-                }
-
-                type = _assemblyMaps.Values.Where(x => x.Assembly != null)
-                    .Select(a => a.Assembly.GetType(typeName))
-                    .FirstOrDefault(t => t != null);
-                if (type != null)
-                {
-                    //thread-safe
-                    if (!_commonNamedType.ContainsKey(typeName))
-                    {
-                        _commonNamedType.Add(typeName, type);
-                    }
-                }
-            }
-            return type;
-        }
-
-        /// <summary>
-        /// Find all types which implemented a specific interface or base class type from all loaded assemblies. 
-        /// </summary>
-        /// <param name="interfaceType">Specifies interface or base class type.</param>
-        /// <returns>A list of implementation class types.</returns>
-        public static IList<Type> SafeGetInterfacedTypes(Type interfaceType, InitializationType flag= InitializationType.Undefined)
-        {
-            var selectedTypes = new List<Type>();
-            foreach (var a in _assemblyMaps.Values)
-            {
-                if (a.Assembly != null && (a.Initialized & (ulong) flag)==0)
-                {
-                    var types = SafeGetInterfacedTypes(a.Assembly, interfaceType);
-                    if (types != null && types.Count > 0)
-                    {
-                        selectedTypes.AddRange(types);
-                    }
-                    a.Initialized |= (ulong)flag;
-                }
-            }
-            return selectedTypes;
-        }
 
 #endregion
-
-#region private static
-        static SafeDictionary<string, PlugableAssembly> _assemblyMaps = new SafeDictionary<string, PlugableAssembly>();
-        static SafeDictionary<Type, object> _interceptHandlers = new SafeDictionary<Type, object>();
-        static IContextStore _contextStore;
-        static readonly SafeDictionary<string, Type> _commonNamedType = new SafeDictionary<string, Type>();
-        static readonly object lockObject = new object();
-
-        static string GetEnvironmentContextName(string name)
-        {
-            var contextName = environmentContextStoreName;
-            if (!string.IsNullOrEmpty(name))
-            {
-                contextName += "_" + name;
-            }
-            return contextName;
-        }
-
-    /// <summary>
-    /// Filter assemblies before add it into candidate assembly list
-    /// </summary>
-    /// <param name="assembly"></param>
-    /// <returns></returns>
-    static bool IsCandidateAssembly(Assembly assembly)
-        {
-            //Ignore dynamic assembly
-            if (assembly.IsDynamic) return true;
-
-            string location = assembly.Location;
-            var fullName = assembly.FullName;
-            bool isCandidateAssembly = String.IsNullOrEmpty(location) || //ignore byte array loaded assembly
-                assembly.ManifestModule.Name == "<In Memory Module>" || //ignore in memory module
-                location.IndexOf("App_Web", StringComparison.Ordinal) > -1 || //ignore web dynamic compile dlls
-                location.IndexOf("App_global", StringComparison.Ordinal) > -1 || //ignore web app resource dlls
-                location.IndexOf("Microsoft", StringComparison.OrdinalIgnoreCase) > -1 || //ignore microsoft resource dlls
-                fullName.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase) || //ignore Microsoft dlls
-                fullName.StartsWith("System.", StringComparison.OrdinalIgnoreCase) || //ignore Microsoft System dlls
-                fullName.StartsWith("mscorlib,", StringComparison.Ordinal) || //ignore Run-time Core
-                fullName.StartsWith("runtime.", StringComparison.OrdinalIgnoreCase) || //ignore Run-time Core
-                fullName.IndexOf("CppCodeProvider", StringComparison.Ordinal) > -1 || //ignore code dom provider
-                fullName.IndexOf("SMDiagnostics", StringComparison.Ordinal) > -1 || //WCF
-                fullName.StartsWith("WebMatrix.", StringComparison.Ordinal) || // ignore MS web secuirty dll
-                fullName.StartsWith("WindowsBase.", StringComparison.Ordinal) || //WPF
-                fullName.StartsWith("NETStandard.Library", StringComparison.OrdinalIgnoreCase) || //ignore .NET Core
-                fullName.StartsWith("WindowsAzure.Storage", StringComparison.OrdinalIgnoreCase) || //ignore Azure storage
-                fullName.StartsWith("nunit,", StringComparison.Ordinal) ||
-                fullName.StartsWith("Ninject,", StringComparison.Ordinal) ||
-                fullName.StartsWith("Castle.", StringComparison.Ordinal) ||
-                fullName.StartsWith("Typemock", StringComparison.OrdinalIgnoreCase) ||
-                fullName.StartsWith("Telerik.", StringComparison.Ordinal);
-
-            if (!isCandidateAssembly && EnvironmentInitializationOption.IsCandidateAssembly != null)
-            {
-                isCandidateAssembly = !EnvironmentInitializationOption.IsCandidateAssembly(assembly);
-            }
-            return isCandidateAssembly;
-        }
-
-        /// <summary>
-        /// Load application components from runtime location to application environment.
-        /// Those components types could be resolved directly from run-time.
-        /// The mapped runtime application components will be part of accessable types for plugable application environment.
-        /// It will not include most system or common share components.
-        /// </summary>
-        static void LoadRuntimeComponents()
-        {
-            Assembly[] runtimeAssemblies = EnvironmentInitializationOption.RuntimeComponents;
-
-            if (runtimeAssemblies == null)
-            {
-                runtimeAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-            }
-
-            foreach (var a in runtimeAssemblies)
-            {
-                //Skip system assemblies
-                if (IsCandidateAssembly(a))
-                {
-                    continue;
-                }
-
-                //Get assembly name without version and culture info.
-                var assemblyNameObject = new AssemblyName(a.FullName);
-                var assemblyName = assemblyNameObject.Name;
-
-                if (!_assemblyMaps.ContainsKey(assemblyName))
-                {
-                    _assemblyMaps.Add(assemblyName, new PlugableAssembly
-                    {
-                        Path = a.FullName,
-                        Assembly = a
-                    });
-                }
-            }
-        }
-
-
-        /// <summary>
-        /// Find all class types which inplemented a given interface type
-        /// </summary>
-        /// <param name="assembly">Assembly may contain interfaced class</param>
-        /// <param name="interfacedType">Specifies an interface to be lookup.</param>
-        /// <returns>A list of class types which implemented a given interface or base class.</returns>
-        static IList<Type> SafeGetInterfacedTypes(Assembly assembly, Type interfacedType)
-        {
-            Type[] types;
-
-            try
-            {
-                types = assembly.GetTypes();
-            }
-            catch (FileNotFoundException)
-            {
-                types = new Type[] { };
-            }
-            catch (NotSupportedException)
-            {
-                types = new Type[] { };
-            }
-            catch (ReflectionTypeLoadException e)
-            {
-                types = e.Types.Where(t => t != null).ToArray();
-            }
-            return types.Where(t => interfacedType.IsAssignableFrom(t) && t.IsClass).ToList();
-        }
-
-        static string[] _versionPaths;
-		/// <summary>
-		/// Get qshine framework version paths.
-		/// bin/1
-		/// bin/1.2
-		/// bin/1.2.3
-		/// </summary>
-		/// <returns>The version paths.</returns>
-		static string[] GetFrameworkVersionPaths()
-		{
-			if (_versionPaths == null)
-			{
-				var callingAssembly = typeof(ApplicationEnvironment).Assembly;
-				var info = FileVersionInfo.GetVersionInfo(callingAssembly.Location);
-				_versionPaths  = info.FileVersion.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-
-
-				string binPath = "";
-				string version = "";
-                for (var index = 0; index<_versionPaths.Length; index++)
-                {
-					version += index == 0 ? _versionPaths[index] : "." + _versionPaths[index];
-					_versionPaths[index] = Path.Combine(binPath,version);
-                }
-			}
-			return _versionPaths;
-		}
-
-        /// <summary>
-        /// Return absolute path for a specified path. 
-        /// If the specified path is a relative path, the absolute path is the combination of specified folder and relative path.
-        /// </summary>
-        /// <param name="folder">Specifies a folder for full path</param>
-        /// <param name="path">Full path or relative path</param>
-        /// <returns></returns>
-		static string UnifiedFullPath(string folder, string path)
-		{
-			if (Path.IsPathRooted(path)) return path;
-
-			return Path.Combine(folder, path);
-		}
-
-        static void LoadInterceptHandlers()
-        {
-            var types = SafeGetInterfacedTypes(typeof(IInterceptorHandler));
-            foreach (var type in types)
-            {
-                Interceptor.RegisterHandlerType(type);
-            }
-        }
-#endregion
-
     }
-
 }

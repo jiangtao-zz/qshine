@@ -12,23 +12,35 @@ using System.Linq;
 
 namespace qshine
 {
+    /// <summary>
+    /// Dotnet json serializer provider
+    /// </summary>
 	public class DotNetJsonSerializerProvider : IJsonProvider
 	{
+        /// <summary>
+        /// Create a json serializer
+        /// </summary>
+        /// <returns></returns>
 		public IJsonSerializer Create()
 		{
 			return new DotNetJsonSerializer();
 		}
 	}
 
+    /// <summary>
+    /// Dotnet json serializer
+    /// </summary>
 	public class DotNetJsonSerializer:IJsonSerializer
 	{
-		/// <summary>
-		/// Deserialize the specified jsonString to a typed object.
-		/// </summary>
-		/// <returns>The deserialized object</returns>
-		/// <param name="jsonString">Json string.</param>
-		/// <param name="type">Type of the instance.</param>
-		public object Deserialize(string jsonString, Type type, JsonFormat jsonFormat, JsonFormatSetting setting)
+        /// <summary>
+        /// Deserialize the specified jsonString to a typed object.
+        /// </summary>
+        /// <returns>The deserialized object</returns>
+        /// <param name="jsonString">Json string.</param>
+        /// <param name="type">Type of the instance.</param>
+        /// <param name="jsonFormat">Json format</param>
+        /// <param name="setting">Json format setting</param>
+        public object Deserialize(string jsonString, Type type, JsonFormat jsonFormat, JsonFormatSetting setting)
 		{
 			object result = null;
             if (!string.IsNullOrEmpty(jsonString) && type != null)
@@ -40,14 +52,16 @@ namespace qshine
                 }
             }
             return result;
-		}
+        }
 
 		/// <summary>
 		/// Serialize the specified instance.
 		/// </summary>
 		/// <returns>The serialize.</returns>
 		/// <param name="instance">Instance.</param>
-		public string Serialize(object instance, JsonFormat jsonFormat, JsonFormatSetting setting)
+        /// <param name="jsonFormat">Json format</param>
+        /// <param name="setting">Json format setting</param>
+        public string Serialize(object instance, JsonFormat jsonFormat, JsonFormatSetting setting)
 		{
 			string jsonString = null;
 			var serializer = new DataContractJsonSerializer(instance.GetType(), ConvertFormat(jsonFormat, setting));
@@ -72,6 +86,7 @@ namespace qshine
         /// </summary>
         /// <param name="jsonString">json format string</param>
 		/// <param name="jsonFormat">Json format.</param>
+        /// <param name="setting">Json format setting</param>
         /// <returns>Dictionary instance</returns>
         public Dictionary<string, object> DeserializeDictionary(string jsonString, JsonFormat jsonFormat, JsonFormatSetting setting)
         {
@@ -94,21 +109,20 @@ namespace qshine
         {
             foreach (var v in input.Keys.ToArray())
             {
-                var list = input[v] as List<object>;
-                if (list != null && list.Count > 0)
+                if (input[v] is List<object> list && list.Count > 0)
                 {
                     //convert "item" array to dictionary when using "UseSimpleDictionaryFormat = false"
-                    var dic = list[0] as Dictionary<string, object>;
-                    if(dic!=null && dic.Count == 2 && dic.ContainsKey("Key"))
+                    if (list[0] is Dictionary<string, object> dic && dic.Count == 2 && dic.ContainsKey("Key"))
                     {
                         var convertedList = new Dictionary<string, object>();
-                        foreach(Dictionary<string, object> k in list)
+                        foreach (Dictionary<string, object> k in list)
                         {
                             convertedList.Add(k["Key"].ToString(), k["Value"]);
                         }
                         input[v] = convertedList;
                     }
-                }else if(input[v] is Dictionary<string,object>)
+                }
+                else if (input[v] is Dictionary<string, object>)
                 {
                     ConvertToJsonDictionary(input[v] as Dictionary<string, object>, jsonFormat, setting);
                 }
@@ -165,9 +179,8 @@ namespace qshine
                         {
                             dataType = GetJsonBasicType(reader.Value);
 
-                            var pdic = parent as Dictionary<string, object>;
                             var parray = parent as List<object>;
-                            
+
                             if (dataType == typeof(object))
                             {
                                 //Object map to dictionary
@@ -184,7 +197,7 @@ namespace qshine
                                 result = ReadJsonXml(parent, reader, dataType, jsonFormat, setting);
                             }
 
-                            if (pdic != null)
+                            if (parent is Dictionary<string, object> pdic)
                             {
                                 pdic.Add(name, result);
                             }
@@ -211,8 +224,7 @@ namespace qshine
                         {
                             if (dataType == typeof(string) && result != null)
                             {
-                                DateTime d;
-                                if(TryParseDateTime(jsonFormat, setting, result.ToString(), out d))
+                                if (TryParseDateTime(jsonFormat, setting, result.ToString(), out DateTime d))
                                 {
                                     result = d;
                                 }
@@ -251,8 +263,8 @@ namespace qshine
 
                 try
                 {
-                    __JDate v = _dotnetJsonSerialiser.Deserialize(string.Format("{{\"V\":\"{0}\"}}", jsonDate), typeof(__JDate), jsonFormat, setting) as __JDate;
-                    if (v != null)
+                    if (_dotnetJsonSerialiser.Deserialize(string.Format("{{\"V\":\"{0}\"}}", jsonDate), 
+                        typeof(__JDate), jsonFormat, setting) is __JDate v)
                     {
                         date = v.V;
                         return true;
@@ -274,9 +286,9 @@ namespace qshine
             if (((ulong)formatOption & 0xFF) == (ulong)JsonFormat.MicrosoftDateFormat)
             {
                 //default
-                /// The microsoft date format.
-                /// 	\/Date(946645200000)\/ (Utc)
-                ///		\/Date(946645200000+1100)\/ (Local and Unspecified)
+                // The microsoft date format.
+                // 	\/Date(946645200000)\/ (Utc)
+                //		\/Date(946645200000+1100)\/ (Local and Unspecified)
             }
             else if (((ulong)formatOption & 0xFF) == (ulong)JsonFormat.ISO8601DateFormat)
             {
@@ -326,9 +338,13 @@ namespace qshine
 
         /// <summary>
         /// internal use only
+        /// It must be a public property which allow serialize/deserialize
         /// </summary>
         public class __JDate
         {
+            /// <summary>
+            /// Using DateTime type for json date
+            /// </summary>
             public DateTime V { get; set; }
         }
 

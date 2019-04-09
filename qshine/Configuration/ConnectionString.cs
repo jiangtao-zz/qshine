@@ -85,12 +85,23 @@ namespace qshine.Configuration
             }
         }
 
-
+        /// <summary>
+        /// Compare two string elements
+        /// </summary>
+        /// <param name="left">left connection string element</param>
+        /// <param name="right">right connection string element</param>
+        /// <returns></returns>
         public static bool operator ==(ConnectionStringElement left, ConnectionStringElement right)
         {
             return Equals(left, right);
         }
 
+        /// <summary>
+        /// operator !=
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
         public static bool operator !=(ConnectionStringElement left, ConnectionStringElement right)
         {
             return !Equals(left, right);

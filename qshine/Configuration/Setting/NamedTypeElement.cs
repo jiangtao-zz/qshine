@@ -2,6 +2,9 @@
 
 namespace qshine.Configuration.Setting
 {
+    /// <summary>
+    /// Named type element
+    /// </summary>
     public class NamedTypeElement : NamedConfigurationElement
 	{
 		const string TypeAttributeName = "type";

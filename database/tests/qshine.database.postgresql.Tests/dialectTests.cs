@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using qshine;
+using qshine.Logger;
 using qshine.Configuration;
 using qshine.database;
 using System.Data;
@@ -53,10 +53,8 @@ namespace qshine.database.postgresql.Tests
         [ClassInitialize()]
         public static void ClassInit(TestContext context)
         {
-            Log.SysLoggerProvider = new TraceLoggerProvider();
-            Log.SysLogger.EnableLogging(System.Diagnostics.TraceEventType.Verbose);
-
             ApplicationEnvironment.Build("app.config");
+
             _testDb = new Database("testdb");
         }
 
@@ -1324,8 +1322,6 @@ namespace qshine.database.postgresql.Tests
             DropTable(testTable);
 
         }
-
-
     }
 }
 

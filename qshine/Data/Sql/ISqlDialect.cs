@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 namespace qshine.database
 {
+    /// <summary>
+    /// Native database SQL dialect interface
+    /// </summary>
 	public interface ISqlDialect
     {
         /// <summary>

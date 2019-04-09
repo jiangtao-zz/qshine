@@ -1,76 +1,104 @@
-using qshine.Configuration;
+using qshine.Utility;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Text;
-using System.Threading;
 
-namespace qshine
+namespace qshine.Logger
 {
     /// <summary>
     /// Logger API.
-    /// 	1. Get logger instance from .NET trace logger provider for system logging message.
-    /// 	We have two type log provider:Plugin log provider and system log provider. 
-    /// 	The system log provider is dotnet native tracing diagnostics logger. It is a default logger for system.
-    /// 	When a plugin logger provider added in application environment, it will be loaded automatically and replace
-    /// 	the default one.
-    /// 	2. Get logger instance from a plug-in logger provider for application logging message
-    /// 	3. Provide general logger instance for application logging message
-    /// 	4. Provide debugging methods for DEBUG version only
+    /// 	1. Get logger instance from a logger provider. A logger provider factory can produce a logger provider using different strategy. 
+    /// 	The logger provider could be a plugin component from a logging framework, such as nlog, log4net.
+    /// 	This library implemented two internal logging providers : .NET trace logger provider and console logger provider. 
+    /// 	.NET trace logger using dotnet native tracing diagnostics function to create message log based on application config. This is the default
+    /// 	logger provider if no plugin logging component found.
+    /// 	Console logger is simply output the logger message to console.
+    /// 	The plugin logging provider can be addon through application environment configure setting.
+    /// 	2. A logger provider factory choose a logger provider based on logging category setting in configured logging component Map.
+    /// 	A default logging provider component could be defined in Map setting section. The Map name is "qshine.ILoggerProvider".
+    /// 	User can create its own Logger provider factory to overwrite LoggerproviderFactory.
+    /// 	3. A SysLogger instance is a "System" category logger instance used by library.
+    /// 	4. A DevDebug() is a debugging methods for DEBUG version only. Use it if you don't want logging message affect the production version.
+    /// 	5. RegisterLogger() can be used to overwrite category specific logger created by logger provider factory.
     /// 	
-    /// Before the application logger provider initialized, a .NET trace logger will be used for message logging.
-    /// The framewrok code will use .NET trace logger to log message based on application dotnet diagnostics configure setting.
-    /// To enable trace logger you need configure application diagnostics section for particular source.
-    /// The defult source name is "General" for SysLogger
-    /// 	var systemLogger = Log.TraceLoggerProvider.GetLogger(category);
-    /// 	systemLogger.Error(ex);
-    /// 	or Log.SysLogger.Error(ex);
+    /// The library will use .NET trace logger before Logger plugin added into system.
+    /// To enable trace logger you need configure application diagnostics section in app configure setting.
+    /// 
+    /// 	Log.SysLogger.Error(ex);
     /// 
     /// The application use Log.GetLogger(category) to get a logger instance for specific category (source).
     /// 	var logger = Log.GetLogger("database");
     /// 	logger.Info("ExecuteSql({0})",sql);
     /// 
-    /// Log methods are available only for developer to view the detail code information during DEBUG mode. 
-    /// All those DevDebug() code will be removed in release mode.
+    /// DevDebug methods are available only for developer to view the detail information during DEBUG mode. 
     /// 	Log.DevDebug("Method begin")
     /// 	Log.DevDebug("Method end")
     /// 	
-    /// The plugin log will take affect after plug-in logger loaded by application environment build process.
+    /// The plugin logger takes affect after application environment build process completed.
     /// </summary>
-    public class Log:IStartupInitializer
+    public class Log
 	{
-        #region static ctor for IStartupInitializer
-        static Log()
-        {
-            var interceptor = Interceptor.Get<ApplicationEnvironment>();
-            interceptor.OnSuccess += reloadLogProvider;
-        }
+        //#region static ctor for IStartupInitializer
 
-        public void Start(string name)
-        {
+        //static Log()
+        //{
+        //    //intercept Log
+        //    var interceptor = Interceptor.Get<ApplicationEnvironment>();
+        //    interceptor.OnSuccess += reloadLogProvider;
+        //}
 
-        }
+        ///// <summary>
+        ///// Application start.
+        ///// </summary>
+        ///// <param name="name"></param>
+        //public void Start(string name) {}
 
-        static void reloadLogProvider(object sender, InterceptorEventArgs args)
-        {
-            if (args.MethodName == "Init")
-            {
-                var provider = Configuration.ApplicationEnvironment.GetProvider<ILoggerProvider>();
-                if (provider != null)
-                {
-                    LoggerProvider = provider;
-                    SysLoggerProvider = provider;
-                }
-            }
-        }
-        #endregion
+        //static void reloadLogProvider(object sender, InterceptorEventArgs args)
+        //{
+        //    if (args.MethodName == "Init")
+        //    {
+        //        //find default provider
+        //        var provider = ApplicationEnvironment.Current.GetMappedProvider<ILoggerProvider>();
+        //        if (provider != null)
+        //        {
+        //            LoggerProvider = provider;
+        //            SysLoggerProvider = provider;
+        //        }
+
+
+        //        //var providers = ApplicationEnvironment.Current.GetProviders<ILoggerProvider>();
+        //        //if (providers != null && providers.Count>0)
+        //        //{
+        //        //    string defaultProvider = "";
+        //        //    var maps = ApplicationEnvironment.Configure.Maps;
+        //        //    if (maps != null)
+        //        //    {
+        //        //        var mapName = typeof(ILoggerProvider).FullName;
+        //        //        if (maps.ContainsKey(mapName))
+        //        //        {
+        //        //            var logMaps = maps[mapName];
+        //        //            defaultProvider = logMaps.Default;
+        //        //            foreach(var categoryMap in logMaps.Items)
+        //        //            {
+        //        //                var loggingCategory = categoryMap.Key;
+        //        //                var loggingProviderName = categoryMap.Value;
+
+        //        //                if (categoryMap.Value)
+        //        //            }
+        //        //        }
+        //        //        LoggerProvider = provider;
+        //        //        SysLoggerProvider = provider;
+        //        //    }
+        //        //}
+        //    }
+        //}
+        //#endregion
 
         #region fields
 
-        static IDictionary<string, ILogger> _logInstances = new Dictionary<string, ILogger>();
+        /// <summary>
+        /// store Log provider per logging category.
+        /// </summary>
+        static SafeDictionary<string, ILogger> _logInstances = new SafeDictionary<string, ILogger>();
 		static object lockObject = new object();
 
 		#endregion
@@ -84,7 +112,6 @@ namespace qshine
 		/// <returns>logger</returns>
 		public static ILogger GetLogger(string category)
 		{
-            
             //cache plugin logger instance
 			if (!_logInstances.ContainsKey(category))
 			{
@@ -92,7 +119,14 @@ namespace qshine
 				{
 					if (!_logInstances.ContainsKey(category))
 					{
-						var logger = LoggerProvider.GetLogger(category);
+                        var provider = LogProviderFactory.CreateProvider(category);
+                        if (provider == null)
+                        {
+                            //temporary return system logger.
+                            return SysLogger;
+                        }
+
+                        var logger = provider.GetLogger(category);
 						_logInstances.Add(category, logger);
 					}
 				}
@@ -128,83 +162,120 @@ namespace qshine
 		/// <returns>The logger.</returns>
 		public static ILogger GetLogger()
 		{
-			const string generalCategory = "General";
-			return GetLogger(generalCategory);
+			return GetLogger(LogCategory.General.ToString());
 		}
 
-		/// <summary>
-		/// The current loger provider.
-		/// </summary>
-		static ILoggerProvider _logerProvider;
-		/// <summary>
-		/// The default logger provider used before plugin-logger providered.
-		/// </summary>
-		static ILoggerProvider LoggerProvider
-		{
-			get
-			{
-                if (_logerProvider == null)
-                {
-                    _logerProvider = SysLoggerProvider;
-                }
-				return _logerProvider;
-			}
-			set
-			{
-                if (_logerProvider != value)
-                {
-                    lock (lockObject)
-                    {
-                        if (_logerProvider != value)
-                        {
-                            _logerProvider = value;
-                            _logInstances.Clear();
-                        }
-                    }
-                }
-			}
-		}
-		#endregion
 
-		#region SysLogger
+        static ILoggerProviderFactory _logProviderFactory = null;
+        /// <summary>
+        /// Get/Set Logging provider factory
+        /// </summary>
+        public static ILoggerProviderFactory LogProviderFactory
+        {
+            get
+            {
+                if (_logProviderFactory == null) _logProviderFactory = new LoggerProviderFactory();
+
+                return _logProviderFactory;
+            }
+            set
+            {
+                _logProviderFactory = value;
+                _logInstances.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Register a specific Logger instead Logger instance created by LogProviderFactory().
+        /// 
+        /// This method is best for custom Log provider
+        /// </summary>
+        /// <param name="category">Log category</param>
+        /// <param name="logger">Logger instance</param>
+        public static void RegisterLogger(string category, ILogger logger)
+        {
+            lock (lockObject)
+            {
+                //cache plugin logger instance
+                if (_logInstances.ContainsKey(category))
+                {
+                    _logInstances[category] = logger;
+                }
+                else
+                {
+                    _logInstances.Add(category, logger);
+                }
+            }
+        }
+
+        ///// <summary>
+        ///// The default loger provider.
+        ///// </summary>
+        //static ILoggerProvider _logerProvider;
+        ///// <summary>
+        ///// The default logger provider used before plugin-logger providered.
+        ///// </summary>
+        //static ILoggerProvider LoggerProvider
+        //{
+        //	get
+        //	{
+        //              if (_logerProvider == null)
+        //              {
+        //                  _logerProvider = SysLoggerProvider;
+        //              }
+        //		return _logerProvider;
+        //	}
+        //	set
+        //	{
+        //              if (_logerProvider != value)
+        //              {
+        //                  lock (lockObject)
+        //                  {
+        //                      if (_logerProvider != value)
+        //                      {
+        //                          _logerProvider = value;
+        //                          _logInstances.Clear();
+        //                      }
+        //                  }
+        //              }
+        //	}
+        //}
+
+        #endregion
+
+        #region SysLogger
+
+        static ILoggerProvider _sysLoggerProvider = new TraceLoggerProvider();
+
+        /// <summary>
+        /// Get/set system logger provider.
+        /// The system logger provider is used to log library system message
+        /// </summary>
+        public static ILoggerProvider SysLoggerProvider {
+            get
+            {
+                return _sysLoggerProvider;
+            }
+
+            set
+            {
+                _sysLoggerProvider = value;
+            }
+        }
+
 		/// <summary>
 		/// Log system message
 		/// </summary>
 
-		static ILoggerProvider _systemLoggerProvider;
-		/// <summary>
-		/// Gets the system logger provider.
-		/// The system logger provider use .NET diagnostics Trace component to write logging message
-		/// </summary>
-		/// <value>The system logger provider.</value>
-		public static ILoggerProvider SysLoggerProvider
-		{
-			get
-			{
-				if (_systemLoggerProvider == null)
-				{
-					_systemLoggerProvider = new TraceLoggerProvider();
-				}
-				return _systemLoggerProvider;
-			}
-            set
-            {
-                _systemLoggerProvider = value;
-                _syslogger = null;
-                _devLogger = null;
-            }
-		}
-
-		static ILogger _syslogger;
+        /// <summary>
+        /// Get system logger instance.
+        /// System logger instance
+        /// </summary>
 		public static ILogger SysLogger
 		{
 			get
 			{
-				if (_syslogger == null)
-				{
-					_syslogger = SysLoggerProvider.GetLogger("General");
-				}
-				return _syslogger;
+                return SysLoggerProvider.GetLogger(LogCategory.System.ToString());
 			}
 		}
 
@@ -212,17 +283,11 @@ namespace qshine
 
 		#region DevLogger
 
-		static ILogger _devLogger;
-
 		static ILogger DevLogger
 		{
 			get
 			{
-				if (_devLogger == null)
-				{
-					_devLogger = SysLoggerProvider.GetLogger("dev");
-				}
-				return _devLogger;
+                return GetLogger(LogCategory.General.ToString());
 			}
 		}
 		/// <summary>
@@ -239,4 +304,42 @@ namespace qshine
 		#endregion
 
 	}
+
+    /// <summary>
+    /// Common logging categories
+    /// </summary>
+    public enum LogCategory
+    {
+        /// <summary>
+        /// System category
+        /// </summary>
+        System = 1000,
+        /// <summary>
+        /// General logging
+        /// </summary>
+        General,
+        /// <summary>
+        /// Database logging
+        /// </summary>
+        Database,
+        /// <summary>
+        /// Security logging
+        /// </summary>
+        Security,
+        /// <summary>
+        /// Server logging
+        /// </summary>
+        Server,
+        /// <summary>
+        /// Network logging
+        /// </summary>
+        Network,
+
+        /// <summary>
+        /// Debug Logging only
+        /// </summary>
+        Dev = 10000,
+
+
+    }
 }

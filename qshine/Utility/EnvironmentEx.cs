@@ -8,6 +8,9 @@ using System.Runtime.InteropServices;
 
 namespace qshine
 {
+    /// <summary>
+    /// Application environment extension
+    /// </summary>
     public static partial class EnvironmentEx
     {
 		static string _ip;
@@ -88,6 +91,32 @@ namespace qshine
             }
         }
 
+        /// <summary>
+        /// Get qshine library version number
+        /// </summary>
+        public static string LibraryVersion
+        {
+            get
+            {
 
+#if NETCORE
+                if (RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+                {
+                    return "win";
+                }
+                if (RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
+                {
+                    return "linux";
+                }
+                if (RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX))
+                {
+                    return "osx";
+                }
+                return "any";
+#else
+                return "win";
+#endif
+            }
+        }
     }
 }

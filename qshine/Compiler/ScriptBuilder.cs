@@ -4,11 +4,16 @@ using System.Text;
 
 namespace qshine.Compiler
 {
+    /// <summary>
+    /// Not implemented
+    /// </summary>
 	public class ScriptBuilder
 	{
 		StringBuilder _builder;
 
-
+        /// <summary>
+        /// 
+        /// </summary>
 		public ScriptBuilder()
 		{
 			_builder = new StringBuilder();
@@ -91,7 +96,10 @@ namespace _internal.Script
 			}
 		}
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
 		public string Render()
 		{
 			_builder.Append(ScriptHeader);
@@ -118,7 +126,10 @@ namespace _internal.Script
 
 		int _sequence = 0;
 		List<ScriptBlock> _scriptBlocks = new List<ScriptBlock>();
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="outputText"></param>
 		public void AddOutputText(string outputText)
 		{
 			if (!string.IsNullOrEmpty(outputText))
@@ -131,7 +142,10 @@ namespace _internal.Script
 				});
 			}
 		}
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="code"></param>
 		public void AddCodeBlock(string code)
 		{
 			if (!string.IsNullOrEmpty(code))
@@ -144,6 +158,10 @@ namespace _internal.Script
 				});
 			}
 		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="variable"></param>
 		public void AddVariable(string variable)
 		{
 			if (!string.IsNullOrEmpty(variable))

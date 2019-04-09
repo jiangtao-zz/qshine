@@ -73,9 +73,15 @@ namespace qshine
 			get{
 				if(_provider==null){
 					lock(_providerLockObject){
-						if(_provider==null || _provider == _internalIoCProvider){
-							//try to load a plugable IoC provider
-							_provider = ApplicationEnvironment.GetProvider<IIocProvider>()??_internalIoCProvider;
+						if(_provider==null){
+                            //|| _provider == _internalIoCProvider
+                            var provider = ApplicationEnvironment.GetProvider<IIocProvider>();
+                            if (provider != null)
+                            {
+                                _provider = provider;
+                            }
+                            //try to load a plugable IoC provider
+                            return _provider??_internalIoCProvider;
 						}
 					}
 				}
@@ -132,6 +138,12 @@ namespace qshine
 
         #region Shortcut of Current.RegisterType
 
+        /// <summary>
+        /// Register a service within default scope
+        /// </summary>
+        /// <typeparam name="IT">service interface</typeparam>
+        /// <typeparam name="T">service implementation class</typeparam>
+        /// <returns>current container</returns>
         static public IIocContainer RegisterType<IT, T>()
             where IT : class
             where T : class, IT
@@ -139,6 +151,13 @@ namespace qshine
             return Current.RegisterType<IT, T>();
         }
 
+        /// <summary>
+        /// Register a named service within default scope
+        /// </summary>
+        /// <typeparam name="IT">service interface</typeparam>
+        /// <typeparam name="T">service implementation class</typeparam>
+        /// <param name="name">Specifies the service name</param>
+        /// <returns>current container</returns>
         static public IIocContainer RegisterType<IT, T>(string name)
             where IT : class
             where T : class, IT
@@ -146,6 +165,13 @@ namespace qshine
             return Current.RegisterType<IT, T>(name);
         }
 
+        /// <summary>
+        /// Register a service within a scope. 
+        /// </summary>
+        /// <typeparam name="IT">service interface</typeparam>
+        /// <typeparam name="T">service implementation class</typeparam>
+        /// <param name="instanceScope">service instance scope</param>
+        /// <returns>current container</returns>
         static public IIocContainer RegisterType<IT, T>(IocInstanceScope instanceScope)
             where IT : class
             where T : class, IT
@@ -153,11 +179,88 @@ namespace qshine
             return Current.RegisterType<IT, T>(instanceScope);
         }
 
+        /// <summary>
+        /// Register a named scope within a scope
+        /// </summary>
+        /// <typeparam name="IT">service interface</typeparam>
+        /// <typeparam name="T">service implementation class</typeparam>
+        /// <param name="instanceScope">service instance scope</param>
+        /// <param name="name">Specifies the service name</param>
+        /// <returns>current container</returns>
         static public IIocContainer RegisterType<IT, T>(string name, IocInstanceScope instanceScope)
             where IT : class
             where T : class, IT
         {
             return Current.RegisterType(typeof(IT),typeof(T),name,instanceScope);
+        }
+
+        /// <summary>
+        /// Add a transient service
+        /// </summary>
+        /// <typeparam name="IT">service interface</typeparam>
+        /// <typeparam name="T">service implementation class</typeparam>
+        /// <returns>current container</returns>
+        static public IIocContainer AddTransient<IT, T>()
+        {
+            return Current.RegisterType(typeof(IT), typeof(T), IocInstanceScope.Transient);
+        }
+
+        /// <summary>
+        /// Add a named transient service
+        /// </summary>
+        /// <typeparam name="IT">service interface</typeparam>
+        /// <typeparam name="T">service implementation class</typeparam>
+        /// <param name="name">Specifies the service name</param>
+        /// <returns>current container</returns>
+        static public IIocContainer AddTransient<IT, T>(string name)
+        {
+            return Current.RegisterType(typeof(IT), typeof(T), name, IocInstanceScope.Transient);
+        }
+
+        /// <summary>
+        /// Add a singleton service
+        /// </summary>
+        /// <typeparam name="IT">service interface</typeparam>
+        /// <typeparam name="T">service implementation class</typeparam>
+        /// <returns>current container</returns>
+        static public IIocContainer AddSingleton<IT, T>()
+        {
+            return Current.RegisterType(typeof(IT), typeof(T), IocInstanceScope.Singleton);
+        }
+
+        /// <summary>
+        /// Add a named singleton service
+        /// </summary>
+        /// <typeparam name="IT">service interface</typeparam>
+        /// <typeparam name="T">service implementation class</typeparam>
+        /// <param name="name">Specifies the service name</param>
+        /// <returns>current container</returns>
+        static public IIocContainer AddSingleton<IT, T>(string name)
+        {
+            return Current.RegisterType(typeof(IT), typeof(T), name, IocInstanceScope.Singleton);
+        }
+
+        /// <summary>
+        /// Add a scoped service
+        /// </summary>
+        /// <typeparam name="IT">service interface</typeparam>
+        /// <typeparam name="T">service implementation class</typeparam>
+        /// <returns>current container</returns>
+        static public IIocContainer AddScoped<IT, T>()
+        {
+            return Current.RegisterType(typeof(IT), typeof(T), IocInstanceScope.Scoped);
+        }
+
+        /// <summary>
+        /// Add a named scoped service
+        /// </summary>
+        /// <typeparam name="IT">service interface</typeparam>
+        /// <typeparam name="T">service implementation class</typeparam>
+        /// <param name="name">Specifies the service name</param>
+        /// <returns>current container</returns>
+        static public IIocContainer AddScoped<IT, T>(string name)
+        {
+            return Current.RegisterType(typeof(IT), typeof(T), name, IocInstanceScope.Scoped);
         }
 
         #endregion
@@ -183,7 +286,12 @@ namespace qshine
         {
             return Current.Resolve<T>();
         }
-
+        /// <summary>
+        /// Resolve a named service
+        /// </summary>
+        /// <typeparam name="T">service interface</typeparam>
+        /// <param name="name">The service name</param>
+        /// <returns>A concrete class instance associate with specified type of interface</returns>
         static public T Resolve<T>(string name) where T : class
         {
             return Current.Resolve<T>(name);

@@ -18,8 +18,9 @@ namespace qshine
         /// <summary>
         /// The interceptor must be a static instance (singleton).
         /// </summary>
-        static Interceptor _interceptor = Interceptor.Register(typeof(DbClient));
-        bool _inscopeSession = false;
+        static Interceptor _interceptor = Interceptor.Get<DbClient>();
+
+        readonly bool _inscopeSession = false;
 
         #region Ctor
         /// <summary>
@@ -94,7 +95,9 @@ namespace qshine
         }
 
         #endregion
-
+        /// <summary>
+        /// DBClient session
+        /// </summary>
         public DbSession Session { get; private set; }
 
         /// <summary>
@@ -130,13 +133,18 @@ namespace qshine
 
         /// <summary>
         /// Execute Sql statement or a stored procedure and return first value selected from the sql.
-        /// 
-        /// ExecuteScalar(CommandType.Text,"select 1 from tb1 where name=:p1 and age=:p2", DbParameters.New.Input("p1",name).Input("p2",age).Output<int>("p3"))
         /// </summary>
         /// <param name="commandType">A CommandType object to indicate a Sql command or a storedprocedure command</param>
         /// <param name="commandString">SQL statement or stored procedure</param>
         /// <param name="parameters">input parameters and output parameters</param>
         /// <returns>Return first selected value from query</returns>
+        /// <example>
+        /// <![CDATA[
+        ///     ExecuteScalar(CommandType.Text,
+        ///         "select 1 from tb1 where name=:p1 and age=:p2", 
+        ///         DbParameters.New.Input("p1",name).Input("p2",age).Output<int>("p3"))
+        /// ]]>
+        /// </example>
         public object ExecuteScalar(CommandType commandType, string commandString, DbParameters parameters = null)
         {
             return _interceptor.JoinPoint<object>(() =>
@@ -202,6 +210,13 @@ namespace qshine
             return Sql(new DbSqlStatement(commandString, parameters));
         }
 
+        /// <summary>
+        /// Execute a SQL statements with parameters
+        /// </summary>
+        /// <param name="batchStatements">sql statement</param>
+        /// <param name="batchException">Batch exception option.
+        /// It also receives batch exception if some sqls failed.</param>
+        /// <returns></returns>
         public bool Sql(List<string> batchStatements, BatchException batchException)
         {
             if (batchStatements == null || batchStatements.Count == 0) return false;
@@ -229,7 +244,7 @@ namespace qshine
         /// <summary>
         /// Execute a batch Sql statements
         /// </summary>
-        /// <param name="sqls">sql statements</param>
+        /// <param name="batchStatements">sql statements</param>
         /// <param name="batchException">batch exception policy</param>
         /// <returns>True to indicate success.</returns>
         public bool Sql(List<DbSqlStatement> batchStatements, BatchException batchException)
@@ -280,6 +295,7 @@ namespace qshine
         /// Execute sql when condition satisfied
         /// </summary>
         /// <param name="sql">conditional sql instance.</param>
+        /// <param name="batchException">batch exception policy</param>
         /// <returns></returns>
         public bool Sql(ConditionalSql sql, BatchException batchException)
         {
@@ -298,12 +314,22 @@ namespace qshine
             return false;
         }
 
+        /// <summary>
+        /// Execute condition sqls
+        /// </summary>
+        /// <param name="batchSqls">a list of condition sql</param>
+        /// <returns></returns>
         public bool Sql(List<ConditionalSql> batchSqls)
         {
             return Sql(batchSqls, new BatchException());
         }
 
-
+        /// <summary>
+        /// Execute conditional sqls.
+        /// </summary>
+        /// <param name="batchSqls">conditional sqls</param>
+        /// <param name="batchException">batch sql exception policy</param>
+        /// <returns>true if no any exception.</returns>
         public bool Sql(List<ConditionalSql> batchSqls, BatchException batchException)
         {
             if (batchSqls == null || batchSqls.Count == 0) return false;
@@ -431,6 +457,13 @@ namespace qshine
             }, "Retrieve", commandString, parameters);
         }
 
+        /// <summary>
+        /// Convert common text to boolean type value
+        /// </summary>
+        /// <param name="value">Common boolean text such as
+        /// 1, -1, "t", "y"
+        /// </param>
+        /// <returns></returns>
         public static bool ToBoolean(object value)
         {
             if (value == null) return false;
@@ -444,7 +477,7 @@ namespace qshine
         }
 
         /// <summary>
-        /// Insert record to table
+        /// Build insert statement and execute sql
         /// </summary>
         /// <param name="tableName"></param>
         /// <param name="columns"></param>
@@ -468,7 +501,7 @@ namespace qshine
         /// <summary>
         /// generate sql parameter name with a prefix
         /// </summary>
-        /// <param name=""></param>
+        /// <param name="p"></param>
         /// <returns></returns>
         public string ParameterName(string p)
         {
@@ -594,6 +627,9 @@ namespace qshine
 
     }
 
+    /// <summary>
+    /// DbClient extension
+    /// </summary>
     public static class DbClientExtension
     {
 

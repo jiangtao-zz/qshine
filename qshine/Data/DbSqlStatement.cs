@@ -10,19 +10,35 @@ namespace qshine
     /// </summary>
     public class DbSqlStatement
     {
+        #region Ctro.
+        /// <summary>
+        /// Ctro.
+        /// </summary>
+        /// <param name="sql"></param>
         public DbSqlStatement(string sql)
             :this(sql, null)
         {}
+        /// <summary>
+        /// Ctro.
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="parameters"></param>
         public DbSqlStatement(string sql, DbParameters parameters)
             :this(CommandType.Text, sql, parameters)
         {}
-
+        /// <summary>
+        /// Ctro.
+        /// </summary>
+        /// <param name="commandType"></param>
+        /// <param name="sql"></param>
+        /// <param name="parameters"></param>
         public DbSqlStatement(CommandType commandType, string sql, DbParameters parameters)
         {
             CommandType = commandType;
             Sql = sql;
             Parameters = parameters;
         }
+        #endregion
 
         /// <summary>
         /// Statement command type

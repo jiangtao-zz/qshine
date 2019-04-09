@@ -21,8 +21,8 @@ namespace qshine.database.mysql
     public class SqlDialect : SqlDialectStandard
     {
         //ILogger _logger;
-        string _dataSource;
-        string _connectionString;
+        readonly string _dataSource;
+        readonly string _connectionString;
         MySqlConnectionStringBuilder _connectionBuilder;
 
 
@@ -182,8 +182,7 @@ namespace qshine.database.mysql
             //workaround for default SYSDATE()
             foreach(var column in table.Columns)
             {
-                SqlReservedWord reservedValue = column.DefaultValue as SqlReservedWord;
-                if (reservedValue!=null && reservedValue.IsSysDate)
+                if (column.DefaultValue is SqlReservedWord reservedValue && reservedValue.IsSysDate)
                 {
                     sqls.Add(new ConditionalSql(
                         SetDefaultSysdateColumn(table.TableName, column.Name, column.AllowNull)));
@@ -367,14 +366,12 @@ namespace qshine.database.mysql
                 return "'" + ((string)value).Replace("'", "''") + "'";
             }
 
-            if (value is DateTime)
+            if (value is DateTime datetime)
             {
-                var datetime = (DateTime)value;
                 return string.Format("STR_TO_DATE('{0}-{1}-{2} {3}:{4}:{5}', '%c-%e-%Y %T')", datetime.Month, datetime.Day, datetime.Year, datetime.Hour, datetime.Minute, datetime.Second);
             }
 
-            var reservedWord = value as SqlReservedWord;
-            if (reservedWord != null)
+            if (value is SqlReservedWord reservedWord)
             {
                 if (reservedWord.IsSysDate)
                 {

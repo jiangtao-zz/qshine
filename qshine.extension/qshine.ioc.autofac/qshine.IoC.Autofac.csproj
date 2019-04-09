@@ -10,12 +10,25 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.2'">
+    <DefineConstants>netcoreapp2_2</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1'">
-    <DefineConstants>NETCORE;NETCORE2_0</DefineConstants>
-  </PropertyGroup>  
-  
+    <DefineConstants>netcoreapp2_1</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461'">
+    <DefineConstants>net461</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.2|netcoreapp2.1'">
+    <DefineConstants>NETCORE;NETCORE2_0;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+
+
   <ItemGroup>
-    <Compile Include="Properties\qshineAssemblyInfo.cs" />
+    <Compile Include="..\..\qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
     <Compile Include="provider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="container.cs" />

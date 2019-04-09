@@ -11,9 +11,15 @@ using qshine.Configuration;
 
 namespace qshine
 {
+    /// <summary>
+    /// Json format
+    /// </summary>
     [Flags]
 	public enum JsonFormat:ulong
 	{
+        /// <summary>
+        /// default format
+        /// </summary>
 		Default = 1,		//default
 		/// <summary>
 		/// The microsoft date format.
@@ -57,10 +63,19 @@ namespace qshine
         /// Custom Date format
         /// </summary>
 		CustomDateFormat = 0x20,
-		//UseSimpleDictionaryFormat = 0x00
+		/// <summary>
+        /// 
+        /// </summary>
+        //UseSimpleDictionaryFormat = 0x00
 		UseDictionaryFormat = 0x100,
+        /// <summary>
+        /// 
+        /// </summary>
 		//EmitTypeInformation.Never = 0x000
 		EmitTypeAlways = 0x1000, //EmitTypeInformation.Always
+        /// <summary>
+        /// 
+        /// </summary>
 		EmitTypeAsNeeded = 0x2000 //EmitTypeInformation.AsNeed
 	};
 
@@ -82,9 +97,9 @@ namespace qshine
     {
 		private static IJsonProvider _jsonProvider;
 		private static IJsonSerializer _jsonSerializer;
-		private static object lockobject = new object();
+		private readonly static object lockobject = new object();
 
-		private static Interceptor _interceptor = Interceptor.Register(typeof(IJsonSerializer));
+		private static Interceptor _interceptor = Interceptor.Get<IJsonSerializer>();
 
 
 		/// <summary>
@@ -142,6 +157,8 @@ namespace qshine
         /// Serializes object into JSON string
         /// </summary>
         /// <param name="instance"></param>
+        /// <param name="jsonFormat">json format</param>
+        /// /// <param name="setting">json format setting</param>
         /// <returns></returns>
 		public static string Serialize(this object instance, JsonFormat jsonFormat=JsonFormat.Default, JsonFormatSetting setting =null)
         {
@@ -156,6 +173,8 @@ namespace qshine
         /// </summary>
         /// <typeparam name="T">Object Type</typeparam>
         /// <param name="jsonString">JSON string</param>
+        /// <param name="jsonFormat">json format</param>
+        /// /// <param name="setting">json format setting</param>
         /// <returns>Returns a given type of instance.</returns>
         /// <remarks>
         /// The given type properties name must exist in serialized json string. Otherwise, it will throw exception
@@ -170,6 +189,8 @@ namespace qshine
         /// </summary>
         /// <param name="jsonString">json string</param>
         /// <param name="type">Target object type</param>
+        /// <param name="jsonFormat">json format</param>
+        /// /// <param name="setting">json format setting</param>
         /// <returns>Returns a given type of instance.</returns>
         /// <remarks>
         /// The given type properties name must exist in serialized json string. Otherwise, it will throw exception
@@ -190,6 +211,8 @@ namespace qshine
         /// <param name="typeName">Type name of the target object. It could be a object name, full name or a qualified object name.
 		/// The type name could be a type in plugable component assembly</param>
         /// <returns>Returns a given type of instance.</returns>
+        /// <param name="jsonFormat">json format</param>
+        /// /// <param name="setting">json format setting</param>
         /// <remarks>
         /// The given type properties name must exist in serialized json string. Otherwise, it will throw exception.
         /// </remarks>
@@ -217,6 +240,7 @@ namespace qshine
         /// </summary>
         /// <param name="jsonString">json format string</param>
 		/// <param name="jsonFormat">Json format.</param>
+        /// /// <param name="setting">json format setting</param>
         /// <returns>returns dictionary instance which contains all property names and values</returns>
         public static Dictionary<string, object> DeserializeDictionary(this string jsonString, JsonFormat jsonFormat = JsonFormat.Default, JsonFormatSetting setting = null)
         {

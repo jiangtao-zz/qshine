@@ -1,4 +1,5 @@
-﻿using System;
+﻿using qshine.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,24 +7,73 @@ namespace qshine.Messaging
 {
     /// <summary>
     /// Event bus service
-    /// Publish or subscrible event 
+    /// Publish or subscrible events.
+    /// 
+    /// Event bus could be configured in application environment based on bus name (route name).
+    /// The bus could be produced from different bus factory by bus name.
+    /// 
+    /// The common usuage::
+    ///     Publish event: 
+    ///         var bus = new EventBus("busName");
+    ///         bus.Publish(myEvent);
+    ///     
+    ///     Subscrible events:
+    ///         var bus = new EventBus("busName");
+    ///         bus.Subscribe("endpointname", eventHandler);
+    ///     or
+    ///         bus.Subscribe(eventhandler);
+    ///     
+    /// 
+    /// If no any plugable bus factory available, a default bus factory will be selected for event bus.
+    /// The default one is a memory event bus for test purpose.
+    /// 
     /// </summary>
     public class EventBus
     {
         IEventBus _bus;
+        IEventBusFactory _busFactory;
+
         /// <summary>
-        /// Create a named EventBus
+        /// Initializes a new instance of the <see cref="T:qshine.EventBus"/> class using default bus parameter.
         /// </summary>
-        /// <param name="busName"></param>
-        public EventBus(string busName)
+        public EventBus()
+            :this(EventBusNames.DefaultEventBusName)
         {
-            BusName = busName;
         }
 
         /// <summary>
-        /// Event bus name
+        /// Initializes a new instance of the <see cref="T:qshine.EventBus"/> class for specific named bus.
         /// </summary>
-        public string BusName { get; private set; }
+        /// <param name="busName">Bus name</param>
+        public EventBus(string busName)
+            :this(busName, null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:qshine.EventBus"/> class by a given bus name and bus factory.
+        /// The bus name could be used to specify a type of bus factory and a separated bus route.
+        /// Application may utilize different type of bus factory for bus route.
+        /// </summary>
+        /// <param name="busName">Bus name.</param>
+        /// <param name="factory">event bus factory</param>
+        public EventBus(string busName, IEventBusFactory factory)
+        {
+            if (string.IsNullOrEmpty(busName)) busName = EventBusNames.DefaultEventBusName;
+
+            BusName = busName;
+
+            _busFactory = factory;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:qshine.EventBus"/> for given bus instance.
+        /// </summary>
+        /// <param name="bus">bus instance for particular route.</param>
+        public EventBus(IEventBus bus)
+        {
+            _bus = bus;
+        }
 
         /// <summary>
         /// Publish a event message through given event bus
@@ -33,7 +83,10 @@ namespace qshine.Messaging
         public void Publish<T> (T eventMessage)
             where T : IEventMessage
         {
-            Bus.Publish(eventMessage);
+            var bus = Bus;
+
+            if(bus!=null)
+                bus.Publish(eventMessage);
         }
 
         /// <summary>
@@ -41,7 +94,7 @@ namespace qshine.Messaging
         /// </summary>
         /// <typeparam name="T">Type of message event</typeparam>
         /// <param name="handler">Message event handler</param>
-        public void Subscribe<T>(IEventMessageHandler<T> handler) where T : IEventMessage
+        public void Subscribe<T>(IHandler<T> handler) where T : IEventMessage
         {
             //endpoint name is the handler name.
             var endpoint = handler.GetType().FullName;
@@ -55,10 +108,15 @@ namespace qshine.Messaging
         /// <typeparam name="T">Type of message event</typeparam>
         /// <param name="endpoint">event bus endpoint</param>
         /// <param name="handler">Message event handler</param>
-        public void Subscribe<T>(string endpoint, IEventMessageHandler<T> handler) where T : IEventMessage
+        public void Subscribe<T>(string endpoint, IHandler<T> handler) where T : IEventMessage
         {
-            Bus.Subscribe(endpoint, handler);
+            var bus = Bus;
+
+            if (bus != null)
+                bus.Subscribe(endpoint, handler);
         }
+
+        string BusName { get; set; }
 
         IEventBus Bus
         {
@@ -66,19 +124,61 @@ namespace qshine.Messaging
             {
                 if (_bus == null)
                 {
-                    _bus = BusFactory.Create(BusName);
+                    if(_busFactory ==null)
+                    {
+                        _busFactory = GetBusFactory(BusName);
+                    }
+                    if (_busFactory != null)
+                    {
+                        _bus = _busFactory.Create(BusName);
+                    }
                 }
                 return _bus;
             }
         }
 
         /// <summary>
-        /// Bus factory.
-        /// The bus factory resolve the bus provider based on bus name.
+        /// Buffer all bus factories.
         /// </summary>
-        public IEventBusFactory BusFactory
+        static Dictionary<string, IEventBusFactory> _factories = new Dictionary<string, IEventBusFactory>();
+        static readonly object lockobj = new object();
+        static readonly Interceptor _intercepter = Interceptor.Get<EventBus>();
+
+        /// <summary>
+        /// Bus factory resolver.
+        /// Find a bus factory based on bus name.
+        /// You can configure different bus factory for certain bus name.
+        /// </summary>
+        IEventBusFactory GetBusFactory(string name)
         {
-            get;set;
+            Check.HaveValue(name, "GetBusFactory(name)");
+
+            if(_busFactory==null)
+            {
+                if (!_factories.ContainsKey(name))
+                {
+                    var _busFactory = ApplicationEnvironment.GetProvider<IEventBusFactory>(name);
+                    if (_busFactory != null)
+                    {
+                        lock (lockobj)
+                        {
+                            if (!_factories.ContainsKey(name))
+                            {
+                                _factories[name] = _busFactory;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //No bus factory found
+                    }
+                }
+                else
+                {
+                    _busFactory = _factories[name];
+                }
+            }
+            return _busFactory;
         }
     }
 }

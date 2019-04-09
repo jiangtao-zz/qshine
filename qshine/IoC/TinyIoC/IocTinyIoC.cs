@@ -8,8 +8,15 @@ using TinyIoC;
 
 namespace qshine
 {
+    /// <summary>
+    /// 
+    /// </summary>
 	public class TinyIocProvider: IIocProvider
 	{
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
 		public IIocContainer CreateContainer()
 		{
 			return new IocTinyIoc();
@@ -65,6 +72,9 @@ namespace qshine
 
         #region constructor
 
+        /// <summary>
+        /// 
+        /// </summary>
         public IocTinyIoc()
         {
             this.ProviderName = "TinyIoC";
@@ -74,7 +84,12 @@ namespace qshine
         #endregion
 
         #region Resolve
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="interfaceType"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public override object Resolve(Type interfaceType, string name)
         {
             NamedParameterOverloads overloadParameter = null;
@@ -133,12 +148,18 @@ namespace qshine
                 }
             }
         }
-
-
         #endregion
 
         #region RegisterType
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="requestedType"></param>
+        /// <param name="actualType"></param>
+        /// <param name="name"></param>
+        /// <param name="instanceScopeOption"></param>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
         public override IIocContainer RegisterType(Type requestedType, Type actualType, string name, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
         {
             if (name == null)
@@ -218,13 +239,25 @@ namespace qshine
         #endregion
 
         #region RegisterInstance
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="IT"></typeparam>
+        /// <param name="instance"></param>
+        /// <returns></returns>
         public override IIocContainer RegisterInstance<IT>(IT instance)
         {
             container.Register<IT>(instance);
 
             return this;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="requestedType"></param>
+        /// <param name="instance"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public override IIocContainer RegisterInstance(Type requestedType, object instance, string name)
         {
             container.Register(requestedType, instance, name);
@@ -234,7 +267,9 @@ namespace qshine
         #endregion
 
         #region Dispose
-
+        /// <summary>
+        /// 
+        /// </summary>
         public override void Dispose()
         {
             container.Dispose();
@@ -259,11 +294,16 @@ namespace qshine
                     throw new NotImplementedException();
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
 		public override void Bind()
 		{
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
 		public override void Unbind()
 		{
 		}

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using qshine.Messaging;
+using System;
 namespace qshine
 {
     /// <summary>
@@ -36,15 +37,14 @@ namespace qshine
         /// <param name="handler">event message handler.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
 
-        void Subscribe<T>(string endpoint, IEventMessageHandler<T> handler) where T : IEventMessage;
+        void Subscribe<T>(string endpoint, IHandler<T> handler) where T : IEventMessage;
 
-		/// <summary>
-		/// Unsubscribe the specified handler.
-		/// </summary>
-		/// <returns>The unsubscribe.</returns>
-		/// <param name="handler">Handler.</param>
-		/// <typeparam name="T">The 1st type parameter.</typeparam>
-		void Unsubscribe(string endpoint);
+        /// <summary>
+        /// Unsubscribe the specified handler.
+        /// </summary>
+        /// <returns>The unsubscribe.</returns>
+        /// <param name="endpoint">endpoint.</param>
+        void Unsubscribe(string endpoint);
 
 	}
 }

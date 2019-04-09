@@ -3,6 +3,9 @@ using qshine.Configuration;
 
 namespace qshine
 {
+    /// <summary>
+    /// Command Bus base building block
+    /// </summary>
 	public abstract class CommandBusBase : ICommandBus
 	{
 		/// <summary>
@@ -22,20 +25,19 @@ namespace qshine
                 return;
             }
 
-			//if command and command handler implemented in the same class
-			var handler = command as ICommandHandler<T>;
-			if (handler != null)
-			{
-				handler.Using(() =>
-				{
-					handler.Handle(command);
-				});
-			}
-			else
-			{
-				Send((ICommandMessage)command);
-			}
-		}
+            //if command and command handler implemented in the same class
+            if (command is ICommandHandler<T> handler)
+            {
+                handler.Using(() =>
+                {
+                    handler.Handle(command);
+                });
+            }
+            else
+            {
+                Send((ICommandMessage)command);
+            }
+        }
 
 		/// <summary>
 		/// Send the specified command without declare command type explicitly.
@@ -66,7 +68,11 @@ namespace qshine
 			}
 		}
 
-
+        /// <summary>
+        /// Send command in async way
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="command"></param>
 		public abstract void SendAsync<T>(T command) where T : ICommandMessage;
 
 		/// <summary>

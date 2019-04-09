@@ -174,12 +174,19 @@ namespace qshine
 		#region Dispose
 
 		bool disposed;
+        /// <summary>
+        /// Dispose
+        /// </summary>
 		public void Dispose()
 		{
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
 
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        /// <param name="disposing"></param>
 		protected virtual void Dispose(bool disposing)
 		{
 			if (disposed)

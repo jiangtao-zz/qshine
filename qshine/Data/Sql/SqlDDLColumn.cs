@@ -22,6 +22,10 @@ namespace qshine.database
         /// </summary>
         public SqlDDLTable Table {get;set; }
 
+        /// <summary>
+        /// Ctro.
+        /// </summary>
+        /// <param name="tableName"></param>
 		public SqlDDLColumn(string tableName)
 		{
             TableName = tableName;
@@ -66,11 +70,16 @@ namespace qshine.database
         /// </summary>
 		public SqlDDLColumn Reference { get; set; }
 
+        /// <summary>
+        /// Get FK sql clause
+        /// </summary>
+        /// <returns></returns>
         public string ToReferenceClause()
         {
             if (Reference == null) return "";
             return string.Format("{0}:{1}", Reference.TableName, Reference.Name);
         }
+
         /// <summary>
         /// INdicates a unique constraint column
         /// </summary>
@@ -118,6 +127,9 @@ namespace qshine.database
         }
 
         List<string> _columnNameHistory;
+        /// <summary>
+        /// Get column name change history
+        /// </summary>
 		public List<string> ColumnNameHistory
 		{
 			get
@@ -139,32 +151,137 @@ namespace qshine.database
         /// The Column attribute changed.
         /// </summary>
         public bool IsDirty { get; set; }
-        //public bool IsDefaultChanged { get; set; }
-        public bool NeedModifyType { get; set; }
+        
         //public bool IsNullChanged { get; set; }
         //public bool IsConstraintChanged { get; set; }
+
+        /// <summary>
+        /// Indicates FK changed (added or removed)
+        /// </summary>
         public bool IsReferenceChanged { get; set; }
+
+        /// <summary>
+        /// Indicates a new column
+        /// </summary>
         public bool IsNew { get; set; }
+
+        #region Column Type
+        /// <summary>
+        /// Need issue a column type change sql
+        /// </summary>
+        public bool NeedModifyType { get; set; }
+        #endregion
+
+        #region Column Rename
+        /// <summary>
+        /// Need issue a sql to rename the column
+        /// </summary>
         public bool NeedRename { get; set; }
+        #endregion
+
+        #region Column auto-increasement
+        /// <summary>
+        /// Need issue a sql to add column auto-increasement
+        /// </summary>
         public bool NeedAddAutoIncrease { get; set; }
+        /// <summary>
+        /// Need issue a sql to remove column auto-increasement
+        /// </summary>
         public bool NeedRemoveAutoIncrease { get; set; }
+        #endregion
+
+        #region Column Index
+        /// <summary>
+        /// Need issue a sql to add an index
+        /// </summary>
         public bool NeedAddIndex { get; set; }
+        /// <summary>
+        /// Need issue a sql to remove an index
+        /// </summary>
         public bool NeedRemoveIndex { get; set; }
+        #endregion
+
+        #region Column Unique Key
+        /// <summary>
+        /// Need issue a sql to add unique key
+        /// </summary>
         public bool NeedAddUnique { get; set; }
+        /// <summary>
+        /// Need issue a sql to remove unique key
+        /// </summary>
         public bool NeedRemoveUnique { get; set; }
+        #endregion
+
+        #region Column PK
+        /// <summary>
+        /// Need issue a sql to add PK.
+        /// </summary>
         public bool NeedAddPK { get; set; }
+        /// <summary>
+        /// Need issue a sql to remove a PK.
+        /// </summary>
         public bool NeedRemovePK { get; set; }
+        #endregion
+
+        #region Column Default value
+        /// <summary>
+        /// Need issue a sql to remove default value
+        /// </summary>
         public bool NeedRemoveDefault { get; set; }
+        /// <summary>
+        /// Need issue a sql to add default value.
+        /// </summary>
         public bool NeedAddDefault { get; set; }
+        /// <summary>
+        /// Need issue a sql to modify default value.
+        /// </summary>
         public bool NeedModifyDefault { get; set; }
-        public string TempColumnName { get; set; }
+        #endregion
+
+        #region Column Null/Not NULL
+        /// <summary>
+        /// Need issue a nullable column sql
+        /// </summary>
         public bool NeedNull { get; internal set; }
+        /// <summary>
+        /// Need issue a sql to set column not null constraint.
+        /// </summary>
         public bool NeedNotNull { get; internal set; }
+        #endregion
+
+        #region Column Constraint
+        /// <summary>
+        /// Need issue a sql to remove the column constraint.
+        /// </summary>
         public bool NeedRemoveConstraint { get; internal set; }
+        /// <summary>
+        /// Need issue a sql to add column constraint.
+        /// </summary>
         public bool NeedAddConstraint { get; internal set; }
+        /// <summary>
+        /// Need issue a sql to modify constraint.
+        /// </summary>
         public bool NeedModifyConstraint { get; internal set; }
+        #endregion
+
+        #region Column FK clause
+        /// <summary>
+        /// Need issue a sql to remove Fk.
+        /// </summary>
         public bool NeedRemoveReference { get; internal set; }
+        /// <summary>
+        /// Need issue a sql to add FK.
+        /// </summary>
         public bool NeedAddReference { get; internal set; }
+        /// <summary>
+        /// Need issue a sql to modify FK.
+        /// </summary>
         public bool NeedModifyReference { get; internal set; }
+        #endregion
+
+        /// <summary>
+        /// Store a temp name
+        /// </summary>
+        internal string TempColumnName { get; set; }
     }
 }

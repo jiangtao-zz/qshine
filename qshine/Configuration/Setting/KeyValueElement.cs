@@ -1,6 +1,9 @@
 ﻿using System.Configuration;
 namespace qshine.Configuration.Setting
 {
+    /// <summary>
+    /// Key valye element
+    /// </summary>
 	public class KeyValueElement: ConfigurationElement
 	{
 		const string KeyAttributeName = "key";

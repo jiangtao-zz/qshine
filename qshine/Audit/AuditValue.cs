@@ -10,11 +10,6 @@ namespace qshine.Audit
     /// </summary>
     public class AuditValue
     {
-        ///// <summary>
-        ///// Value proeprty name.
-        ///// </summary>
-        //public string Name { get; set; }
-
         /// <summary>
         /// Original value before change.
         /// </summary>

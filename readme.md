@@ -2,15 +2,40 @@
 QShine is a lightweight pluggable framework library for .NET application. It helps developer easily use third-party components without code dependency.
 The pluggable components added into application through environment configuration setting and file copy. No application code change required.
 
+```c#
+
+    //Build application environment
+    ApplicationEnvironment
+        .Build()
+        .Startup<IBoot>();
+    
+    //get environment variable
+    var environmentVar1 = ApplicationEnvironment.Current["appVar1"];
+
+    //get pluggable component instance
+    var repository = ApplicationEnvironment.Current.CreateComponent<IInvoiceRepository>();
+
+    //get pluggable provider
+    var emailProvider = ApplicationEnvironment.Current.CreateProvider<IEmailProvider>();
+    emailProvider.Send(subject, body, to);
+
+    //get mapped provider by bus name
+    var auditBus = ApplicationEnvironment.Current.CreateMappedProvider<IEventBus>("securityAuditBus");
+    auditBus.Publish(auditLog);
+
+```
+
+
+
 ## Common library services
 - [Application Environment Configuration](qshine/docs/applicationEnvironment.md)
 - [Application Startup](qshine/docs/applicationStartup.md)
+- [Logging](qshine/docs/logging.md)
+- [DI/IoC](qshine/docs/di.md)
 - Database
 - Context Store
-- IoC/DI
 - Cache
 - Audit
-- Logging
 - Messaging Bus
 - Globalization
 - Utility

@@ -5,7 +5,9 @@ using System.Text;
 
 namespace qshine
 {
-
+    /// <summary>
+    /// Database type mapper interface
+    /// </summary>
     public interface IDbTypeMapper
     {
         /// <summary>
@@ -64,7 +66,7 @@ namespace qshine
         /// <summary>
         /// Map Common DbType to native DbType from datap rovider
         /// </summary>
-        /// <param name="dataType"></param>
+        /// <param name="parameter"></param>
         /// <param name="mapper"></param>
         public void MapDataType(CommonDbParameter parameter, Func<Type, DbType> mapper)
         {

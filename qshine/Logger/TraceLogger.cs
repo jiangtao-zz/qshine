@@ -1,7 +1,9 @@
+using qshine.Utility;
 using System;
+using System.Configuration;
 using System.Diagnostics;
 
-namespace qshine
+namespace qshine.Logger
 {
 	/// <summary>
 	/// Trace logger provider.
@@ -21,26 +23,44 @@ namespace qshine
 			return new TraceLogger(category);
 		}
 	}
+
 	/// <summary>
 	/// Trace logger.
 	/// </summary>
 	public class TraceLogger : LoggerBase
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="T:qshine.TraceLogger"/> class.
-		/// </summary>
-		/// <param name="category">Category.</param>
-		public TraceLogger(string category) : base(category) { }
 
-		TraceSource _source;
+        internal static SafeDictionary<string, TraceSource> 
+            TraceSourceSettings = new SafeDictionary<string, TraceSource>();
 
-		TraceSource TraceSource
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:qshine.TraceLogger"/> class.
+        /// </summary>
+        /// <param name="category">Category.</param>
+        public TraceLogger(string category) : base(category) { }
+
+
+        TraceSource _source;
+        TraceSource _default;
+
+        TraceSource TraceSource
 		{
 			get
 			{
 				if (_source == null)
 				{
-					_source = new TraceSource(Category);
+                    if (TraceSourceSettings.ContainsKey(Category))
+                    {
+                        _source = TraceSourceSettings[Category];
+                    }
+                    else
+                    {
+                        if (_default == null)
+                        {
+                            _default = new TraceSource(Category);
+                        }
+                        return _default;
+                    }
 				}
 				return _source;
 			}
@@ -147,19 +167,24 @@ namespace qshine
 		{
 			if (LoggingEnabled(severity))
 			{
-				var formattedMessage = string.Format("{0}", string.IsNullOrEmpty(message) ? string.Empty :
-					string.Format(message, properties));
-				if (ex != null)
+                string formattedMessage = message;
+                if (!string.IsNullOrEmpty(message))
+                {
+                    if (properties.Length > 0)
+                    {
+                        formattedMessage = string.Format(message, properties);
+                    }
+                }
+
+                if (ex != null)
 				{
 					formattedMessage += "\r\n" + string.Format("Detail:{0}", ex);
 					formattedMessage += "\r\n";
 				}
 #if DEBUG
-				System.Diagnostics.Debug.WriteLine(formattedMessage);
+                System.Diagnostics.Debug.WriteLine(formattedMessage);
 #else
-				System.Diagnostics.Trace.WriteLine(formattedMessage);
-
-//				_source.TraceEvent(severity, 0, formattedMessage);
+                System.Diagnostics.Trace.WriteLine(formattedMessage);
 #endif
                 if (_source != null)
                 {

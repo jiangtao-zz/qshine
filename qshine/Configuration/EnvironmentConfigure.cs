@@ -43,6 +43,14 @@ namespace qshine.Configuration
             private set;
 		}
 
+        List<string> _configFiles = new List<string>();
+        /// <summary>
+        /// named configuration files found in Configuration folders.
+        /// </summary>
+        public List<string> ConfigFiles {
+            get { return _configFiles; }
+        }
+
         /// <summary>
         /// Get/Set plugable components binary assembly folder.
         /// The folders contain all assemblies to be loaded by configure files.
@@ -215,9 +223,11 @@ namespace qshine.Configuration
         /// Adds the map.
         /// </summary>
         /// <returns>The map.</returns>
-        /// <param name="module">map.</param>
+        /// <param name="name">map collection name</param>
+        /// <param name="defaultKey">default map key within a map collection</param>
+        /// <param name="map">key/value map.</param>
         /// <param name="overWrite">If set to <c>true</c> overwrite existing module.</param>
-        internal void AddMap(string name, string defaultKey, KeyValueElement map, bool overWrite)
+        public void AddMap(string name, string defaultKey, KeyValueElement map, bool overWrite)
         {
             if (map == null) return;
 

@@ -10,13 +10,14 @@ namespace qshine
 	/// </summary>
 	public static class DataReaderExtension
 	{
-		#region Read primitive value by column index
-		/// <summary>
-		/// Read string type value by index
-		/// </summary>
-		/// <param name="index">Index of the column</param>
-		/// <returns>The string value</returns>
-		public static string ReadString(this IDataReader reader, int index)
+        #region Read primitive value by column index
+        /// <summary>
+        /// Read string type value by index
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="index">Index of the column</param>
+        /// <returns>The string value</returns>
+        public static string ReadString(this IDataReader reader, int index)
 		{
 			if (reader.IsDBNull(index))
 			{
@@ -242,10 +243,16 @@ namespace qshine
 			}
 			return (byte[])reader[index];
 		}
-		#endregion
+        #endregion
 
-		#region Read Nullable vale by column index
-		public static short? ReadNullableInt16(this IDataReader reader, int index)
+        #region Read Nullable vale by column index
+        /// <summary>
+        /// Read nullable integer value
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="index">column index</param>
+        /// <returns></returns>
+        public static short? ReadNullableInt16(this IDataReader reader, int index)
 		{
 			var value = reader.ReadInt16(index);
 			if (value == default(short))
@@ -255,6 +262,12 @@ namespace qshine
 			return value;
 		}
 
+        /// <summary>
+        /// Read nullable 32 bits integer value
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="index">column index</param>
+        /// <returns></returns>
 		public static int? ReadNullableInt32(this IDataReader reader, int index)
 		{
 			var value = reader.ReadInt32(index);
@@ -265,6 +278,12 @@ namespace qshine
 			return value;
 		}
 
+        /// <summary>
+        /// Read nullable 64 bits integer value
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="index">column index</param>
+        /// <returns></returns>
 		public static long? ReadNullableInt64(this IDataReader reader, int index)
 		{
 			var value = reader.ReadInt64(index);
@@ -275,6 +294,12 @@ namespace qshine
 			return value;
 		}
 
+        /// <summary>
+        /// Read nullable decimal value
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="index">column index</param>
+        /// <returns></returns>
 		public static decimal? ReadNullableDecimal(this IDataReader reader, int index)
 		{
 			var value = reader.ReadDecimal(index);
@@ -285,6 +310,12 @@ namespace qshine
 			return value;
 		}
 
+        /// <summary>
+        /// Read nullable float type value
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="index">column index</param>
+        /// <returns></returns>
 		public static float? ReadNullableFloat(this IDataReader reader, int index)
 		{
 			var value = reader.ReadFloat(index);
@@ -295,6 +326,12 @@ namespace qshine
 			return value;
 		}
 
+        /// <summary>
+        /// Read nullable double type value
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="index">column index</param>
+        /// <returns></returns>
 		public static double? ReadNullableDouble(this IDataReader reader, int index)
 		{
 			var value = reader.ReadDouble(index);
@@ -305,6 +342,12 @@ namespace qshine
 			return value;
 		}
 
+        /// <summary>
+        /// Read nullable date and time value
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="index">column index</param>
+        /// <returns></returns>
 		public static DateTime? ReadNullableDateTime(this IDataReader reader, int index)
 		{
 			var value = reader.ReadDateTime(index);
@@ -318,90 +361,192 @@ namespace qshine
 
 		#region Read Nullable value by column name
 
+        /// <summary>
+        /// Read nullable 16 bits integer value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>nullable value</returns>
 		public static short? ReadNullableInt16(this IDataReader reader, string columnName)
 		{
 			return reader.ReadNullableInt16(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read nullable 32 bits integer value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>nullable value</returns>
 		public static int? ReadNullableInt32(this IDataReader reader, string columnName)
 		{
 			return reader.ReadNullableInt32(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read nullable 64 bits integer value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>nullable value</returns>
 		public static long? ReadNullableInt64(this IDataReader reader, string columnName)
 		{
 			return reader.ReadNullableInt64(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read nullable decimal value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>nullable value</returns>
 		public static decimal? ReadNullableDecimal(this IDataReader reader, string columnName)
 		{
 			return reader.ReadNullableDecimal(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read nullable float value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>nullable value</returns>
 		public static float? ReadNullableFloat(this IDataReader reader, string columnName)
 		{
 			return reader.ReadNullableFloat(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read nullable double value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>nullable value</returns>
 		public static double? ReadNullableDouble(this IDataReader reader, string columnName)
 		{
 			return reader.ReadNullableDouble(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read nullable date and time value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>nullable value</returns>
 		public static DateTime? ReadNullableDateTime(this IDataReader reader, string columnName)
 		{
 			return reader.ReadNullableDateTime(reader.GetOrdinal(columnName));
 		}
-		#endregion
+        #endregion
 
-		#region Read primitive value by column name
+        #region Read primitive value by column name
 
-		public static string ReadString(this IDataReader reader, string columnName)
+        /// <summary>
+        /// Read string value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>Column value</returns>
+        public static string ReadString(this IDataReader reader, string columnName)
 		{
 			return reader.ReadString(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read 16 bits integer value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>Column value</returns>
 		public static short ReadInt16(this IDataReader reader, string columnName)
 		{
 			return reader.ReadInt16(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read 32 bits integer value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>Column value</returns>
 		public static int ReadInt32(this IDataReader reader, string columnName)
 		{
 			return reader.ReadInt32(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read 64 bits integer value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>Column value</returns>
 		public static long ReadInt64(this IDataReader reader, string columnName)
 		{
 			return reader.ReadInt64(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read decimal value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>Column value</returns>
 		public static decimal ReadDecimal(this IDataReader reader, string columnName)
 		{
 			return reader.ReadDecimal(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read float value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>Column value</returns>
 		public static float ReadFloat(this IDataReader reader, string columnName)
 		{
 			return reader.ReadFloat(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read double type value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>Column value</returns>
 		public static double ReadDouble(this IDataReader reader, string columnName)
 		{
 			return reader.ReadDouble(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read date and time value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>Column value</returns>
 		public static DateTime ReadDateTime(this IDataReader reader, string columnName)
 		{
 			return reader.ReadDateTime(reader.GetOrdinal(columnName));
 		}
 
+        /// <summary>
+        /// Read all binary data by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>Column value</returns>
 		public static byte[] ReadBytes(this IDataReader reader, string columnName)
 		{
 			return reader.ReadBytes(reader.GetOrdinal(columnName));
 		}
 
 
+        /// <summary>
+        /// Read Guid value by column name
+        /// </summary>
+        /// <param name="reader">data reader</param>
+        /// <param name="columnName">column name</param>
+        /// <returns>Column value</returns>
         public static Guid ReadGuid(this IDataReader reader, string columnName)
         {
             var value = reader.GetValue(reader.GetOrdinal(columnName));
@@ -424,6 +569,7 @@ namespace qshine
         /// <summary>
         /// Read a boolean value by column index
         /// </summary>
+        /// <param name="reader">data reader</param>
         /// <param name="index">index of column</param>
         /// <returns>return boolean value. 
         /// The boolean true could be:
@@ -453,6 +599,17 @@ namespace qshine
 		}
 		#endregion
 
+        /// <summary>
+        /// Cast any type converable date and time value to DateTime type value.
+        ///     null ==> default(DateTime)
+        ///     timespan ==> default(DateTime) + timespan
+        ///     datetimeoffset ==> utc time
+        ///     string datetime ==> date and time
+        ///     integer ==> year.
+        /// </summary>
+        /// <param name="value">date and type object value</param>
+        /// <returns>DateTime type value or throw exception</returns>
+        /// 
         public static DateTime ToDateTime(this object value)
         {
             return _toDateTime(value, value.GetType());
@@ -485,9 +642,10 @@ namespace qshine
             {
                 actualValue = ((DateTimeOffset)value).UtcDateTime;
             }
+
             if (!DateTime.TryParse(value.ToString(), out actualValue))
             {
-                throw new InvalidCastException(string.Format("Cannot cast value '{0}' to DateTime.", value.ToString()));
+                throw new InvalidCastException(string.Format("Cannot cast value '{0}' to DateTime."._G(value.ToString())));
             }
             return actualValue;
         }

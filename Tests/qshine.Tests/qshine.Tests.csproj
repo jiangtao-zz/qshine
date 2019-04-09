@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
+    <PackageReference Include="Moq" Version="4.10.1" />
     <PackageReference Include="MSTest.TestAdapter" Version="1.3.2" />
     <PackageReference Include="MSTest.TestFramework" Version="1.3.2" />
   </ItemGroup>
@@ -28,16 +29,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="CacheTests.cs" />
     <Compile Include="CommandBusTests.cs" />
     <Compile Include="CompilerTests.cs" />
     <Compile Include="ConfigurationTests.cs" />
     <Compile Include="ContextStoreTests.cs" />
     <Compile Include="DatabaseTests.cs" />
+    <Compile Include="EventSourcingTests.cs" />
     <Compile Include="InterceptorTests.cs" />
     <Compile Include="IStartupInitializerTests.cs" />
     <Compile Include="jsonTests.cs" />
     <Compile Include="logTests.cs" />
     <Compile Include="ObjectExtenstionTests.cs" />
+    <Compile Include="TestObject1.cs" />
     <Compile Include="UtilityTests.cs" />
   </ItemGroup>
   <ItemGroup>

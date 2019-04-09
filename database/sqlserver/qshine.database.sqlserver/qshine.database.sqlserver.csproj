@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net461;</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.2;netcoreapp2.1;net461;</TargetFrameworks>
     <ProjectGuid>{DAC2DA88-01FD-4D40-B162-5CA1F3BE7F5D}</ProjectGuid>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -14,7 +14,7 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.2|netcoreapp2.1'">
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
@@ -37,7 +37,7 @@
     <None Include="..\..\..\qshine.snk" Link="qshine.snk" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup>
     <None Update="plugin.config">

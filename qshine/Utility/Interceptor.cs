@@ -19,6 +19,64 @@ namespace qshine
 	public class Interceptor
 	{
         #region static
+
+        #region Instance
+        /// <summary>
+        /// Get an interceptor instance of a class.
+        /// Each class only has one interceptor instance.
+        /// 
+        /// Use interceptor instance to capture class method execution stage events (enter/exit/exception/complete).
+        /// </summary>
+        /// <returns>interceptor instance</returns>
+        /// <param name="type">The type of class which have methods to be intercepted</param>
+        public static Interceptor Get(Type type)
+		{
+            lock (_lockObject)
+            {
+                Interceptor interceptor = null;
+                if (_typeRegistry.ContainsKey(type))
+                {
+                    interceptor = _typeRegistry[type];
+                }
+                else
+                {
+                    interceptor = new Interceptor(type);
+                }
+                return interceptor;
+            }
+        }
+
+        /// <summary>
+        /// Get an interceptor instance of a class.
+        /// </summary>
+        /// <typeparam name="T">type of a class</typeparam>
+        /// <returns>interceptor instance</returns>
+        public static Interceptor Get<T>()
+        {
+            return Get(typeof(T));
+        }
+
+        #endregion
+
+        #region Register interceptor handler
+        /// <summary>
+        /// Registers interceptor handler which implemented IInterceptorHandler.
+        /// </summary>
+        /// <returns><c>true</c>, if handler was registered, <c>false</c> otherwise.</returns>
+        /// <param name="interceptorHandlerType">Handler type to process registered interceptor"/> "/> .</param>
+        public static void RegisterHandlerType(Type interceptorHandlerType)
+		{
+			if (!_handlerRegistry.ContainsKey(interceptorHandlerType))
+			{
+				var handler = Activator.CreateInstance(interceptorHandlerType) as IInterceptorHandler;
+				_handlerRegistry.Add(interceptorHandlerType,handler);
+				handler.LoadInterceptorHandler();
+			}
+		}
+        #endregion
+
+        #region Private
+        static readonly object _lockObject = new object();
         /// <summary>
         /// The registry of all interceptors.
         /// One registry per type.
@@ -31,101 +89,60 @@ namespace qshine
         /// </summary>
 		static SafeDictionary<Type, IInterceptorHandler> _handlerRegistry = new SafeDictionary<Type, IInterceptorHandler>();
 
-		/// <summary>
-		/// Register an interceptor for particular class type.
-        /// Only one interceptor is allow for particular class type.
-		/// </summary>
-		/// <returns>registered interceptor</returns>
-		/// <param name="type">The type of class method to be intercept</param>
-		public static Interceptor Register(Type type)
-		{
-			Interceptor interceptor = null;
-			if (Registry.ContainsKey(type))
-			{
-				interceptor = Registry[type];
-			}
-			else
-			{
-                interceptor = new Interceptor(type);
-			}
-			return interceptor;
-		}
-
-		/// <summary>
-		/// Registers interceptor handler.
-		/// </summary>
-		/// <returns><c>true</c>, if handler was registered, <c>false</c> otherwise.</returns>
-		/// <param name="interceptorHandlerType">Handler type to process registered interceptor"/> "/> .</param>
-		public static void RegisterHandlerType(Type interceptorHandlerType)
-		{
-			if (!_handlerRegistry.ContainsKey(interceptorHandlerType))
-			{
-				var handler = Activator.CreateInstance(interceptorHandlerType) as IInterceptorHandler;
-				_handlerRegistry.Add(interceptorHandlerType,handler);
-				handler.LoadInterceptorHandler();
-			}
-		}
-
-		/// <summary>
-		/// Get registered type of interceptor.
-		/// </summary>
-		/// <returns>registered interceptor</returns>
-		/// <typeparam name="T">The type of inspect class.</typeparam>
-		public static Interceptor Get<T>()
-		where T:class
-		{
-			var type = typeof(T);
-			if (!Registry.ContainsKey(type))
-			{
-				Register(type);
-			}
-			return Registry[type];
-		}
-
-		public static SafeDictionary<Type, Interceptor> Registry
-		{
-			get
-			{
-				return _typeRegistry;
-			}
-
-			set
-			{
-				_typeRegistry = value;
-			}
-		}
         #endregion
 
+        #endregion
 
+        /// <summary>
+        /// Event handler for enter into the function
+        /// </summary>
         public event EventHandler<InterceptorEventArgs> OnEnter;
+        /// <summary>
+        /// Event handler for the function completed without error exception
+        /// </summary>
         public event EventHandler<InterceptorEventArgs> OnSuccess;
+        /// <summary>
+        /// Event handler for the function throw exception
+        /// </summary>
         public event EventHandler<InterceptorEventArgs> OnException;
+        /// <summary>
+        /// Event handler for leave the function
+        /// </summary>
         public event EventHandler<InterceptorEventArgs> OnExit;
+        /// <summary>
+        /// Event handler for iterate over each element in the loops
+        /// </summary>
         public event EventHandler OnForEach;
 
-        Type _interceptClassType;
+        readonly Type _interceptClassType;
 
+        private Interceptor(Type intereptClassType)
+        {
+            _interceptClassType = intereptClassType;
+            //register all interceptor handlers associated to inspectClass.
+            if (!_typeRegistry.ContainsKey(intereptClassType))
+            {
+                _typeRegistry.Add(intereptClassType, this);
+
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    "The class interceptor must be a static instance. It only can be one instance per class."._G());
+            }
+        }
+
+        /// <summary>
+        /// Ctor::
+        /// </summary>
         public Interceptor()
 		{
 		}
 
-		public Interceptor(Type intereptClassType)
-		{
-			_interceptClassType = intereptClassType;
-			//register all interceptor handlers associated to inspectClass.
-			if (!Registry.ContainsKey(intereptClassType))
-			{
-				Registry.Add(intereptClassType, this);
-
-			}
-			else
-			{
-				throw new InvalidOperationException("The class interceptor must be a static instance. It only can be one instance per class.");
-			}
-		}
-
         /// <summary>
-        /// Raise a function OnEnter event.
+        /// Raise an OnEnter event for entering the method.
+        /// 
+        /// You can manually call RaiseOnEnterEvent() in the begin of the method to set a join point.
         /// </summary>
         /// <param name="sender">Usually is the caller instance object</param>
         /// <param name="eventArgs">InterceptorEventArgs type argument.</param>
@@ -147,7 +164,9 @@ namespace qshine
         }
 
         /// <summary>
-        /// Raise OnSuccess Event for function completed successfully without exception.
+        /// Raise an OnSuccess event when a method completed successfully without exception.
+        /// 
+        /// You can manually call RaiseOnSuccessEvent() in end of the method to set a join point.
         /// </summary>
         /// <param name="sender">Usually is the caller instance object</param>
         /// <param name="eventArgs">InterceptorEventArgs type argument from source.</param>
@@ -163,7 +182,11 @@ namespace qshine
         }
 
         /// <summary>
-        /// Raise OnException Event and return a flag to indicate not thrown current Exception pass from eventArgs.
+        /// Raise an OnException event when the method throw an exception.
+        /// 
+        /// You can manually call RaiseOnExceptionEvent() in the exception catch block to set a join point.
+        /// 
+        /// The event handler can pass a flag back to stop raise exception.
         /// </summary>
         /// <param name="sender">Usually is the caller instance object</param>
         /// <param name="eventArgs">InterceptorEventArgs type argument from source.</param>
@@ -182,7 +205,9 @@ namespace qshine
         }
 
         /// <summary>
-        /// Raise a function exit event
+        /// Raise an OnExit event when the method exit.
+        /// 
+        /// You can manually call RaiseOnExitEvent() in the end of the method or end of exception to set a join point.
         /// </summary>
         /// <param name="sender">Usually is the caller instance object</param>
         /// <param name="eventArgs">InterceptorEventArgs type argument from source.</param>
@@ -196,23 +221,27 @@ namespace qshine
         }
 
         /// <summary>
-        /// Interceptor of method execution.
+        /// Method intercept. It add joinpoint in method enrty/exit, execution and exception handler.
+        /// Use OnXXX events to inject "advice procedure" into joinpoint to perform additional function.
         /// </summary>
-        /// <returns>The method return value.</returns>
-        /// <param name="method">Method.</param>
-        /// <param name="sender">Sender. It is usually the method class instance</param>
-        /// <param name="methodName">Method name.</param>
-        /// <param name="args">Arguments.</param>
-        /// <typeparam name="T">The 1st type parameter.</typeparam>
+        /// <returns>The return value from the method. The "advice procedure may modify the return value.</returns>
+        /// <param name="method">The base code method which has a set of join points.</param>
+        /// <param name="sender">Sender. It is usually is the method class instance</param>
+        /// <param name="methodName">The method name.</param>
+        /// <param name="args">The method argument.</param>
+        /// <typeparam name="T">The return value type. For void method(), you can return any value.</typeparam>
         public T JoinPoint<T>(Func<T> method, object sender, string methodName, params object[] args)
 		{
 			T result = default(T);
-			var eventArgs = new InterceptorEventArgs<T>(method, methodName, args);
-            eventArgs.Result = result;
+            var eventArgs = new InterceptorEventArgs<T>(method, methodName, args)
+            {
+                Result = result
+            };
 
+            //Pointcut when method entry
             if (RaiseOnEnterEvent(sender, eventArgs))
             {
-                //Stop execution
+                //Stop execution if advice procedure request for cancellation.
                 return (T)eventArgs.Result;
             }
 
@@ -221,6 +250,7 @@ namespace qshine
 				result = method();
 
                 eventArgs.Result = result;
+                //Pointcut when method completed
                 RaiseOnSuccessEvent(sender, eventArgs);
 			}
 			catch (Exception ex)
@@ -232,9 +262,10 @@ namespace qshine
 				}
 
                 eventArgs.Exception = actualEx;
+                //Pointcut when exception occurred
                 if (RaiseOnExceptionEvent(sender, eventArgs))
                 {
-                    //Stop execution
+                    //Stop execution if advice procedure request for suppress exception thrown
                     return result;
                 }
 
@@ -242,11 +273,25 @@ namespace qshine
 			}
 			finally
 			{
+                //Pointcut when method exit.
                 RaiseOnExitEvent(sender, eventArgs);
 			}
 			return result;
 		}
 
+        /// <summary>
+        /// Inspect each iterated element.
+        /// </summary>
+        /// <typeparam name="T">type of the element</typeparam>
+        /// <param name="element">element instance</param>
+        /// <example>
+        /// <![CDATA[
+        /// foreach(var e in list){
+        ///     inspector.ForEach(e);
+        ///     base code here...
+        /// }
+        /// ]]>
+        /// </example>
 		public void ForEach<T>(T element)
 		{
 			if (OnForEach != null)
@@ -267,8 +312,8 @@ namespace qshine
         /// Ctor::
         /// </summary>
         /// <param name="internalMethod">Method is being called and captured by the interceptor</param>
-        /// <param name="methodName"></param>
-        /// <param name="args"></param>
+        /// <param name="methodName">method name</param>
+        /// <param name="args">method argus</param>
         public InterceptorEventArgs(Func<T> internalMethod, string methodName, params object[] args)
             :base(methodName,args)
         {
@@ -286,6 +331,11 @@ namespace qshine
     /// </summary>
     public class InterceptorEventArgs : EventArgs
 	{
+        /// <summary>
+        /// Interceptor arguments
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="args"></param>
 		public InterceptorEventArgs(string methodName, params object[] args)
 		{
 			MethodName = methodName;
@@ -352,6 +402,9 @@ namespace qshine
     /// </summary>
 	public interface IInterceptorHandler
 	{
+        /// <summary>
+        /// Register interceptor handler
+        /// </summary>
 		void LoadInterceptorHandler();
 	}
 }

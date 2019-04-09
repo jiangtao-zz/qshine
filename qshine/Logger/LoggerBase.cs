@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace qshine
+namespace qshine.Logger
 {
+    /// <summary>
+    /// Logger base class.
+    /// Derived from this class to build logger provider
+    /// </summary>
 	public abstract class LoggerBase:ILogger
 	{
 		string _category;
@@ -37,7 +41,14 @@ namespace qshine
 			} 
 		}
 
+        /// <summary>
+        /// Logger level 
+        /// </summary>
         protected TraceEventType _logLevel;
+        /// <summary>
+        /// Enable/Disable logger
+        /// </summary>
+        /// <param name="logLevel"></param>
         public virtual void EnableLogging(TraceEventType logLevel)
         {
             _logLevel = logLevel;

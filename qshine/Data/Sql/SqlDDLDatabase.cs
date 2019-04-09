@@ -5,19 +5,31 @@ using System.Linq;
 
 namespace qshine.database
 {
+    /// <summary>
+    /// Database Sql DDL
+    /// </summary>
     public class SqlDDLDatabase
     {
-        public Database Database { get; private set; }
-
-        //List of tables
-        public List<SqlDDLTable> Tables { get; private set; }
-
+        /// <summary>
+        /// Ctro.
+        /// </summary>
+        /// <param name="database"></param>
         public SqlDDLDatabase(Database database)
         {
             this.Database = database;
 
             Tables = new List<SqlDDLTable>();
         }
+
+        /// <summary>
+        /// Get Database property
+        /// </summary>
+        public Database Database { get; private set; }
+
+        /// <summary>
+        /// Get DDLs for table creation
+        /// </summary>
+        public List<SqlDDLTable> Tables { get; private set; }
 
         /// <summary>
         /// Add table

@@ -8,7 +8,7 @@ namespace qshine.Audit
     public interface IAuditable
     {
         /// <summary>
-        /// When the entity created
+        /// When the entity created. Always use utc date.
         /// </summary>
         DateTime CreatedOn { get; set; }
         /// <summary>
@@ -16,7 +16,7 @@ namespace qshine.Audit
         /// </summary>
         string CreatedBy { get; set; }
         /// <summary>
-        /// When the entity updated
+        /// When the entity updated. Always use utc date.
         /// </summary>
         DateTime UpdatedOn { get; set; }
         /// <summary>

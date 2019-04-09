@@ -4,7 +4,10 @@ using System.Text;
 
 namespace qshine.Messaging
 {
-    public interface IEventBusFactory
+    /// <summary>
+    /// event bus factory interface
+    /// </summary>
+    public interface IEventBusFactory:IProvider
     {
         /// <summary>
         /// Create an event bus

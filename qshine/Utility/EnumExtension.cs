@@ -19,7 +19,7 @@ namespace qshine
         ///     default is original enum string
         /// </param>
         /// <returns>Returns a given formatted enum property string</returns>
-        public static string GetStringValue(this Enum value, EnumValueType option= EnumValueType.OrigunalString)
+        public static string GetStringValue(this Enum value, EnumValueType option= EnumValueType.OriginalString)
         {
             switch (option)
             {
@@ -47,7 +47,7 @@ namespace qshine
         ///     default is original enum string
         /// </param>
         /// <typeparam name="T">The Enum type to be return.</typeparam>
-        public static T GetEnumValue<T>(this string value, EnumValueType option= EnumValueType.OrigunalString)
+        public static T GetEnumValue<T>(this string value, EnumValueType option= EnumValueType.OriginalString)
             where T : struct
         {
             switch (option)
@@ -55,7 +55,7 @@ namespace qshine
                 case EnumValueType.OriginalValue:
                     return (T)Enum.ToObject(typeof(T), Convert.ToInt32(value));
 
-                case EnumValueType.OrigunalString:
+                case EnumValueType.OriginalString:
                     return (T)Enum.Parse(typeof(T), value);
 
                 default:
@@ -78,7 +78,8 @@ namespace qshine
         /// <param name="value">A string value to be converted.</param>
         /// <param name="faultEnumValue">Use this value if the string is an invalid enum value.</param>
         /// <typeparam name="T">Type of enum to be converted.</typeparam>
-        public static T GetEnumValue<T>(this string value, T faultEnumValue, EnumValueType option = EnumValueType.OrigunalString)
+        /// <param name="option"></param>
+        public static T GetEnumValue<T>(this string value, T faultEnumValue, EnumValueType option = EnumValueType.OriginalString)
             where T : struct
         {
             switch (option)
@@ -94,7 +95,7 @@ namespace qshine
                         return faultEnumValue;
                     }
 
-                case EnumValueType.OrigunalString:
+                case EnumValueType.OriginalString:
                     T v1 = default(T);
                     if (Enum.TryParse(value, true, out v1))
                     {
@@ -183,7 +184,7 @@ namespace qshine
         /// <summary>
         /// Return enum Name string, such as "OriginalString"
         /// </summary>
-        OrigunalString,
+        OriginalString,
         /// <summary>
         /// Return StringValue attribute value of enum, such as "Original String".
         /// </summary>

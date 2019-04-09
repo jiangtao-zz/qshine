@@ -15,9 +15,13 @@
   A T4 file will generate C# code to provide run-time TargetFramewrok property 
   -->
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net461;</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.2;netcoreapp2.1;net461;</TargetFrameworks>
   </PropertyGroup>
-  
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.2'">
+    <DefineConstants>netcoreapp2_2</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1'">
     <DefineConstants>netcoreapp2_1</DefineConstants>
   </PropertyGroup>
@@ -42,6 +46,10 @@
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1'">
 	  <DefineConstants>NETCORE;NETCORE2_0;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.2'">
+    <DefineConstants>NETCORE;NETCORE2_0;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.1|AnyCPU'">
@@ -71,6 +79,19 @@
     <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.2'">
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Runtime.Caching" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="Microsoft.CSharp" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="applicationDesigner\appSecurity.txt" />
     <Content Include="applicationDesigner\appSecurityLocal.txt" />
@@ -80,11 +101,19 @@
     <Compile Include="Audit\AuditValue.cs" />
     <Compile Include="Audit\EntityAudit.cs" />
     <Compile Include="Audit\IAuditable.cs" />
+    <Compile Include="Caching\CacheObject.cs" />
+    <Compile Include="Caching\CacheDataChangedMonitor.cs" />
     <Compile Include="Configuration\ApplicationAssemblyResolver.cs" />
+    <Compile Include="Configuration\ApplicationEnvironment.Service.cs" />
+    <Compile Include="Configuration\ConfigurationException.cs" />
+    <Compile Include="Configuration\ConfigurationStore\XmlConfigurationStore.cs" />
     <Compile Include="Configuration\ConnectionString.cs" />
     <Compile Include="Configuration\EnvironmentInitializationOption.cs" />
+    <Compile Include="Configuration\IConfigurationStore.cs" />
     <Compile Include="Configuration\Map.cs" />
+    <Compile Include="Configuration\ConfigurationStore\XmlDbProviderFactoriesSection.cs" />
     <Compile Include="Configuration\Setting\NamedKeyValueElementCollection.cs" />
+    <Compile Include="Configuration\ConfigurationStore\XmlDiagnosticsSection.cs" />
     <Compile Include="Context\ContextStoreType.cs" />
     <Compile Include="Context\StaticContextStore.cs" />
     <Compile Include="Data\CommonDbDataTypeMapper.cs" />
@@ -98,12 +127,24 @@
     <Compile Include="Data\Sql\SqlDialectStandard.cs" />
     <Compile Include="Data\Sql\TrackingName.cs" />
     <Compile Include="Data\UnitOfWork\UnitOfWorkOption.cs" />
+    <Compile Include="Domain\AuditableClientEntity.cs" />
+    <Compile Include="Domain\AuditableEntity.cs" />
+    <Compile Include="Domain\Entity.cs" />
+    <Compile Include="Domain\IClientEntity.cs" />
+    <Compile Include="Domain\IEntity.cs" />
+    <Compile Include="EventSourcing\Aggregate.cs" />
+    <Compile Include="Domain\EntityIdType.cs" />
+    <Compile Include="EventSourcing\EventStoreRepository.cs" />
+    <Compile Include="EventSourcing\IEventStore.cs" />
+    <Compile Include="EventSourcing\IEventStoreProvider.cs" />
+    <Compile Include="Messaging\IDomainEvent.cs" />
+    <Compile Include="EventSourcing\IAggregate.cs" />
     <Compile Include="Exception\BatchException.cs" />
     <Compile Include="Globalization\LabelTranslation.cs" />
-    <Compile Include="IStartupInitializer.cs" />
     <Compile Include="Logger\ConsoleLoggerProvider.cs" />
-    <Compile Include="Mapper\AuditEntityNameMapper.cs" />
-    <Compile Include="Mapper\NameMapper.cs" />
+    <Compile Include="Logger\ILoggerProviderFactory.cs" />
+    <Compile Include="Logger\LoggerProviderFactory.cs" />
+    <Compile Include="Utility\NamedMapper.cs" />
     <Compile Include="Messaging\EventBus.cs" />
     <Compile Include="Messaging\EventBusNames.cs" />
     <Compile Include="Messaging\IEventBusFactory.cs" />
@@ -161,11 +202,11 @@
     <Compile Include="Context\LocalContextStore.cs" />
     <Compile Include="Context\IContextStore.cs" />
     <Compile Include="IProvider.cs" />
-    <Compile Include="Cache\ICacheProvider.cs" />
-    <Compile Include="Cache\CacheItemPriority.cs" />
-    <Compile Include="Cache\CommonCache\MemoryCacheStore.cs" />
-    <Compile Include="Cache\ICache.cs" />
-    <Compile Include="Cache\Cache.cs" />
+    <Compile Include="Caching\ICacheProvider.cs" />
+    <Compile Include="Caching\CacheItemPriority.cs" />
+    <Compile Include="Caching\CommonCache\MemoryCacheStore.cs" />
+    <Compile Include="Caching\ICache.cs" />
+    <Compile Include="Caching\Cache.cs" />
     <Compile Include="Utility\Check.cs" />
     <Compile Include="Data\DbClient.cs" />
     <Compile Include="Utility\Interceptor.cs" />
@@ -179,7 +220,7 @@
     <Compile Include="Messaging\ICommandMessage.cs" />
     <Compile Include="Messaging\IEventBus.cs" />
     <Compile Include="Messaging\IEventMessage.cs" />
-    <Compile Include="Messaging\IEventMessageHandler.cs" />
+    <Compile Include="Messaging\IHandler.cs" />
     <Compile Include="Messaging\ICommandBusFactory.cs" />
     <Compile Include="Exception\InvalidProviderException.cs" />
     <Compile Include="Messaging\DefaultCommandBus\DefaultCommandBusFactory.cs" />
@@ -214,6 +255,7 @@
     <Compile Include="Messaging\CommandBus.cs" />
     <Compile Include="Utility\SafeDictionary.cs" />
     <Compile Include="Utility\StateObject.cs" />
+    <Compile Include="Utility\StringExtension.cs" />
     <Compile Include="Utility\xml\xmlHelper.cs" />
   </ItemGroup>
   <ItemGroup>

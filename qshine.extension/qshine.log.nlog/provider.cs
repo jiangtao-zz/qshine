@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using qshine.Configuration;
+using qshine.Logger;
+
 namespace qshine.log.nlog
 {
 	public class Provider:ILoggerProvider

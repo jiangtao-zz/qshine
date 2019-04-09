@@ -27,7 +27,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Compile Include="Properties\qshineAssemblyInfo.cs" />
+    <Compile Include="..\..\qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
     <Compile Include="provider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

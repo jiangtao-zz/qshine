@@ -2,6 +2,9 @@
 
 namespace qshine.Configuration.Setting
 {
+    /// <summary>
+    /// Application environment element.
+    /// </summary>
     public class EnvironmentElement : NamedConfigurationElement
 	{
 		const string PathAttributeName = "path";

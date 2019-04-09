@@ -283,6 +283,9 @@ namespace qshine.ioc.autofac
                 case IocInstanceScope.Transient:
                     instanceScope.InstancePerDependency();
                     break;
+                case IocInstanceScope.Scoped:
+                    instanceScope.InstancePerLifetimeScope();
+                    break;
                 default:
                     throw new NotImplementedException();
             }

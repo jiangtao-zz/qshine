@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace qshine
+namespace qshine.Logger
 {
 	/// <summary>
 	/// Contract for logger interface
@@ -15,6 +15,12 @@ namespace qshine
 		/// <param name="properties">format arguments</param>
 		/// <remarks>Highest level. system crashes</remarks>
 		void Fatal(string message, params object[] properties);
+        /// <summary>
+		/// Logging critical <c>Fatal</c> level formatted message. 
+        /// </summary>
+        /// <param name="ex">Log exception</param>
+		/// <param name="message">formatted message.</param>
+		/// <param name="properties">format arguments</param>
 		void Fatal(Exception ex, string message, params object[] properties);
 
 		/// <summary>
@@ -24,6 +30,12 @@ namespace qshine
 		/// <param name="properties">format arguments</param>
 		/// <remarks>Error to prevent application running properly</remarks>
 		void Error(string message, params object[] properties);
+        /// <summary>
+		/// Logging <c>Error</c> level formatted message. 
+        /// </summary>
+        /// <param name="ex">Log exception</param>
+        /// <param name="message">Extra message format</param>
+		/// <param name="properties">format arguments</param>
 		void Error(Exception ex, string message, params object[] properties);
 
 		/// <summary>
@@ -33,6 +45,12 @@ namespace qshine
 		/// <param name="properties">format arguments</param>
 		/// <remarks>Incorrect behavior, but application is continue running.</remarks>
 		void Warn(string message, params object[] properties);
+        /// <summary>
+		/// Logging <c>Warn</c> level formatted message. 
+        /// </summary>
+        /// <param name="ex">Log exception</param>
+        /// <param name="message">Extra message format</param>
+		/// <param name="properties">format arguments</param>
 		void Warn(Exception ex, string message, params object[] properties);
 
 		/// <summary>
@@ -42,6 +60,12 @@ namespace qshine
 		/// <param name="properties">format arguments</param>
 		/// <remarks>Normal behavior like mail sent, user updated profile etc. </remarks>
 		void Info(string message, params object[] properties);
+        /// <summary>
+		/// Logging <c>Info</c> level formatted message. 
+        /// </summary>
+        /// <param name="ex">Log exception</param>
+        /// <param name="message">Extra message format</param>
+		/// <param name="properties">format arguments</param>
 		void Info(Exception ex, string message, params object[] properties);
 
 		/// <summary>
@@ -51,6 +75,12 @@ namespace qshine
 		/// <param name="properties">format arguments</param>
 		/// <remarks>Executed queries, user authenticated, session expired</remarks>
 		void Debug(string message, params object[] properties);
+        /// <summary>
+		/// Logging <c>Debug</c> level formatted message. 
+        /// </summary>
+        /// <param name="ex">Log exception</param>
+        /// <param name="message">Extra message format</param>
+		/// <param name="properties">format arguments</param>
 		void Debug(Exception ex, string message, params object[] properties);
 
 		/// <summary>
@@ -60,6 +90,12 @@ namespace qshine
 		/// <param name="properties">format arguments</param>
 		/// <remarks>Lowest level, such as, method begin and method end</remarks>
 		void Trace(string message, params object[] properties);
+        /// <summary>
+		/// Logging <c>Trace</c> level formatted message. 
+        /// </summary>
+        /// <param name="ex">Log exception</param>
+        /// <param name="message">Extra message format</param>
+		/// <param name="properties">format arguments</param>
 		void Trace(Exception ex, string message, params object[] properties);
 
 		/// <summary>

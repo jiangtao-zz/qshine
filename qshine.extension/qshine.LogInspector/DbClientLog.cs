@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Text;
+using qshine.Logger;
+
 namespace qshine.LogInterceptor
 {
 	/// <summary>
@@ -8,6 +10,9 @@ namespace qshine.LogInterceptor
 	public class DbClientLog
 		:IInterceptorHandler
 	{
+        /// <summary>
+        /// Load all events
+        /// </summary>
 		public void LoadInterceptorHandler()
 		{
 			var interceptor = Interceptor.Get<DbClient>();

@@ -21,6 +21,11 @@ namespace qshine.database
         DbClient _dbClient;
 
         #region Ctor
+        /// <summary>
+        /// Ctro.
+        /// </summary>
+        /// <param name="databaseSyntax"></param>
+        /// <param name="dbClient"></param>
         public SqlDDLTracking(ISqlDialect databaseSyntax, DbClient dbClient)
 		{
 			_nativeDatabaseSyntax = databaseSyntax;
@@ -237,6 +242,10 @@ from {0}", TrackingNameTableName);
                 }, sql);
         }
 
+        /// <summary>
+        /// Remove tracking table by id
+        /// </summary>
+        /// <param name="id"></param>
         public void RemoveTrackingTable(long id)
         {
             //Found the table was deleted outside the control. We need delete the tracking table record and re-create it after.
@@ -512,7 +521,7 @@ where id={18}",
         /// Find tracking table based on given table information.
         /// </summary>
         /// <returns>The tracking table.</returns>
-        /// <param name="tableName">Table name.</param>
+        /// <param name="table">table.</param>
         public TrackingTable FindSameTrackingTable(SqlDDLTable table)
         {
             TrackingTable trackingTable = null;

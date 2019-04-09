@@ -1,0 +1,105 @@
+{
+  "applicationEnvironment": {
+    "environments": [
+      {
+        "name": "top",
+        "path": "mySystemFolder/config",
+        "bin" : "bin"
+      },
+      {
+        "name": "qa",
+        "path": "mySystemFolder/QA_config",
+        "host": "192.168.1.10"
+      }
+    ],
+
+    "modules": [
+      {
+        "name=": "myModule",
+        "type=": "QShine.Test.BootStraper, QShine.Test"
+      }
+    ],
+
+    "components": [
+      {
+        "name=": "myModule",
+        "interface": "qshine.ICacheProvider",
+        "type=": "QShine.Test.BootStraper, QShine.Test",
+        "scope": "singleton"
+      },
+      {
+        "name": "mainFileServer",
+        "interface": "qshine.IFileManagerProvider",
+        "type": "qshine.FileManager",
+        "scope": "singleton",
+        "parameters": [
+          {
+            "name": "path",
+            "value": "192.168.10.12/fileServer"
+          },
+          {
+            "name": "user",
+            "value": "dev"
+          },
+          {
+            "name": "password",
+            "value": "password"
+          },
+          {
+            "name": "domain",
+            "value": "mydomain"
+          }
+        ]
+      }
+    ],
+
+    "appSettings": [
+      {
+        "key": "key0",
+        "value": "value0"
+      },
+      {
+        "key": "key1",
+        "value": "value1"
+      },
+      {
+        "key": "key2",
+        "value": "value3"
+      },
+      {
+        "key": "key3",
+        "value": "value3"
+      }
+    ],
+
+    "maps": [
+      {
+        "key": "eventBus1",
+        "value": "NServiceBusProvider",
+        "parameters": [
+          {
+            "name": "p1",
+            "value": "v1"
+          },
+          {
+            "name": "p2",
+            "value": "v2"
+          }
+        ]
+      },
+      {
+        "key": "eventBus2",
+        "value": "NServiceBusProvider"
+      },
+      {
+        "key": "messageBus10",
+        "value": "RabbitMQBusProvider"
+      },
+      {
+        "key": "messageBus20",
+        "value": "TibcoBus"
+      }
+    ]
+
+  }
+}

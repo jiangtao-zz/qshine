@@ -5,6 +5,9 @@ using System.Text;
 
 namespace qshine
 {
+    /// <summary>
+    /// Common database data type mapper
+    /// </summary>
     public class CommonDbDataTypeMapper:IDbTypeMapper
     {
         /// <summary>

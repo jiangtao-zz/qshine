@@ -49,7 +49,7 @@ namespace qshine
         /// Throw a new type of exception with proper error message if the condition is false.
         /// </summary>
         /// <param name="condition">Ensure the condition is true.</param>
-        /// <param name="formats">Error message format.</param>
+        /// <param name="format">Error message format.</param>
         /// <param name="args">Error message arguments.</param>
         /// <typeparam name="T">The Exception to be thrown if the condition failed.</typeparam>
         public static void Assert<T>(bool condition, string format=null, params object[] args)

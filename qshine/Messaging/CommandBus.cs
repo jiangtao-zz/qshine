@@ -16,13 +16,15 @@ namespace qshine
 		/// Register all command bus factories.
 		/// </summary>
 		static Dictionary<string, ICommandBusFactory> _factories = new Dictionary<string, ICommandBusFactory>();
-		static object lockobj = new object();
-		static Interceptor _intercepter = Interceptor.Register(typeof(CommandBus));
+		static readonly object lockobj = new object();
+		static Interceptor _intercepter = Interceptor.Get<CommandBus>();
 
 		ICommandBus _bus;
 
-		//default command bus from default bus factory
-		public CommandBus()
+        /// <summary>
+        /// default command bus from default bus factory
+        /// </summary>
+        public CommandBus()
 		{
 			var factory = GetFactory("default");
 			if (factory == null)
@@ -116,7 +118,7 @@ namespace qshine
 		/// Register all command handler
 		/// </summary>
 		static Dictionary<Type, Type> _commandHandlers = new Dictionary<Type, Type>();
-		static object _commandHandlerLock = new object();
+		static readonly object _commandHandlerLock = new object();
 
 		/// <summary>
 		/// Get command handler by command type
@@ -133,7 +135,7 @@ namespace qshine
 				lock (_commandHandlerLock)
 				{
 					//Try to register all ICommandHandlers
-					var types = ApplicationEnvironment.SafeGetInterfacedTypes(typeof(ICommandHandler));
+					var types = PluggableAssembly.SafeGetInterfacedTypes(typeof(ICommandHandler));
 					foreach (var type in types)
 					{
 						var typeArguments = type.GetOpenGenericTypes(typeof(ICommandHandler<>));

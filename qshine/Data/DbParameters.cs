@@ -276,17 +276,49 @@ namespace qshine
         }
 	}
 
+    /// <summary>
+    /// A generic database parameter.
+    /// It simply inherited from DbParameter.
+    /// </summary>
     public class CommonDbParameter : DbParameter
     {
+        /// <summary>
+        /// Data type
+        /// </summary>
         public override DbType DbType { get; set; }
+        /// <summary>
+        /// Parameter direction. In/Out/InOut/Return
+        /// </summary>
         public override ParameterDirection Direction { get; set; }
+        /// <summary>
+        /// IsNullable
+        /// </summary>
         public override bool IsNullable { get; set; }
+        /// <summary>
+        /// name
+        /// </summary>
         public override string ParameterName { get; set; }
+        /// <summary>
+        /// Size
+        /// </summary>
         public override int Size { get; set; }
+        /// <summary>
+        /// SourceColumn
+        /// </summary>
         public override string SourceColumn { get; set; }
+        /// <summary>
+        /// SourceColumnNullMapping
+        /// </summary>
         public override bool SourceColumnNullMapping { get; set; }
+        /// <summary>
+        /// Get/Set value
+        /// </summary>
         public override object Value { get; set; }
 
+        /// <summary>
+        /// Reset DbType to original.
+        /// Not implemented
+        /// </summary>
         public override void ResetDbType()
         {
             throw new NotImplementedException();

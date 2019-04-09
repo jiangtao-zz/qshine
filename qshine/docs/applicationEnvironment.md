@@ -2,15 +2,17 @@
 Application environment configuration are the system wide settings that affect application running in deployed environment. 
 
 Environment settings could contain application config files and dependency components.
-The config files could be located in different folder and different environment levels.
-Each level could contain the same environment variable that will have the same affect for the application.
+The config files and components could locate in different folder. The application will search all the configure folders by configure setting.
 
 The environment config files could be shared by many applications running in same host. Different level config files (folders) form a hierarchy of application settings. 
-The setting hierarchy overwrite the variable from higher to lower.
+The setting hierarchy overwrite the variable from higher to lower as default. The setting overwritten options can be specified by ApplicationEnvironmentInitializationOption.
 
-The environment config files and dependency (pluggable) components are structured in the same folder.
+The application environment library provide services for environment variable settings, dependency (pluggable) component settings, Startup and mapping service.
 
-The application environment setting service provider environment variable settings, dependency (pluggable) component settings, bootstrapper and mapping service.
+The ApplicationEnvironment configure file could be formatted differently. The common configure file formats are:
+
+    .NET app config XML file format (default format)
+    .NET Core JSON file format
 
 ## Environment config file format
 The environment config is a typical .NET application config file which contains application configuration environment section.
@@ -134,9 +136,29 @@ It also look up the "bin" folder to load pluggable components.
 
 **bin**: Specify alternate bin folder location. If this value presents it will load components from this folder instead of "bin" folder.
 
-**host**: Specify environment host name or ip tha tthe element applied. If the "host" attribute given, the element will not be loaded 
-if the application host environment name or ip doesn't match.
+**host**: Specify environment host tags that is used to match current environment. The host tags are semicolon separated tag list.
+Each tag is used to match one of host environment arguments.
 
+Host environment arguments:
+
+
+|    Tag   | Description      | Example            |
+|----------|------------------|--------------------|
+|  ip      | host IP          | 10.3.3.102;        |
+|  name    | host name        | QA-Server;         |
+|  cpu     | CPU architecture | x86                |
+|  os      | Operating System | win                |
+|framework | Target framewrok | net461             |
+|  version | library version  | 1.0.3              |
+
+Example:
+
+```xml
+host="ip=10.3.3.120;hostName=QA-Server;cpu=x86;os=win;dotnet=net461;version=1.0"
+or
+host="10.3.3.120;QA-Server;x86;os=win;dotnet=net461;version=1.0"
+
+```
 
 ---
 ## Environment Levels and Hierarchy
@@ -303,6 +325,18 @@ Consume named plugin object in application code.
 
 ```
 
+Consume mapped plugin object in application code.
+
+```c#
+    //publish event message by plugin event bus based on busname.
+    //if the bus name is not in mapped list, a default bus will be selected.
+    //see map section
+    var busProvider = ApplicationEnvironment.GetProvider<IEventBusProvider>(busName);
+    var bus = busProvider.Create(busName);
+    bus.Publish(myEvent);
+
+```
+
 ---
 ## Modules
 
@@ -326,26 +360,96 @@ The keys are unique in all map elements in one named map collection.
 
 A named map could be associated to one plugin component or application code looking up.
 
-**maps name**: map collection name.
+**maps name**: map collection name. The name usually is the provider interface type name of the pluggable components.
 
-**maps default**: indicates map collection default item key or value.
+**maps default**: Specifies a default mapped value if map key is blank or map key is not in the map collection.
 
-**add key**: map element key value.
+**add key**: map element key value. The map key value could be a regular expression or any text for mapping match.
 
 **add value**: map element mapped value for particular key.
 
+Examples: postcode maps
+
 ```xml
-        <maps name="postcode">
+        <maps name="postcode" default="X1Y 0A0">
             <add key="1"  value="M1R 0E9" />
             <add key="2"  value="M3C 0C1" />
         </maps>
 ```
 
-other config file
+To define mapped plugin-components the maps name should be the plugin component interface name.
+
+Below is an example of mapping config setting. The default event bus provider is dbBusProvider.
+A named bus "apInvoiceBus" will use "rabbitMQProvider" provider.
+The named bus "securityAuditBus" will use "kafkaProvider" provider.
 
 ```xml
-        <maps name="bus-Name-Provider-map" default="defaultBusProvider">
+        <maps name="qshine.IEventBusProvider" default="dbBusProvider">
+            <add key="defaultBus"  value="dbBusProvider" />
             <add key="apInvoiceBus"  value="rabbitMQProvider" />
             <add key="securityAuditBus"  value="kafkaProvider" />
         </maps>
 ```
+
+Example: select rabbitMQProvider provider as event bus
+
+```c#
+    var busName = "apInvoiceBus";
+    var busProvider = ApplicationEnvironment.GetProvider<IEventBusProvider>(busName);
+    var bus = busProvider.Create(busName);
+    bus.Publish(myEvent);
+
+```
+
+Example: select default dbBusProvider provider as event bus
+
+```c#
+    var busProvider = ApplicationEnvironment.GetProvider<IEventBusProvider>();
+    var bus = busProvider.Create("XYZ");
+    bus.Publish(myEvent);
+
+```
+
+**Note:**: If the maps collection is not present for the plugin component, 
+the name parameter of GetProvider(name) is used to specify a provider name instead of the map name.
+If the name is blank then it will select first available provider.
+
+Example: without maps collection below code is used to get dbBusProvider provider
+
+```c#
+    var busProvider = ApplicationEnvironment.GetProvider<IEventBusProvider>("dbBusProvider");
+    var bus = busProvider.Create("XYZ");
+    bus.Publish(myEvent);
+
+```
+
+
+If the map key is a regular expression, it can match to more than one  provider names for GetProvider(name).
+
+Example: select plug-in components by partial name.
+
+```xml
+    <maps name="qshine.EventSourcing.IEventStoreProvider">
+      <add key="AP.Invoice.C5" value="XEventstore" />
+      <add key="AP.Invoice.*" value="kafkaEventstore" />
+      <add key="*" value="eventstore" />
+    </maps>
+```
+
+```c#
+    var esProvider1 = ApplicationEnvironment.GetProvider<IEventStoreProvider>("AP.Invoice.C1");
+    //esProvider1 is kafkaEventstore
+
+    var esProvider2 = ApplicationEnvironment.GetProvider<IEventStoreProvider>("AP.Invoice.C5");
+    //esProvider2 is XEventstore
+
+    var esProvider3 = ApplicationEnvironment.GetProvider<IEventStoreProvider>("AnyName");
+    //esProvider3 is eventstore
+
+```
+
+
+
+
+
+

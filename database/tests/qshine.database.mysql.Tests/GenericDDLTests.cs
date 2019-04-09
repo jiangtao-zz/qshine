@@ -4,6 +4,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using qshine.Configuration;
+using qshine.Logger;
+
 
 namespace qshine.database.Tests
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using qshine;
+using qshine.Logger;
 using qshine.Configuration;
 using qshine.database;
 using System.Data;
@@ -26,9 +26,6 @@ namespace qshine.database.sqlite.Tests
         [ClassInitialize()]
         public static void ClassInit(TestContext context)
         {
-            Log.SysLoggerProvider = new TraceLoggerProvider();
-            Log.SysLogger.EnableLogging(System.Diagnostics.TraceEventType.Verbose);
-
             //This is only running once. Ignore subsequently call ApplicationEnvironment.Boot().
             ApplicationEnvironment.Build("app.config");
         }
@@ -854,9 +851,8 @@ namespace qshine.database.sqlite.Tests
                 dbclient.Sql("drop table table12;");
             }
         }
-
-
     }
+
 }
 
 

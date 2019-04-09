@@ -76,10 +76,19 @@ namespace qshine
 
 #if NETCORE
     //NETCORE doesn't support logical call context.
+    /// <summary>
+    /// CallContext implementation for NET CORE
+    /// </summary>
     public static class CallContext
     {
         static ConcurrentDictionary<string, object> _state = new ConcurrentDictionary<string, object>();
  
+        /// <summary>
+        /// Set data
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="data"></param>
         public static void SetData<T>(string name, T data)
         {
             ((AsyncLocal<T>)_state.GetOrAdd(name, _ => new AsyncLocal<T>()))
@@ -95,6 +104,11 @@ namespace qshine
             return default(T);
         }
 
+        /// <summary>
+        /// Get data
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public static object GetData(string name) => GetData<object>(name);
 
         private static T LogicalGetData<T>(string name)
@@ -102,16 +116,30 @@ namespace qshine
             return GetData<T>(name);
         }
 
+        /// <summary>
+        /// Get data for logical context
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public static object LogicalGetData(string name)
         {
             return GetData(name);
         }
 
+        /// <summary>
+        /// Set data for logical data
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
         public static void LogicalSetData(string name, object value)
         {
             SetData(name, value);
         }
 
+        /// <summary>
+        /// Release context named slot
+        /// </summary>
+        /// <param name="name"></param>
         public static void FreeNamedDataSlot(string name)
         {
             object value;

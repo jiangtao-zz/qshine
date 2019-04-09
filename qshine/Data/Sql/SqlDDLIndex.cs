@@ -27,6 +27,9 @@ namespace qshine.database
         /// </summary>
         public bool IsUnique { get; set; }
 
+        /// <summary>
+        /// Get hash code of the index DDL
+        /// </summary>
         public long HashCode
         {
             get

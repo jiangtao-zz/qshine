@@ -9,7 +9,6 @@ using qshine.Globalization;
 //using System.Runtime.Remoting.Messaging;
 
 namespace qshine
-
 {
 	/// <summary>
 	/// Base implementation of IIoCContainer for IoC.
@@ -26,6 +25,9 @@ namespace qshine
 
 		#region DefaultInstanceScope
 
+        /// <summary>
+        /// Get/Set default IoC scope
+        /// </summary>
 		public virtual IocInstanceScope DefaultInstanceScope
 		{
 			get
@@ -93,18 +95,34 @@ namespace qshine
         #endregion
 
         #region RegisterType
-
+        /// <summary>
+        /// Register type
+        /// </summary>
+        /// <param name="actualType"></param>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
         public virtual IIocContainer RegisterType(Type actualType, params NamedValue[] constructorParameters)
         {
             return RegisterType(actualType, null, string.Empty, constructorParameters);
         }
-
+        /// <summary>
+        /// Register a type with constructor parameters.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
         public virtual IIocContainer RegisterType<T>(params NamedValue[] constructorParameters)
         {
             return RegisterType(typeof(T), constructorParameters);
         }
 
-
+        /// <summary>
+        /// Register an interface associate with its implementation
+        /// </summary>
+        /// <typeparam name="IT"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
         public virtual IIocContainer RegisterType<IT, T>(params NamedValue[] constructorParameters)
 			where IT : class
 			where T : class, IT
@@ -112,6 +130,14 @@ namespace qshine
 			return RegisterType(typeof(IT), typeof(T), string.Empty, constructorParameters);
 		}
 
+        /// <summary>
+        /// Register a name interface and type
+        /// </summary>
+        /// <typeparam name="IT"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
 		public virtual IIocContainer RegisterType<IT, T>(string name, params NamedValue[] constructorParameters)
 			where IT : class
 			where T : class, IT
@@ -119,6 +145,14 @@ namespace qshine
 			return RegisterType(typeof(IT), typeof(T), name, constructorParameters);
 		}
 
+        /// <summary>
+        /// Register with specific scope option
+        /// </summary>
+        /// <typeparam name="IT"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="instanceScopeOption"></param>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
 		public virtual IIocContainer RegisterType<IT, T>(IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
 			where IT : class
 			where T : class, IT
@@ -126,6 +160,15 @@ namespace qshine
 			return RegisterType(typeof(IT), typeof(T), string.Empty, instanceScopeOption, constructorParameters);
 		}
 
+        /// <summary>
+        /// Register named type
+        /// </summary>
+        /// <typeparam name="IT"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        /// <param name="instanceScopeOption"></param>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
 		public virtual IIocContainer RegisterType<IT, T>(string name, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
 			where IT : class
 			where T : class, IT
@@ -133,40 +176,95 @@ namespace qshine
 			return RegisterType(typeof(IT), typeof(T), name, instanceScopeOption, constructorParameters);
 		}
 
+        /// <summary>
+        /// Register named type
+        /// </summary>
+        /// <typeparam name="IT"></typeparam>
+        /// <param name="actualType"></param>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
 		public virtual IIocContainer RegisterType<IT>(Type actualType, params NamedValue[] constructorParameters)
 			where IT : class
 		{
 			return RegisterType(typeof(IT), actualType, string.Empty, constructorParameters);
 		}
 
+        /// <summary>
+        /// Register named type
+        /// </summary>
+        /// <typeparam name="IT"></typeparam>
+        /// <param name="actualType"></param>
+        /// <param name="name"></param>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
 		public virtual IIocContainer RegisterType<IT>(Type actualType, string name, params NamedValue[] constructorParameters)
 			where IT : class
 		{
 			return RegisterType(typeof(IT), actualType, name, constructorParameters);
 		}
 
+        /// <summary>
+        /// Register type
+        /// </summary>
+        /// <typeparam name="IT"></typeparam>
+        /// <param name="actualType"></param>
+        /// <param name="instanceScopeOption"></param>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
 		public virtual IIocContainer RegisterType<IT>(Type actualType, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
 			where IT : class
 		{
 			return RegisterType(typeof(IT), actualType, string.Empty, instanceScopeOption, constructorParameters);
 		}
 
+        /// <summary>
+        /// Register name type
+        /// </summary>
+        /// <typeparam name="IT"></typeparam>
+        /// <param name="actualType"></param>
+        /// <param name="name"></param>
+        /// <param name="instanceScopeOption"></param>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
 		public virtual IIocContainer RegisterType<IT>(Type actualType, string name, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
 			where IT : class
 		{
 			return RegisterType(typeof(IT), actualType, name, instanceScopeOption, constructorParameters);
 		}
 
+        /// <summary>
+        /// Register type
+        /// </summary>
+        /// <param name="requestedType"></param>
+        /// <param name="actualType"></param>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
 		public virtual IIocContainer RegisterType(Type requestedType, Type actualType, params NamedValue[] constructorParameters)
 		{
 			return RegisterType(requestedType, actualType, string.Empty, constructorParameters);
 		}
 
+        /// <summary>
+        /// Register named type
+        /// </summary>
+        /// <param name="requestedType"></param>
+        /// <param name="actualType"></param>
+        /// <param name="name"></param>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
 		public virtual IIocContainer RegisterType(Type requestedType, Type actualType, string name, params NamedValue[] constructorParameters)
 		{
 			return RegisterType(requestedType, actualType, name, DefaultInstanceScope, constructorParameters);
 		}
 
+        /// <summary>
+        /// Register type
+        /// </summary>
+        /// <param name="requestedType"></param>
+        /// <param name="actualType"></param>
+        /// <param name="instanceScopeOption"></param>
+        /// <param name="constructorParameters"></param>
+        /// <returns></returns>
 		public virtual IIocContainer RegisterType(Type requestedType, Type actualType, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
 		{
 			return RegisterType(requestedType, actualType, string.Empty, instanceScopeOption, constructorParameters);
@@ -179,6 +277,7 @@ namespace qshine
 		/// <param name="actualType">actual type of instance to be created later</param>
 		/// <param name="name">A name associate to particular registration. null for default registration</param>
 		/// <param name="instanceScopeOption">Option to manage the life time of instance creating.</param>
+        /// <param name="constructorParameters">constructor parameters</param>
 		/// <returns>Current container instance</returns>
 		public virtual IIocContainer RegisterType(Type requestedType, Type actualType, string name, IocInstanceScope instanceScopeOption, params NamedValue[] constructorParameters)
 		{
@@ -255,6 +354,11 @@ namespace qshine
 
 		#region RegisterModule
 
+        /// <summary>
+        /// Register types through a module
+        /// </summary>
+        /// <param name="module"></param>
+        /// <returns></returns>
 		public virtual IIocContainer RegisterModule(object module)
 		{
 			try
@@ -269,6 +373,11 @@ namespace qshine
 			return this;
 		}
 
+        /// <summary>
+        /// Register types through assembly
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <returns></returns>
 		public virtual IIocContainer RegisterModule(Assembly assembly)
 		{
 			throw new NotImplementedException();
@@ -281,6 +390,9 @@ namespace qshine
 
 		#region IDisposable Members
 
+        /// <summary>
+        /// 
+        /// </summary>
 		public virtual void Dispose()
 		{
 		}
@@ -288,6 +400,11 @@ namespace qshine
 		#endregion
 
 		#region Convert Life time scope
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="instanceScopeOption"></param>
+        /// <returns></returns>
 		protected IocInstanceScope GetLifetimeScope(string instanceScopeOption)
 		{
 			IocInstanceScope result;

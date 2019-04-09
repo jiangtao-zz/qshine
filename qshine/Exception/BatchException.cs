@@ -17,11 +17,18 @@ namespace qshine
     public class BatchException : Exception
     {
         int _chainCounter = 0;
+
         #region Ctors
+        /// <summary>
+        /// Ctro.
+        /// </summary>
         public BatchException()
             :this("Batch Process Exception")
         {}
-
+        /// <summary>
+        /// Ctro.
+        /// </summary>
+        /// <param name="message"></param>
         public BatchException(string message)
             : base(message)
         {

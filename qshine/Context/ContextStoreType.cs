@@ -4,7 +4,10 @@ using System.Text;
 
 namespace qshine
 {
-    public enum ContextStoreType
+    /// <summary>
+    /// Context store type
+    /// </summary>
+    public enum ContextStoreType:int
     {
         /// <summary>
         /// Static context across entire application.

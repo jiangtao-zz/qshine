@@ -55,6 +55,8 @@ namespace qshine.database
         /// <param name="defaultValue">Default value.</param>
         /// <param name="allowNull">If set to <c>true</c> allow null.</param>
         /// <param name="autoIncrease">Auto increase number. -1 means not auto increase</param>
+        /// <param name="version">current version number</param>
+        /// <param name="oldColumnNames">history column names</param>
         /// <returns></returns>
         public SqlDDLTable AddPKColumn(string columnName, DbType dbType, int size=1, bool allowNull = false, 
             string defaultValue="", bool autoIncrease=true, int version=1, 
@@ -63,14 +65,47 @@ namespace qshine.database
             return AddPKColumn(0, columnName, dbType, size, allowNull, defaultValue, autoIncrease, version, oldColumnNames);
         }
 
+        /// <summary>
+        /// Adds the PK Column.
+        /// </summary>
+        /// <param name="internalId">internal unique column id. Use column internalId to identify column. 
+        /// If the internal id is 0, an auto id will be created.</param>
+        /// <param name="columnName">Column name.</param>
+        /// <param name="dbType">Db type.</param>
+        /// <param name="size">Size.</param>
+        /// <param name="allowNull">If set to <c>true</c> allow null.</param>
+        /// <param name="defaultValue">Default value.</param>
+        /// <param name="autoIncrease">Auto increase number. -1 means not auto increase</param>
+        /// <param name="version">current version number</param>
+        /// <param name="oldColumnNames">history column names</param>
+        /// <returns></returns>
         public SqlDDLTable AddPKColumn(int internalId, string columnName, DbType dbType, int size = 1, bool allowNull = false,
             string defaultValue = "", bool autoIncrease = true, int version = 1,
             params string[] oldColumnNames)
         {
-            return AddColumn(0, columnName, dbType, size, 0, allowNull, defaultValue, "PK", 
+            return AddColumn(internalId, columnName, dbType, size, 0, allowNull, defaultValue, "PK", 
                                      version:version, isPK: true, autoIncrease: autoIncrease, oldColumnNames:oldColumnNames);
 		}
 
+        /// <summary>
+        /// Add a column
+        /// </summary>
+        /// <param name="columnName">Column name.</param>
+        /// <param name="dbType">Db type.</param>
+        /// <param name="size">Size.</param>
+        /// <param name="scale"></param>
+        /// <param name="allowNull">If set to <c>true</c> allow null.</param>
+        /// <param name="defaultValue">Default value.</param>
+        /// <param name="comments">comments</param>
+        /// <param name="checkConstraint"></param>
+        /// <param name="isUnique"></param>
+        /// <param name="reference"></param>
+        /// <param name="isIndex"></param>
+        /// <param name="version"></param>
+        /// <param name="isPK"></param>
+        /// <param name="autoIncrease"></param>
+        /// <param name="oldColumnNames"></param>
+        /// <returns></returns>
 		public SqlDDLTable AddColumn(string columnName, DbType dbType, int size, int scale=0, bool allowNull = true, object defaultValue = null, string comments = "",
 		                             string checkConstraint = "", bool isUnique = false, SqlDDLColumn reference = null, bool isIndex = false, int version=1,
                                      bool isPK=false, bool autoIncrease = false, params string[] oldColumnNames)
@@ -79,7 +114,26 @@ namespace qshine.database
                                      checkConstraint, isUnique, reference, isIndex, version, isPK, autoIncrease, oldColumnNames);
         }
 
-
+        /// <summary>
+        /// Add a column
+        /// </summary>
+        /// <param name="internalId"></param>
+        /// <param name="columnName"></param>
+        /// <param name="dbType"></param>
+        /// <param name="size"></param>
+        /// <param name="scale"></param>
+        /// <param name="allowNull"></param>
+        /// <param name="defaultValue"></param>
+        /// <param name="comments"></param>
+        /// <param name="checkConstraint"></param>
+        /// <param name="isUnique"></param>
+        /// <param name="reference"></param>
+        /// <param name="isIndex"></param>
+        /// <param name="version"></param>
+        /// <param name="isPK"></param>
+        /// <param name="autoIncrease"></param>
+        /// <param name="oldColumnNames"></param>
+        /// <returns></returns>
         public SqlDDLTable AddColumn(int internalId, string columnName, DbType dbType, int size, int scale = 0, bool allowNull = true, object defaultValue = null, string comments = "",
                                      string checkConstraint = "", bool isUnique = false, SqlDDLColumn reference = null, bool isIndex = false, int version = 1, 
                                      bool isPK=false, bool autoIncrease=false, params string[] oldColumnNames)
@@ -259,7 +313,7 @@ namespace qshine.database
         /// The SQL only run for a given database provider
         /// </summary>
         /// <param name="customSql">Sql statement</param>
-        /// <param name="supportedProviderName">Comma separated supported database provider name match list.
+        /// <param name="supportedProviderName">Comma separated supported database provider name match list.</param>
         /// <returns>This instance</returns>
         public SqlDDLTable AddCustomSqlAfterTableUpdated(DbSqlStatement customSql, string supportedProviderName)
         {
@@ -283,6 +337,7 @@ namespace qshine.database
         /// <summary>
         /// Get possible index name
         /// </summary>
+        /// <param name="tableName">table name</param>
         /// <param name="column">column</param>
         /// <returns>Return a column potential index name.</returns>
         public static string GetIndexName(string tableName, SqlDDLColumn column)

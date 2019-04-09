@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using qshine.Configuration;
 using qshine.Utility;
+using qshine.Logger;
 using System.Linq;
 
 namespace qshine
@@ -48,7 +49,6 @@ namespace qshine
         ///     b. The "default" name connection string if name is not present
         ///     c. The first connection string if name is not present
         ///     d. throw exception if no any connection string found.
-
         /// </remarks>
         public Database(string configedConnectionName)
 		{
@@ -56,9 +56,9 @@ namespace qshine
             //1. Find a given named connection string setting from configure
             //a. The name exactly match.
             //b. The "default" name if name not present
-            for (int i = 0; i<ApplicationEnvironment.Configure.ConnectionStrings.Count;i++)
+            for (int i = 0; i<ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings.Count;i++)
 			{
-				var connectionStringSetting = ApplicationEnvironment.Configure.ConnectionStrings[i];
+				var connectionStringSetting = ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings[i];
 
 				if (name.Equals(connectionStringSetting.Name, StringComparison.InvariantCultureIgnoreCase))
 				{
@@ -70,10 +70,10 @@ namespace qshine
 
             //Get first one if name is empty or null
 			if (string.IsNullOrEmpty(configedConnectionName) 
-                && ApplicationEnvironment.Configure.ConnectionStrings.Count>0)
+                && ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings.Count>0)
 			{
-				ProviderName = ApplicationEnvironment.Configure.ConnectionStrings[0].ProviderName;
-				ConnectionString = ApplicationEnvironment.Configure.ConnectionStrings[0].ConnectionString;
+				ProviderName = ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings[0].ProviderName;
+				ConnectionString = ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings[0].ConnectionString;
 			}
 
             //Ensure provider and connection string available
@@ -101,9 +101,8 @@ namespace qshine
         void SetParameterPrefix(DbProviderFactory factory)
         {
             CommandBuilder = factory.CreateCommandBuilder();
-            string placeholder;
-            CommandBuilder.TryCallNonPublic(out placeholder, null, "GetParameterPlaceholder", 0);
-            if(!string.IsNullOrEmpty(placeholder))
+            CommandBuilder.TryCallNonPublic(out string placeholder, null, "GetParameterPlaceholder", 0);
+            if (!string.IsNullOrEmpty(placeholder))
             {
                 _parameterPrefixLookup.Add(ProviderName, placeholder.Substring(0,1));
             }
@@ -262,6 +261,9 @@ namespace qshine
         }
 
         List<IDbTypeMapper> _dbTypeMappers;
+        /// <summary>
+        /// Map database dbtype
+        /// </summary>
         public List<IDbTypeMapper> DbTypeMappers
         {
             get
@@ -299,8 +301,7 @@ namespace qshine
 
         private string ParseDataSource()
 		{
-            object dataSource;
-            if (ConnectionStringBuilder.TryGetValue("Data Source", out dataSource))
+            if (ConnectionStringBuilder.TryGetValue("Data Source", out object dataSource))
             {
                 return dataSource.ToString();
             }

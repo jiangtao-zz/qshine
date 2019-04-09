@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 namespace qshine
 {
+    /// <summary>
+    /// Object extension
+    /// </summary>
 	public static class ObjectExtension
 	{
 		#region 1.Using()
@@ -15,19 +19,18 @@ namespace qshine
 		/// <param name="action">Action.</param>
 		public static void Using(this Object instance, Action action)
 		{
-			var disposableObject = instance as IDisposable;
-			if (disposableObject != null)
-			{
-				using (disposableObject)
-				{
-					action();
-				}
-			}
-			else
-			{
-				action();
-			}
-		}
+            if (instance is IDisposable disposableObject)
+            {
+                using (disposableObject)
+                {
+                    action();
+                }
+            }
+            else
+            {
+                action();
+            }
+        }
 
 		/// <summary>
 		/// Provides a convenient way to dispose objects after execute the object method.
@@ -43,15 +46,14 @@ namespace qshine
 		/// </example>
 		public static T Using<T>(this Object instance, Func<T> method)
 		{
-			var disposableObject = instance as IDisposable;
-			if (disposableObject != null)
-			{
-				using (disposableObject)
-				{
-					return method();
-				}
-			}
-			return method();
+            if (instance is IDisposable disposableObject)
+            {
+                using (disposableObject)
+                {
+                    return method();
+                }
+            }
+            return method();
 		}
 		#endregion
 
@@ -68,6 +70,7 @@ namespace qshine
 		 * 
 		 * Call public void method by name:
 		 * 		instance.TryCall("methodName", arg1, arg2,..);
+         * 		instance.AsDynamic().methodName(arg1,arg2...);
 		 * 
          * Call public method by name and explicitly provide types:
 		 * 		instance.TryCall(out result, Types[] argumentTypes, "methodName", arg1, arg2,..);
@@ -181,8 +184,7 @@ namespace qshine
 		/// <param name="args">Arguments.</param>
 		public static bool TryCall(this object instance, Type[] argumentTypes, string methodName, params object[] args)
 		{
-			object result;
-			return instance.TryCall(out result, argumentTypes, methodName, args);
+			return instance.TryCall(out object result, argumentTypes, methodName, args);
 		}
 
 		/// <summary>
@@ -252,17 +254,20 @@ namespace qshine
         /// </summary>
         /// <returns>The generic if any.</returns>
         /// <param name="instance">Instance.</param>
+        /// <param name="result">returns call result.</param>
         /// <param name="methodName">Method name.</param>
         /// <param name="genericTypes">Generic type arguments of the method.</param>
         /// <param name="argumentTypes">Method argument types.</param>
         /// <param name="args">Method arguments.</param>
         /// <example>
+        /// <![CDATA[
         /// 	Assume class SampleClass has following method signature
         /// 		public class SampleClass {
         /// 			int GetTicket<T1,T2,T3> (int arg1, T2 arg2, T3 arg3){...}
         /// 		}
         /// 	int result;
         /// 	var hasMethod = instance.TryCall<int>(out result, new [] {typeof(T1), typeof (T2), typeof(T3)}, new [] {typeof(int)}, "GetTicket", arg1);
+        /// 	]]>
         /// </example>
         /// <remarks>
         /// 	This method is not accurate to determine the method match. If more than two methods found, it will through exception.
@@ -380,13 +385,41 @@ namespace qshine
 			return null;
 		}
 
-		/// <summary>
-		/// Compare nullable string
-		/// </summary>
-		/// <returns><c>true</c>, if equal was ared, <c>false</c> otherwise.</returns>
-		/// <param name="a">The a string.</param>
-		/// <param name="b">The b string.</param>
-		public static bool AreEqual(this string a, string b)
+        /// <summary>
+        /// Try to create a new instance by given constructor arguments.
+        /// </summary>
+        /// <param name="type">The type of class.</param>
+        /// <param name="args">The constructor arguments.</param>
+        /// <returns>A new instance created. 
+        /// It will return null if the given arguments types are not match to constructor.</returns>
+        public static object TryCreateInstance(this Type type, params object[] args)
+        {
+            if (args.Length == 0)
+            {
+                return Activator.CreateInstance(type);
+            }
+            else
+            {
+                Type[] types = Array.ConvertAll(args, item => item.GetType());
+
+                // Get the public instance constructor.
+                ConstructorInfo constructorInfoObj = type.GetConstructor(types);
+                if (constructorInfoObj != null)
+                {
+                    return Activator.CreateInstance(type, args);
+                }
+            }
+            return null;
+        }
+
+        #region AreEqual()
+        /// <summary>
+        /// Compare nullable string
+        /// </summary>
+        /// <returns><c>true</c>, if equal was ared, <c>false</c> otherwise.</returns>
+        /// <param name="a">The a string.</param>
+        /// <param name="b">The b string.</param>
+        public static bool AreEqual(this string a, string b)
 		{
 			if (string.IsNullOrEmpty(a))
 			{
@@ -410,5 +443,7 @@ namespace qshine
 
 			return string.Equals(a.ToString(), b);
 		}
-	}
+        #endregion
+
+    }
 }

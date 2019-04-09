@@ -4,8 +4,14 @@ using System.Text;
 
 namespace qshine.Audit
 {
-    public enum AuditActionType
+    /// <summary>
+    /// Audit action type
+    /// </summary>
+    public enum AuditActionType :int
     {
+        /// <summary>
+        /// Unknow action
+        /// </summary>
         Unknow,
         /// <summary>
         /// Indicates audit object created
@@ -20,4 +26,5 @@ namespace qshine.Audit
         /// </summary>
         Delete
     }
+
 }

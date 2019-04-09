@@ -22,22 +22,9 @@ namespace qshine.Audit
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Entity object key property name.
-        /// </summary>
-        public string KeyFieldName { get; set; }
-
-        /// <summary>
-        /// Entity object key proeprty value.
+        /// Entity object key (Id) proeprty value.
         /// </summary>
         public string Key { get; set; }
-
-        /// <summary>
-        /// Version number of entity object for each change.
-        /// When the version first created, the version is 0.
-        /// Each change cause version increase.
-        /// </summary>
-        /// <remarks>This property may not be used in certain case.</remarks>
-        public int Version { get; set; }
 
         /// <summary>
         /// Audit action type enum value.
@@ -59,11 +46,6 @@ namespace qshine.Audit
         /// Who perform the action.
         /// </summary>
         public string AuditActionBy { get; set; }
-
-        /// <summary>
-        /// Action source name.
-        /// </summary>
-        public string Source { get; set; }
 
         /// <summary>
         /// Name of the computer on which to action.

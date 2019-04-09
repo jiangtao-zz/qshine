@@ -1,6 +1,9 @@
 ﻿using System;
 namespace qshine
 {
+    /// <summary>
+    /// Context store interface
+    /// </summary>
 	public interface IContextStore:IProvider
 	{
 		/// <summary>

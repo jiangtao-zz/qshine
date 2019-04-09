@@ -2,9 +2,16 @@
 using System.Runtime.Serialization;
 namespace qshine
 {
+    /// <summary>
+    /// message envelope for message delivery
+    /// </summary>
 	[DataContract]
 	public class MessageEnvelope
 	{
+        /// <summary>
+        /// Ctor::
+        /// </summary>
+        /// <param name="message"></param>
 		public MessageEnvelope(object message)
 		{
 			AssemblyQualifiedName = message.GetType().AssemblyQualifiedName;

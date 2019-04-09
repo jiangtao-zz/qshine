@@ -4,9 +4,19 @@ using System.Collections.Generic;
 
 namespace qshine.database
 {
+    /// <summary>
+    /// Defines tracking table
+    /// </summary>
 	public class TrackingTable
 	{
+        /// <summary>
+        /// Ctro.
+        /// </summary>
         public TrackingTable() { }
+        /// <summary>
+        /// Ctro.
+        /// </summary>
+        /// <param name="table"></param>
         public TrackingTable(SqlDDLTable table) {
             SchemaName = table.SchemaName;
             ObjectType =  TrackingObjectType.Table;
@@ -89,7 +99,9 @@ namespace qshine.database
 		/// <value>The category.</value>
 		public string Category { get; set; }
 
-
+        /// <summary>
+        /// List of columns
+        /// </summary>
 		public List<TrackingColumn> Columns { get; set; }
 	}
 }

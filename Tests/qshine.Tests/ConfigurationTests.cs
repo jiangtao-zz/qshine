@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using qshine.Logger;
 using qshine.Configuration;
 using System;
 using System.Reflection;
@@ -11,22 +12,24 @@ namespace qshine.Tests
         [AssemblyInitialize]
         public static void AssemblyInit(TestContext context)
         {
-            
-            Log.SysLoggerProvider = new TraceLoggerProvider();
-            Log.SysLogger.EnableLogging(System.Diagnostics.TraceEventType.Verbose);
-            
             //This is only running once. Ignore subsequently call ApplicationEnvironment.Boot().
             ApplicationEnvironment.Build("app.config");
+
+            //try use internal providerfactory 
+            Log.LogProviderFactory = new InternalProviderFactory();
+            Log.SysLogger.EnableLogging(System.Diagnostics.TraceEventType.Verbose);
+
         }
     }
 
     [TestClass()]
+    [DeploymentItem("app.config", "./testhost.dll.config")]
     public class ApplicationEnvironmentTests
     {
         [TestMethod()]
         public void LoadConfig_Default_File()
         {
-            var configure = ApplicationEnvironment.Configure;
+            var configure = ApplicationEnvironment.Current.EnvironmentConfigure;
 
             //Assert.AreEqual("config", configure.Environments["root"].Path);
             //Assert.AreEqual("", configure.Environments["root"].Host);
@@ -43,17 +46,18 @@ namespace qshine.Tests
             Assert.IsTrue(configure.ConfigureFolders.Count > 0);
             Assert.IsTrue(configure.AssemblyFolders.Count > 0);
 
-            Assert.IsTrue(ApplicationEnvironment.AssemblyMaps["qshine.ioc.autofac"].Path.Contains("qshine.ioc.autofac.dll"));
-            Assert.IsTrue(ApplicationEnvironment.AssemblyMaps["Autofac"].Path.Contains("Autofac.dll"));
-            Assert.IsTrue(ApplicationEnvironment.AssemblyMaps["qshine.log.nlog"].Path.Contains("qshine.log.nlog.dll"));
+            Assert.IsTrue(PluggableAssembly.Maps["qshine.ioc.autofac"].Path.Contains("qshine.ioc.autofac.dll"));
+            Assert.IsTrue(PluggableAssembly.Maps["Autofac"].Path.Contains("Autofac.dll"));
+            Assert.IsTrue(PluggableAssembly.Maps["qshine.log.nlog"].Path.Contains("qshine.log.nlog.dll"));
             //            Assert.IsTrue(ApplicationEnvironment.AssemblyMaps["NLog"].Path.Contains("NLog.dll"));
 
-            Assert.IsTrue(configure.Maps.ContainsKey("bus"));
-            Assert.AreEqual("A", configure.Maps["bus"]["1"]);
-            Assert.AreEqual("B", configure.Maps["bus"]["2"]);
-            Assert.AreEqual("2", configure.Maps["bus"].Default);
+            Assert.IsTrue(configure.Maps.ContainsKey("qshine.Tests.ITest1Provider"));
+            Assert.AreEqual("c1", configure.Maps["qshine.Tests.ITest1Provider"]["c1Key"]);
+            Assert.AreEqual("c1", configure.Maps["qshine.Tests.ITest1Provider"]["c11Key"]);
+            Assert.AreEqual("c2", configure.Maps["qshine.Tests.ITest1Provider"]["c2Key"]);
+            Assert.AreEqual("c2", configure.Maps["qshine.Tests.ITest1Provider"].Default);
 
-            Assert.IsFalse(configure.Maps["bus"].ContainsKey("X"));
+            Assert.IsFalse(configure.Maps["qshine.Tests.ITest1Provider"].ContainsKey("X"));
             Assert.IsFalse(configure.Maps.ContainsKey("busx"));
 
 
@@ -68,17 +72,81 @@ namespace qshine.Tests
         }
 
         [TestMethod()]
+        public void CreateProvider_NoProvider()
+        {
+            var provider = ApplicationEnvironment.GetProvider<IProvider>();
+            Assert.IsNull(provider);
+        }
+
+        [TestMethod()]
+        public void CreateNamedProvider_NoName()
+        {
+            var provider = ApplicationEnvironment.GetProvider<IIocProvider>("NoName");
+            Assert.IsNull(provider);
+        }
+
+        [TestMethod()]
+        public void CreateNamedProvider_GoodName()
+        {
+            var provider = ApplicationEnvironment.GetProvider<ITest1Provider>("c1");
+            Assert.IsNotNull(provider as TestC1Provider);
+
+            provider = ApplicationEnvironment.GetProvider<ITest1Provider>("c2");
+            Assert.IsNotNull(provider as TestC2Provider);
+        }
+
+        [TestMethod()]
+        public void CreateMappedProvider_NoMapAtAll()
+        {
+            var provider = ApplicationEnvironment.Current.CreateMappedProvider<IIocProvider>("NoMap");
+            Assert.IsNotNull(provider,"Should be default provider");
+
+        }
+
+        [TestMethod()]
+        public void CreateMappedProvider_GoodMap()
+        {
+            var provider = ApplicationEnvironment.Current.CreateMappedProvider<ITest1Provider>("c1Key");
+            Assert.IsNotNull(provider as TestC1Provider, "Should be TestC1Provider");
+
+            provider = ApplicationEnvironment.Current.CreateMappedProvider<ITest1Provider>("c11Key");
+            Assert.IsNotNull(provider as TestC1Provider, "Should be TestC1Provider");
+
+            provider = ApplicationEnvironment.Current.CreateMappedProvider<ITest1Provider>("c11Keyxxxxx");
+            Assert.IsNotNull(provider as TestC2Provider, "Should be Default provider");
+
+            provider = ApplicationEnvironment.Current.CreateMappedProvider<ITest1Provider>("c2");
+            Assert.IsNotNull(provider as TestC2Provider, "Should be c2 provider");
+
+        }
+
+        [TestMethod()]
+        public void CreateComponent_Good()
+        {
+            var provider = ApplicationEnvironment.Current.CreateComponent<ITest1Provider>("c1");
+            Assert.IsTrue(provider is TestC1Provider, "Should be TestC1Provider");
+        }
+
+        [TestMethod()]
+        public void CreateMappedComponent_Good()
+        {
+            var provider = ApplicationEnvironment.Current.CreateMappedComponent <ITest1Provider >("c2Key");
+            Assert.IsTrue(provider is TestC2Provider, "Should be TestC1Provider");
+        }
+
+
+        [TestMethod()]
         public void ConnectionStrings()
         {
-            var db1 = ApplicationEnvironment.Configure.ConnectionStrings["db1"];
+            var db1 = ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings["db1"];
             Assert.AreEqual("testProvider", db1.ProviderName);
             Assert.AreEqual("abc,002", db1.ConnectionString);
 
-            var db2 = ApplicationEnvironment.Configure.ConnectionStrings["db2"];
+            var db2 = ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings["db2"];
             Assert.AreEqual("testProvider2", db2.ProviderName);
             Assert.AreEqual("abc2,aaa", db2.ConnectionString);
 
-            var db3 = ApplicationEnvironment.Configure.ConnectionStrings["db3"];
+            var db3 = ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings["db3"];
             Assert.IsNull(db3);
 
         }
@@ -165,8 +233,8 @@ namespace qshine.Tests
 
             var option = new EnvironmentInitializationOption
             {
-                RootConfigFile = "unitTest/test_app1.config",//this line will be ignored
-                RootConfiguration = config
+                RootConfigFile = config.FilePath
+                //RootConfiguration = config
             };
 
             var appEnv = new ApplicationEnvironment("c3", option);
@@ -238,5 +306,80 @@ namespace qshine.Tests
             Assert.AreEqual("qshine.ioc.autofac.Provider", theType5.FullName);
 
         }
+
+        [TestMethod()]
+        public void ApplicationEnvironment_Startup_Test()
+        {
+            Assert.AreEqual(1, Startup1.Result);
+            Assert.AreEqual(1, Startup2.Result);
+
+            ApplicationEnvironment.Build(new EnvironmentInitializationOption
+            {
+                RootConfigFile ="app.config"
+            },"Tetst1")
+            .StartUp<IStartupClass>();
+
+            Assert.AreEqual(2, Startup1.Result);
+            Assert.AreEqual("Tetst1", Startup1.EnvironmentName);
+            Assert.AreEqual(3, Startup2.Result);
+
+        }
+    }
+
+    public class InternalProviderFactory : ILoggerProviderFactory
+    {
+        public ILoggerProvider CreateProvider(string category)
+        {
+            return new TraceLoggerProvider();
+        }
+
+        public void RegisterProvider(ILoggerProvider provider, string category)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public interface ITest1Provider:IProvider
+    {
+
+    }
+
+    public class TestC1Provider :ITest1Provider
+    {
+
+    }
+
+    public class TestC2Provider : ITest1Provider
+    {
+
+    }
+
+    public interface IStartupClass
+    {
+    }
+
+    public class Startup1:IStartupClass
+    {
+        public Startup1(ApplicationEnvironment env)
+        {
+            Startup1.Result++;
+
+            EnvironmentName = env.Name;
+
+            Assert.IsTrue(env.EnvironmentConfigure.Environments.Count > 0);
+        }
+
+        public static int Result = 1;
+        public static string EnvironmentName { get; set; }
+    }
+
+    public class Startup2 : IStartupClass
+    {
+        public Startup2()
+        {
+            Startup2.Result+=2;
+        }
+
+        public static int Result = 1;
     }
 }

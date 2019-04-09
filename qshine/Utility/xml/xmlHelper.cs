@@ -30,8 +30,15 @@ namespace qshine
     /// </summary>
     public class XmlSection
     {
+        /// <summary>
+        /// Ctor::
+        /// </summary>
         public XmlSection() { }
 
+        /// <summary>
+        /// Ctor::
+        /// </summary>
+        /// <param name="rawXml"></param>
         public XmlSection(string rawXml)
         {
             var node = XDocument.Parse(rawXml);
@@ -65,17 +72,27 @@ namespace qshine
             return true;
         }
 
+        /// <summary>
+        /// Get/Set name attribute
+        /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// Get/set value attribute
+        /// </summary>
         public string Value { get; set; }
 
+        /// <summary>
+        /// Get/Set items
+        /// </summary>
         public List<XmlSection> Items { get; set; }
 
         // The inner dictionary.
         Dictionary<string, string> dictionary
             = new Dictionary<string, string>();
 
-        // This property returns the number of elements
-        // in the inner dictionary.
+        /// <summary>
+        /// This property returns the number of elements in the inner dictionary.
+        /// </summary>
         public int Count
         {
             get
@@ -84,12 +101,16 @@ namespace qshine
             }
         }
 
+        /// <summary>
+        /// Get value by the name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public string this[string name]
         {
             get
             {
-                string result;
-                if (dictionary.TryGetValue(name, out result))
+                if (dictionary.TryGetValue(name, out string result))
                 {
                     return result;
                 }

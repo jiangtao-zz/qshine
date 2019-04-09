@@ -4,6 +4,9 @@ using System.Text;
 
 namespace qshine.database
 {
+    /// <summary>
+    /// Tracking table name change class.
+    /// </summary>
     public class TrackingName
     {
         /// <summary>

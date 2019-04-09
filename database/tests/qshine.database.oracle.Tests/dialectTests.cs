@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using qshine;
+using qshine.Logger;
 using qshine.Configuration;
 using qshine.database;
 using System.Data;
