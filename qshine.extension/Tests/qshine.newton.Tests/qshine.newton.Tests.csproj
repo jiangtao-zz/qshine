@@ -1,9 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net461;</TargetFrameworks>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <Import Project="$(SolutionDir)shareTargetFrameworks.prjitem" />
+  
   <ItemGroup>
     <Compile Include="..\..\..\Tests\qshine.Tests\jsonTests.cs" Link="jsonTests.cs" />
     <Compile Include="mainTests.cs" />
@@ -15,12 +20,10 @@
     <PackageReference Include="MSTest.TestFramework" Version="1.3.2" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+  <ItemGroup>
     <Reference Include="System" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
-    <Reference Include="System" />
-  </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\..\..\qshine\qshine.csproj">
       <Project>{05162fc4-73a3-4190-a336-568e2289302c}</Project>

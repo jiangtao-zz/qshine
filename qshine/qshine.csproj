@@ -5,30 +5,13 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\qshine.snk</AssemblyOriginatorKeyFile>
-    <DelaySign>false</DelaySign>
   </PropertyGroup>
 
   <!-- ###### Update the section if add a new supported framework ###########
   Define supported target frameworks and define conditional constants.
   A T4 file will generate C# code to provide run-time TargetFramewrok property 
   -->
-  <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.2;netcoreapp2.1;net461;</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.2'">
-    <DefineConstants>netcoreapp2_2</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1'">
-    <DefineConstants>netcoreapp2_1</DefineConstants>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461'">
-    <DefineConstants>net461</DefineConstants>
-  </PropertyGroup>
+  <Import Project="$(SolutionDir)shareTargetFrameworks.prjitem" />
 
   <PropertyGroup>
     <TransformOnBuild>true</TransformOnBuild>
@@ -44,19 +27,11 @@
   </ItemGroup>
   <!-- ############################## Section End ###################################-->
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1'">
-	  <DefineConstants>NETCORE;NETCORE2_0;$(DefineConstants)</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.2'">
-    <DefineConstants>NETCORE;NETCORE2_0;$(DefineConstants)</DefineConstants>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.1|AnyCPU'">
     <DocumentationFile>D:\hjt\qshine\qshine\qshine.xml</DocumentationFile>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+  <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Xml" />
@@ -66,32 +41,13 @@
     <Reference Include="System.Transactions" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Runtime.Caching" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="Microsoft.CSharp" />
+  
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' or  '$(TargetFramework)' == 'netcoreapp2.2' ">
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
     <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.2'">
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Runtime.Caching" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="Microsoft.CSharp" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
-    <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
-  </ItemGroup>
+
   <ItemGroup>
     <Content Include="applicationDesigner\appSecurity.txt" />
     <Content Include="applicationDesigner\appSecurityLocal.txt" />
@@ -157,7 +113,6 @@
     <Compile Include="IoC\IocException.cs" />
     <Compile Include="IoC\IocContainerBase.cs" />
     <Compile Include="IoC\IocInstanceScope.cs" />
-    <Compile Include="Properties\qshineAssemblyInfo.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="IoC\TinyIoC\IocTinyIoC.cs" />
     <Compile Include="IoC\TinyIoC\TinyIoC.cs" />
@@ -264,7 +219,6 @@
     <Content Include="applicationDesigner\3_InfrInterceptor.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\qshine.snk" Link="qshine.snk" />
     <Compile Include="Properties\targetFramework.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

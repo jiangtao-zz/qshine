@@ -1,36 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <ProjectGuid>{B237847E-4CCC-4EA1-A57C-2A85545B2539}</ProjectGuid>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\..\qshine.snk</AssemblyOriginatorKeyFile>
-    <DelaySign>false</DelaySign>
-  </PropertyGroup>
+      <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+      <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net461;</TargetFrameworks>
-    <PreserveCompilationContext>false</PreserveCompilationContext>
-  </PropertyGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
+  <Import Project="$(SolutionDir)shareTargetFrameworks.prjitem" />
+  
+  <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
     <Compile Include="SqlDialectProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\qshine.snk" Link="qshine.snk" />
-  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\qshine\qshine.csproj">
       <Project>{05162fc4-73a3-4190-a336-568e2289302c}</Project>

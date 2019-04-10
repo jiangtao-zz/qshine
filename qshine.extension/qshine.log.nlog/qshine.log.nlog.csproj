@@ -2,32 +2,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net461;</TargetFrameworks>
     <RootNamespace>qshine.log.nlog</RootNamespace>
     <AssemblyName>qshine.log.nlog</AssemblyName>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1'">
-    <DefineConstants>NETCORE;NETCORE2_0</DefineConstants>
-  </PropertyGroup>
+  <Import Project="$(SolutionDir)shareTargetFrameworks.prjitem" />
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-    <Reference Include="System" />
-    <PackageReference Include="NLog" Version="4.5.10" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
-    <Reference Include="System" />
-    <PackageReference Include="NLog" Version="4.5.10" />
-  </ItemGroup>
-  
   <ItemGroup>
-    <Compile Include="..\..\qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
+    <Reference Include="System" />
+    <PackageReference Include="NLog" Version="4.5.10" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="provider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

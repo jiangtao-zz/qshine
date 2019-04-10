@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">  
+
+	<PropertyGroup>
+    <!--multiple frameworks supports-->
+    <TargetFrameworks>netcoreapp2.2;netcoreapp2.1;net461;</TargetFrameworks>
+    
+    <!--Sign assembly-->
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(SolutionDir)qshine.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <PreserveCompilationContext>false</PreserveCompilationContext>
+    
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.2'">
+    <DefineConstants>netcoreapp2_2</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1'">
+    <DefineConstants>netcoreapp2_1</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461'">
+    <DefineConstants>net461</DefineConstants>
+  </PropertyGroup>
+
+
+  <PropertyGroup Condition=" 
+             '$(TargetFramework)' == 'netcoreapp2.2' or
+             '$(TargetFramework)' == 'netcoreapp2.1'
+             ">
+    <DefineConstants>NETCORE;NETCORE2_0;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+
+  <!--sign file and assembly common information-->
+  <ItemGroup>
+    <None Include="$(SolutionDir)qshine.snk" Link="qshine.snk" />
+    <Compile Include="$(SolutionDir)qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
+  </ItemGroup>  
+
+</Project>  

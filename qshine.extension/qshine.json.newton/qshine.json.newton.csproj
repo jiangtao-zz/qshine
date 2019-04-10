@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net461;</TargetFrameworks>
     <RootNamespace>qshine.json.newton</RootNamespace>
     <AssemblyName>qshine.json.newton</AssemblyName>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
@@ -9,18 +8,9 @@
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1'">
-    <DefineConstants>NETCORE;NETCORE2_0</DefineConstants>
-  </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-    <Reference Include="System" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
-    <Reference Include="System" />
-  </ItemGroup>
-
+  <Import Project="$(SolutionDir)shareTargetFrameworks.prjitem" />
+  
   <ItemGroup>
     <Compile Include="provider.cs" />
   </ItemGroup>

@@ -4,20 +4,17 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\..\qshine.snk</AssemblyOriginatorKeyFile>
-    <DelaySign>false</DelaySign>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net461</TargetFrameworks>
-    <PreserveCompilationContext>false</PreserveCompilationContext>
-  </PropertyGroup>
+  <Import Project="$(SolutionDir)shareTargetFrameworks.prjitem" />
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+  <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="System.Data.SQLite">
       <HintPath>..\..\..\input\NuGetPackags\system.data.sqlite.core\1.0.109.2\lib\net46\System.Data.SQLite.dll</HintPath>
     </Reference>
@@ -28,10 +25,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Data" />
+
+
+  <ItemGroup Condition=" 
+             '$(TargetFramework)' == 'netcoreapp2.2' or
+             '$(TargetFramework)' == 'netcoreapp2.1'
+             ">
     <!-- nuget package reference
     <PackageReference Include="System.Data.SQLite" Version="1.0.109.2" />
     -->
@@ -50,14 +49,8 @@
     </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
     <Compile Include="SqlDialectProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\qshine.snk" Link="qshine.snk">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\qshine\qshine.csproj">

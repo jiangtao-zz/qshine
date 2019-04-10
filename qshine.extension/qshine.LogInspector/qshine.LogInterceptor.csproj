@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net461;</TargetFrameworks>
     <ProjectGuid>{EBA60DCA-6B98-4874-92E8-245499E32776}</ProjectGuid>
     <RootNamespace>qshine.LogInspector</RootNamespace>
     <AssemblyName>qshine.LogInspector</AssemblyName>
@@ -11,20 +10,14 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1'">
-    <DefineConstants>NETCORE;NETCORE2_0</DefineConstants>
-  </PropertyGroup>
+  <Import Project="$(SolutionDir)shareTargetFrameworks.prjitem" />
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
-    <Reference Include="System" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
+  <ItemGroup>
     <Reference Include="System" />
   </ItemGroup>
 
 
   <ItemGroup>
-    <Compile Include="..\..\qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
     <Compile Include="DbClientLog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
