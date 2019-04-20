@@ -9,7 +9,7 @@
     public class SmartEntity : SqlDDLTable
     {
         public SmartEntity()
-            : base("cm_sm_entity", "COMMON", "Entity Lookup table.", "comData", "comIndex")
+            : base("cm_sm_entity", "Common", "Entity Lookup table.", "comData", "comIndex")
         {
             AddPKColumn("id", System.Data.DbType.Int64)
                 .AddColumn("entity", System.Data.DbType.String, 50, allowNull: false, isIndex: true, comments: "Entity unique name. It usually is a smart entity table name.")

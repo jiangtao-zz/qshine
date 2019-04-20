@@ -10,7 +10,7 @@
     public class SmartEntityColumn : SqlDDLTable
     {
         public SmartEntityColumn()
-            : base("cm_sm_entity_col", "COMMON", "Smart Entity columns table.", "comData", "comIndex")
+            : base("cm_sm_entity_col", "Common", "Smart Entity columns table.", "comData", "comIndex")
         {
             AddPKColumn("id", System.Data.DbType.Int64)
                 .AddColumn("entity_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true, reference: new SmartEntity().PkColumn, comments: "FK:Smart entity id.")

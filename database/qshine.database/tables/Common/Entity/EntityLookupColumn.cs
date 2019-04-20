@@ -7,7 +7,7 @@
     public class EntityLookupColumn : SqlDDLTable
     {
         public EntityLookupColumn()
-            : base("cm_entity_lookup_c", "COMMON", "Entity Lookup table.", "comData", "comIndex")
+            : base("cm_entity_lookup_c", "Common", "Entity Lookup table.", "comData", "comIndex")
         {
             AddPKColumn("id", System.Data.DbType.Int64)
                 .AddColumn("lookup_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true, reference: new EntityLookup().PkColumn, comments: "Entity lookup id.")

@@ -3295,6 +3295,15 @@
             <param name="supportedProviderName">Comma separated supported database provider name match list.</param>
             <returns>This instance</returns>
         </member>
+        <member name="M:qshine.database.SqlDDLTable.SetData``1(``0,System.Object[])">
+            <summary>
+            Insert an record by PK value. Ignore action if the record already exists. 
+            </summary>
+            <typeparam name="T">PK type</typeparam>
+            <param name="id">id value</param>
+            <param name="records">record values</param>
+            <returns>This instance</returns>
+        </member>
         <member name="M:qshine.database.SqlDDLTable.GetIndexName(System.String,qshine.database.SqlDDLColumn)">
             <summary>
             Get possible index name
@@ -3378,6 +3387,11 @@
         <member name="P:qshine.database.SqlDDLTable.Version">
             <summary>
             Table version number for each structure change
+            </summary>
+        </member>
+        <member name="P:qshine.database.SqlDDLTable.DataVersion">
+            <summary>
+            Table system data version number for each system data change.
             </summary>
         </member>
         <member name="P:qshine.database.SqlDDLTable.SchemaName">

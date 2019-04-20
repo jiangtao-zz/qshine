@@ -1,6 +1,7 @@
 ﻿using qshine.database.common;
-using System;
-namespace qshine.database.idm
+using qshine.database.organization;
+
+namespace qshine.database.common
 {
     /// <summary>
     /// Business contacts information

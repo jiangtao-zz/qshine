@@ -2,7 +2,6 @@
 using qshine.Configuration;
 using qshine.database.common;
 using qshine.database.common.language;
-using qshine.database.idm;
 //using qshine.LogInterceptor;
 
 namespace qshine.database
@@ -13,7 +12,7 @@ namespace qshine.database
 		{
 			ApplicationEnvironment.Build("app.config");
 
-            var database = new SqlDDLDatabase(new Database("testDatabase"));
+            var database = new MyDatabase(new Database("testDatabase"));
 
             using (var dbBuilder = new SqlDDLBuilder(database, null))
             {

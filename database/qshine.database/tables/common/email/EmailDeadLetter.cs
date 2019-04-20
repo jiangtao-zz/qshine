@@ -1,38 +1,28 @@
-﻿
-using qshine.database.organization;
+﻿using qshine.database.organization;
 
 namespace qshine.database.tables.common.email
 {
     /// <summary>
-    /// Email template specification.
-    /// A email template contains email information with business variable placeholder used to compose a email message.
-    /// The email recipients TO and CC column could contain actual email address or email recipient placeholder variable which will be placed with
-    /// actual email address from business entity in email compose time.
-    /// The email subject and body contains actual email data with placeholder variables. The placeholder variable is a business field value assocaited with the template.
-    /// The placeholder variable could be a attachment variable which will generate an attachment from business data.
+    /// A Dead Letter message is an email message that system cannot deliver due to a processing problem.
     /// </summary>
-    public class EmailTemplate : SqlDDLTable
+    public class EmailDeadletter : SqlDDLTable
     {
-        public EmailTemplate()
-            : base("cm_em_template", "Common", "Lookup and Reference data table.", "comData", "comIndex")
+        public EmailDeadletter()
+            : base("cm_em_deadletter", "Common", "Email Dead letter message.", "comData", "comIndex")
         {
-            AddPKColumn("id", System.Data.DbType.Int64)
+            AddColumn("id", System.Data.DbType.Int64,0,
+                comments: "Email message id.")
 
                 //Specifies an organization
                 .AddColumn("enterprise_id", System.Data.DbType.Int64, 0, allowNull: false,
                 isIndex: true, reference: new Enterprise().PkColumn,
-                comments: "Enterprise organization id.")
+                comments: "Enterprise organization id. For a global service group, the value is 0.")
 
-                //Specifies an organization unit
-                .AddColumn("ou_id", System.Data.DbType.Int64, 0,
-                reference: new OrganizationUnit().PkColumn,
-                comments: "Organization unit id.")
+                .AddColumn("subject", System.Data.DbType.String, 256,
+                comments: "Email subject.")
 
-                .AddColumn("subject", System.Data.DbType.String, 256, 
-                comments: "Email subject. It could contain placeholder variables defined by each usage.")
-
-                .AddColumn("body", System.Data.DbType.String, 0, 
-                comments: "Email body. It could contain placeholder variables defined by each usage.")
+                .AddColumn("body", System.Data.DbType.String, 0,
+                comments: "Email body.")
 
                 .AddColumn("from_recipient", System.Data.DbType.String, 256,
                 comments: "Email FROM address.")
@@ -61,6 +51,25 @@ namespace qshine.database.tables.common.email
 
                 .AddColumn("doc_ref_type", System.Data.DbType.String, 50,
                 comments: "Associated to business document (entity) name.")
+
+                .AddColumn("doc_ref_id", System.Data.DbType.String, 50,
+                comments: "Associated to business document id.")
+
+                //Email sender process and result
+                .AddColumn("process_id", System.Data.DbType.String, 250,
+                comments: "Working process id used to lock record for process.")
+
+                .AddColumn("process_time", System.Data.DbType.DateTime, 0,
+                comments: "Process date and time.")
+
+                .AddColumn("status", System.Data.DbType.Int16, 0,
+                comments: "Working process status. valid values: 0=Initialized, 1=Ready, 2=waitingProcess, 5=running, 7=terminated_error, 8=terminated_warning, 9=terminated_success")
+
+                .AddColumn("server_name", System.Data.DbType.String, 50,
+                comments: "Working process server name.")
+
+                .AddColumn("Retries", System.Data.DbType.Int32, 0,
+                comments: "Working process retries number.")
 
                 .AddAuditColumn();
         }

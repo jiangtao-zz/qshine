@@ -33,6 +33,9 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="scripts\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\..\qshineAssemblyInfo.cs" Link="Properties\qshineAssemblyInfo.cs" />
@@ -45,59 +48,67 @@
     <Compile Include="ScriptCompiler.cs" />
     <Compile Include="program.cs" />
     <Compile Include="tables\Archive\ProcessArchive.cs" />
-    <Compile Include="tables\Common\ApplicationSetting.cs" />
-    <Compile Include="tables\Common\Email\EmailSubmissionQueue.cs" />
-    <Compile Include="tables\Common\Email\EmailTemplate.cs" />
-    <Compile Include="tables\Common\Entity\EntityLookup.cs" />
-    <Compile Include="tables\Common\Entity\EntityLookupColumn.cs" />
-    <Compile Include="tables\Common\Entity\SmartEntity.cs" />
-    <Compile Include="tables\Common\Entity\SmartEntityColumn.cs" />
-    <Compile Include="tables\Common\Entity\SmartEntityStyle.cs" />
-    <Compile Include="tables\Common\Entity\SmartEntitySection.cs" />
-    <Compile Include="tables\Common\File\File.cs" />
-    <Compile Include="tables\Common\File\FileType.cs" />
-    <Compile Include="tables\Common\Contact.cs" />
+    <Compile Include="tables\common\email\EmailDeadLetter.cs" />
+    <Compile Include="tables\common\email\EmailSentLog.cs" />
+    <Compile Include="tables\security\iam\ApplicationSetting.cs" />
+    <Compile Include="tables\common\email\EmailOutQueue.cs" />
+    <Compile Include="tables\common\email\EmailTemplate.cs" />
+    <Compile Include="tables\common\entity\EntityLookup.cs" />
+    <Compile Include="tables\common\entity\EntityLookupColumn.cs" />
+    <Compile Include="tables\common\entity\SmartEntity.cs" />
+    <Compile Include="tables\common\entity\SmartEntityColumn.cs" />
+    <Compile Include="tables\common\entity\SmartEntityStyle.cs" />
+    <Compile Include="tables\common\entity\SmartEntitySection.cs" />
+    <Compile Include="tables\common\file\File.cs" />
+    <Compile Include="tables\common\file\FileType.cs" />
+    <Compile Include="tables\common\Contact.cs" />
     <Compile Include="tables\organization\Enterprise.cs" />
     <Compile Include="tables\organization\OrganizationUnit.cs" />
-    <Compile Include="tables\Security\idm\Group.cs" />
-    <Compile Include="tables\Security\idm\GroupMember.cs" />
-    <Compile Include="tables\Security\idm\Principal.cs" />
-    <Compile Include="tables\Security\idm\Role.cs" />
-    <Compile Include="tables\Security\idm\RoleMember.cs" />
-    <Compile Include="tables\Security\idm\User.cs" />
-    <Compile Include="tables\Security\idm\UserPreference.cs" />
-    <Compile Include="tables\Security\ResourceOperation.cs" />
-    <Compile Include="tables\Security\SecureResourceType.cs" />
-    <Compile Include="tables\Security\SecureResource.cs" />
+    <Compile Include="tables\security\AccountPolicy.cs" />
+    <Compile Include="tables\security\iam\Operation.cs" />
+    <Compile Include="tables\security\AuditPolicy.cs" />
+    <Compile Include="tables\security\iam\Group.cs" />
+    <Compile Include="tables\security\iam\GroupMember.cs" />
+    <Compile Include="tables\security\iam\Permission.cs" />
+    <Compile Include="tables\security\iam\Role.cs" />
+    <Compile Include="tables\security\iam\RoleMember.cs" />
+    <Compile Include="tables\security\iam\SecureResourceGroup.cs" />
+    <Compile Include="tables\security\iam\SecureResourceGroupMember.cs" />
+    <Compile Include="tables\security\iam\User.cs" />
+    <Compile Include="tables\security\iam\UserPreference.cs" />
+    <Compile Include="tables\security\LandingPage.cs" />
+    <Compile Include="tables\security\iam\SecureResourceType.cs" />
+    <Compile Include="tables\security\iam\SecureResource.cs" />
     <Compile Include="tables\queue\DDL.sql">
       <DependentUpon>DDL.ttinclude</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="tables\Common\Person.cs" />
-    <Compile Include="tables\Common\Location.cs" />
-    <Compile Include="tables\Common\BuildingHour.cs" />
-    <Compile Include="tables\Common\Lookup.cs" />
-    <Compile Include="tables\Common\LookupType.cs" />
-    <Compile Include="tables\Common\Module.cs" />
-    <Compile Include="tables\Common\Application.cs" />
-    <Compile Include="tables\Common\Language\Language.cs" />
-    <Compile Include="tables\Common\Language\Translation.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="scripts\" />
+    <Compile Include="tables\common\Person.cs" />
+    <Compile Include="tables\common\Location.cs" />
+    <Compile Include="tables\common\BuildingHour.cs" />
+    <Compile Include="tables\common\Lookup.cs" />
+    <Compile Include="tables\common\LookupType.cs" />
+    <Compile Include="tables\security\iam\Module.cs" />
+    <Compile Include="tables\security\iam\Application.cs" />
+    <Compile Include="tables\common\language\Language.cs" />
+    <Compile Include="tables\common\language\Translation.cs" />
+    <Compile Include="tables\security\Session.cs" />
+    <Compile Include="tables\security\SessionLog.cs" />
+    <Compile Include="tables\security\SessionAuditLog.cs" />
+    <Compile Include="tables\security\TrustPortal.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="applicationDesign\0_readme.txt" />
     <None Include="App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="tables\queue\idm.tt">
+    <None Include="tables\queue\iam.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>idm.sql</LastGenOutput>
+      <LastGenOutput>iam.sql</LastGenOutput>
     </None>
-    <None Include="tables\queue\idm.sql">
-      <DependentUpon>idm.tt</DependentUpon>
+    <None Include="tables\queue\iam.sql">
+      <DependentUpon>iam.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </None>
@@ -116,6 +127,15 @@
       <Project>{05162fc4-73a3-4190-a336-568e2289302c}</Project>
       <Name>qshine</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="tables\queue\idm.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>idm.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>xcopy  /F /E /R /Y /D /i "$(SolutionDir)config\*.*" "$(TargetDir)config\"</PostBuildEvent>

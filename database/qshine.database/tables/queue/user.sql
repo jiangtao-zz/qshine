@@ -12,7 +12,7 @@
 #@ endif
 
 
-create table idm_user
+create table iam_user
 (
   id				int				not null #@{AUTO_INCREMENT},
   user_name			varchar(150)	not null,
@@ -26,21 +26,21 @@ create table idm_user
   created_by   		varchar(100),
   updated_on   		date			default(sysdate),
   updated_by   		varchar(100),
-  constraint idm_user_pk primary key (id),
-  constraint idm_user_uk unique (id),
-  constraint idm_user_ct1 check (inactive_flag in (0,1));
+  constraint iam_user_pk primary key (id),
+  constraint iam_user_uk unique (id),
+  constraint iam_user_ct1 check (inactive_flag in (0,1));
 );
 
-create index idm_user_ix1 on idm_user
+create index iam_user_ix1 on iam_user
 (upper("first_name"));
 
-create index idm_user_ix2 on idm_user
+create index iam_user_ix2 on iam_user
 (upper("last_name"));
 
-create index idm_user_ix3 on idm_user
+create index iam_user_ix3 on iam_user
 (upper("email"));
 
-create index idm_user_ix4 on idm_user
+create index iam_user_ix4 on iam_user
 (created_on);
 
 #@if MYSQL
@@ -48,18 +48,18 @@ create index idm_user_ix4 on idm_user
 #@endif
 
 #@if ORACLE
-create sequence idm_user_seq
+create sequence iam_user_seq
 	minvalue 1
 	start with 1000
 	increment by 1
 	cache 10;
 
-create trigger idm_user_t before insert on idm_user
+create trigger iam_user_t before insert on iam_user
 	referencing old as old new as new 
 	for each row
 begin
 	if :new.id is null then
-  		select idm_user_seq.nextval into :new.id from dual;
+  		select iam_user_seq.nextval into :new.id from dual;
 	end if;
 end;
 #@endif

@@ -15,7 +15,7 @@
     public class SmartEntitySection : SqlDDLTable
     {
         public SmartEntitySection()
-            : base("cm_sm_entity_sec", "COMMON", "Smart Entity section table.", "comData", "comIndex")
+            : base("cm_sm_entity_sec", "Common", "Smart Entity section table.", "comData", "comIndex")
         {
             AddPKColumn("id", System.Data.DbType.Int64)
                 .AddColumn("org_id", System.Data.DbType.Int32, 0, allowNull: false, defaultValue: 0, comments: "Specifies an organization id apply to this section. It is a system record if the value is 0.")

@@ -330,6 +330,18 @@ namespace qshine.database
             return this;
         }
 
+        /// <summary>
+        /// Insert an record by PK value. Ignore action if the record already exists. 
+        /// </summary>
+        /// <typeparam name="T">PK type</typeparam>
+        /// <param name="id">id value</param>
+        /// <param name="records">record values</param>
+        /// <returns>This instance</returns>
+        public SqlDDLTable SetData<T> (T id, params object[] records)
+        {
+
+            return this;
+        }
 
         #endregion
 
@@ -449,6 +461,14 @@ namespace qshine.database
 		{
             get; private set;
 		}
+
+        /// <summary>
+        /// Table system data version number for each system data change.
+        /// </summary>
+		public int DataVersion
+        {
+            get; protected set;
+        }
 
         /// <summary>
         /// Database schema the table belong to.

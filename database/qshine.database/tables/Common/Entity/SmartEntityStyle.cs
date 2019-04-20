@@ -9,7 +9,7 @@
     public class SmartEntityStyle : SqlDDLTable
     {
         public SmartEntityStyle()
-            : base("cm_sm_entity_style", "COMMON", "Smart Entity additional style and control table.", "comData", "comIndex")
+            : base("cm_sm_entity_style", "Common", "Smart Entity additional style and control table.", "comData", "comIndex")
         {
             AddPKColumn("id", System.Data.DbType.Int64)
                 .AddColumn("entity_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true, reference: new SmartEntity().PkColumn, comments: "FK:Smart entity id.")
