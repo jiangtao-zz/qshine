@@ -1,5 +1,5 @@
-﻿using qshine.database.organization;
-namespace qshine.database.security.iam
+﻿using qshine.database.tables.organization;
+namespace qshine.database.tables.security.iam
 {
 	/// <summary>
 	/// Group member table.
@@ -16,9 +16,8 @@ namespace qshine.database.security.iam
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
                 //Specifies an organization
-                .AddColumn("enterprise_id", System.Data.DbType.Int64, 0, allowNull: false,
-                isIndex: true, reference: new Enterprise().PkColumn,
-                comments: "Enterprise organization id. For a global service group, the value is 0.")
+                .AddColumn("org_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true,
+                reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
 
                 //user id or sub-group id
                 .AddColumn("member_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true,

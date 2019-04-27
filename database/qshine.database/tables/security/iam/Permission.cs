@@ -1,5 +1,6 @@
-﻿using System;
-namespace qshine.database.security.iam
+﻿using qshine.database.tables.organization;
+using System;
+namespace qshine.database.tables.security.iam
 {
     /// <summary>
     /// Role permission definition table.
@@ -24,8 +25,10 @@ namespace qshine.database.security.iam
         {
             AddPKColumn("id", System.Data.DbType.Int64)
 
-                .AddColumn("enterprise_id", System.Data.DbType.Int32, 0, allowNull: false, defaultValue: 0,
-                comments: "Specifies an enterprise account id.")
+                //Specifies an organization
+                .AddColumn("org_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true,
+                reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
+
 
                 //Role unique name
                 .AddColumn("role_id", System.Data.DbType.Int64, 0, isIndex: true,

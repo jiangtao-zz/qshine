@@ -1,4 +1,6 @@
-﻿namespace qshine.database.tables.common.email
+﻿using qshine.database.tables.organization;
+
+namespace qshine.database.tables.common.email
 {
     /// <summary>
     /// Archive business email messages.
@@ -10,6 +12,10 @@
         {
             AddColumn("id", System.Data.DbType.Int64, 0,
                 comments: "Email message id.")
+
+                //Specifies an organization
+                .AddColumn("org_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true,
+                reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
 
                 .AddColumn("subject", System.Data.DbType.String, 256,
                 comments: "Email subject.")

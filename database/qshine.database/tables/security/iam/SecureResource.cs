@@ -1,5 +1,6 @@
-﻿using System;
-namespace qshine.database.security.iam
+﻿using qshine.database.tables.organization;
+using System;
+namespace qshine.database.tables.security.iam
 {
 	/// <summary>
 	/// Securable resource.
@@ -16,9 +17,9 @@ namespace qshine.database.security.iam
 			: base("im_resource", "Security", "Securable resource object table.", "secData", "secIndex")
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
-                //Enterprise id
-                .AddColumn("enterprise_id", System.Data.DbType.Int32, 0, allowNull: false, defaultValue: 0,
-                comments: "Specifies an enterprise account id.")
+                //Specifies an organization
+                .AddColumn("org_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true,
+                reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
 
                 //registered resource type
                 .AddColumn("resource_type_id", System.Data.DbType.Int64, 0, allowNull: false, 

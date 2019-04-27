@@ -1,5 +1,5 @@
 ﻿using System;
-namespace qshine.database.common
+namespace qshine.database.tables.common
 {
 	/// <summary>
 	/// Location Building Hours table.
@@ -7,11 +7,15 @@ namespace qshine.database.common
 	/// </summary>
 	public class BuildingHour : SqlDDLTable
 	{
-public BuildingHour()
-			: base("cm_building_hour", "COMMON", "Location building hours table.", "comData", "comIndex")
+        public BuildingHour()
+			: base("cm_building_hour", "Common", "Location building business hours table.", "comData", "comIndex")
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
-				.AddColumn("location_id", System.Data.DbType.UInt64, 0, allowNull:false, comments: "Link to a location by id.", reference:new Location().PkColumn, isIndex:true)
+
+				.AddColumn("location_id", System.Data.DbType.UInt64, 0, allowNull:false,
+                    reference: new Location().PkColumn, isIndex: true,
+                comments: "Link to a location by id.")
+
 				.AddColumn("start_1", System.Data.DbType.Int32, 0, comments: "Monday: Open Hours in format of HHMM*100. Example, 930 means 9:30AM. 0 means whole day closed")
 				.AddColumn("start_2", System.Data.DbType.Int32, 0, comments: "Tuesday: Open Hours")
 				.AddColumn("start_3", System.Data.DbType.Int32, 0, comments: "Wednesday: Open Hours")
@@ -26,6 +30,7 @@ public BuildingHour()
 				.AddColumn("end_5", System.Data.DbType.Int32, 0, comments: "Friday: Closed Hours")
 				.AddColumn("end_6", System.Data.DbType.Int32, 0, comments: "Saturday: Closed Hours")
 				.AddColumn("end_7", System.Data.DbType.Int32, 0, comments: "Sunday: Closed Hours")
+
 			.AddAuditColumn();
 		}
 	}

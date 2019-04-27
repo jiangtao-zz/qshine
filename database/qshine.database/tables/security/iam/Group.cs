@@ -1,6 +1,6 @@
-﻿using qshine.database.organization;
+﻿using qshine.database.tables.organization;
 using System;
-namespace qshine.database.security.iam
+namespace qshine.database.tables.security.iam
 {
 	/// <summary>
 	/// Group table.
@@ -17,11 +17,10 @@ namespace qshine.database.security.iam
 			: base("im_group", "Security", "User group table.", "secData", "secIndex")
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
-                
+
                 //Specifies an organization
-                .AddColumn("enterprise_id", System.Data.DbType.Int64, 0, allowNull: false,
-                isIndex: true, reference: new Enterprise().PkColumn,
-                comments: "Enterprise organization id. For a service group, teh value could be -1.")
+                .AddColumn("org_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true,
+                reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
 
                 //group name::The name should be immutable.
                 .AddColumn("group_name", System.Data.DbType.String, 150, allowNull: false, 

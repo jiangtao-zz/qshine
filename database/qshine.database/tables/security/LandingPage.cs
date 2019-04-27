@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using qshine.database.organization;
-using qshine.database.security.iam;
+﻿
+using qshine.database.tables.organization;
+using qshine.database.tables.security.iam;
 
 namespace qshine.database.tables.Security
 {
@@ -22,9 +20,10 @@ namespace qshine.database.tables.Security
             : base("sec_landing_page", "Security", "Landing Page Table.", "secData", "secIndex")
         {
             AddPKColumn("id", System.Data.DbType.Int64)
-                //apply to specific organization
-                .AddColumn("enterprise_id", System.Data.DbType.Int64, 0, reference: new Enterprise().PkColumn,
-                comments: "Enterprise organization id. It could be null which indicates the page applies to all organization accounts")
+                
+                //apply to organization
+                .AddColumn("org_id", System.Data.DbType.Int64, 0, 
+                reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
 
                 //apply to specific group
                 .AddColumn("group_id", System.Data.DbType.Int64, 0, reference: new Group().PkColumn,

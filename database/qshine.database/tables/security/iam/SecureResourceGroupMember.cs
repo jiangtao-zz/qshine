@@ -1,5 +1,5 @@
 ﻿using System;
-namespace qshine.database.security.iam
+namespace qshine.database.tables.security.iam
 {
     /// <summary>
     /// Secure resource group member table.
@@ -16,9 +16,6 @@ namespace qshine.database.security.iam
             : base("im_res_group_member", "Security", "Resource group member table.", "secData", "secIndex")
         {
             AddPKColumn("id", System.Data.DbType.Int64)
-
-                .AddColumn("enterprise_id", System.Data.DbType.Int32, 0, allowNull: false, defaultValue: 0,
-                comments: "Specifies an enterprise account id.")
 
                 //Refer to an role
                 .AddColumn("group_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true, reference: new SecureResourceGroup().PkColumn,

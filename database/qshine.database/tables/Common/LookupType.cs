@@ -1,20 +1,29 @@
-﻿using System;
-namespace qshine.database
+﻿using qshine.database.tables.organization;
+using System;
+namespace qshine.database.tables.common
 {
 	public class LookupType : SqlDDLTable
 	{
 		public LookupType()
-			: base("cm_lookup_type", "COMMON", "Lookup type table.", "comData", "comIndex")
+			: base("cm_lookup_type", "Common", "Lookup type table.", "comData", "comIndex")
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
-				.AddColumn("enterprise_id", System.Data.DbType.Int32, 0, allowNull: false, defaultValue:0, comments: "Specifies an enterprise account id. It is a system lookup if the value is 0.")
-				.AddColumn("org_id", System.Data.DbType.Int32, 0, allowNull: false, defaultValue:0, comments: "Specifies an organization id. It is a system lookup if the value is 0.")
-				.AddColumn("lookup_type", System.Data.DbType.String, 150, allowNull: false, comments: "Defines a type of lookup.")
-				.AddColumn("scope", System.Data.DbType.String, 50, comments: "Defines a scope of the lookup. the scope could be system or customized scope.")
-				.AddColumn("app_id", System.Data.DbType.String, 50, comments: "Scope the lookup for a particular application.")
-				.AddColumn("module_id", System.Data.DbType.String, 50, comments: "Business owner of the lookup code. Module is a business logical area.")
+                //Specifies an organization
+                .AddColumn("org_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true,
+                reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
+
+                .AddColumn("lookup_type", System.Data.DbType.String, 150, allowNull: false, 
+                comments: "Defines a type of lookup.")
+
+				.AddColumn("scope", System.Data.DbType.String, 50, 
+                comments: "Defines a scope of the lookup. the scope could be system or customized scope.")
+
+				.AddColumn("app_id", System.Data.DbType.String, 50, 
+                comments: "Scope the lookup for a particular application.")
+
 				.AddAuditColumn();
-			AddIndex("enterprise_id,org_id,lookup_type", "cm_lookup_type_inx1");
+
+			AddIndex("org_id, lookup_type", "cm_lookup_type_inx1");
 		}
 	}
 }

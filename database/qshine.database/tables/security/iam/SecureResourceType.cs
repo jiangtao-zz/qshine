@@ -1,5 +1,6 @@
-﻿using System;
-namespace qshine.database.security.iam
+﻿using qshine.database.tables.organization;
+using System;
+namespace qshine.database.tables.security.iam
 {
     /// <summary>
     /// Securable resource object type.
@@ -25,10 +26,10 @@ namespace qshine.database.security.iam
 			: base("im_resource_type", "Security", "Secure resource object type table.", "secData", "secIndex")
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
-                
-                //Enterprise id
-                .AddColumn("enterprise_id", System.Data.DbType.Int32, 0, allowNull: false, defaultValue: 0,
-                comments: "Specifies an enterprise account id.")
+
+                //Specifies an organization
+                .AddColumn("org_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true,
+                reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
 
                 .AddColumn("type_name", System.Data.DbType.String, 150, allowNull: false, 
                 comments: "resource type name. it is uniquely identifing a secuable resource.")

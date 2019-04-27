@@ -1,6 +1,7 @@
-﻿using qshine.database.common;
-using System;
-namespace qshine.database.security.iam
+﻿using qshine.database.tables.common;
+using qshine.database.tables.organization;
+
+namespace qshine.database.tables.security.iam
 {
 	/// <summary>
 	/// User table.
@@ -15,12 +16,13 @@ namespace qshine.database.security.iam
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
 
-				.AddColumn("enterprise_id", System.Data.DbType.Int32, 0, allowNull: false, defaultValue:0, 
-                comments: "Specifies an enterprise account id.")
+                //Specifies an organization
+                .AddColumn("org_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true,
+                reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
 
                 //login name. it could be an email or phone number
                 //A unique key is Enterprise id + login name.
-				.AddColumn("login_name", System.Data.DbType.String, 150, allowNull: false,  isIndex: true,
+                .AddColumn("login_name", System.Data.DbType.String, 150, allowNull: false,  isIndex: true,
                     comments: "user login name.")
                 
                 //Refer to person table

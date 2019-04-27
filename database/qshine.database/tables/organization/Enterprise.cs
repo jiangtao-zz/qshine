@@ -1,5 +1,5 @@
 ﻿using System;
-namespace qshine.database.organization
+namespace qshine.database.tables.organization
 {
     /// <summary>
     /// Top level organization in enterprise structure hierarchy.

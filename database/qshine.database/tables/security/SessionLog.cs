@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace qshine.database.tables.Security
+﻿namespace qshine.database.tables.Security
 {
     /// <summary>
     /// Security (Login) Session logs table::

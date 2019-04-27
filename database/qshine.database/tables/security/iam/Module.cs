@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using qshine.database.tables.organization;
 
-namespace qshine.database.security.iam
+namespace qshine.database.tables.security.iam
 {
     /// <summary>
     /// application Module table.
@@ -42,7 +42,7 @@ namespace qshine.database.security.iam
             DataVersion = 1; //set system data version
 
             //Set a technical module
-            SetData(1000, "SECURITY", "Security", "Security module", 1);
+            SetData(1000, "Security", "Security", "Security module", 1);
         }
 
 	}

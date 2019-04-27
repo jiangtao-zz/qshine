@@ -1,5 +1,5 @@
 ﻿using System;
-namespace qshine.database.security.iam
+namespace qshine.database.tables.security.iam
 {
 	/// <summary>
 	/// Business application table.
@@ -15,6 +15,7 @@ namespace qshine.database.security.iam
 			: base("im_application", "Security", "business application.", "secData", "secIndex")
 		{
 			AddPKColumn("id", System.Data.DbType.Int64)
+
                 //business module the application belong
                 .AddColumn("module_id", System.Data.DbType.Int64, 0, allowNull: false, reference: (new Module()).PkColumn,
                 comments: "business module id")

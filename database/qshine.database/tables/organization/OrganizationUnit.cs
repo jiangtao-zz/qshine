@@ -1,6 +1,6 @@
-﻿using qshine.database.common;
-using System;
-namespace qshine.database.organization
+﻿using qshine.database.tables.common;
+
+namespace qshine.database.tables.organization
 {
     /// <summary>
     /// Orgnization unit and it's hierarchy.
@@ -37,7 +37,8 @@ namespace qshine.database.organization
                 comments: "parent organization unit.")
 
                 //location (optional)
-                .AddColumn("location_id", System.Data.DbType.Int64,0, reference: new Location().PkColumn, 
+                //remove the location reference to avoid circular reference
+                .AddColumn("location_id", System.Data.DbType.Int64,0, //reference: new Location().PkColumn, 
                 comments:"OU geographical location.")
 
                 //effective date (optional).

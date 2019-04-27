@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using qshine.database.organization;
+﻿using qshine.database.tables.organization;
 
 namespace qshine.database.tables.Security
 {
@@ -20,10 +17,9 @@ namespace qshine.database.tables.Security
         {
             AddPKColumn("id", System.Data.DbType.Int64)
 
-            //Specifies portal organization
-            .AddColumn("enterprise_id", System.Data.DbType.Int64, 0,
-            reference: new Enterprise().PkColumn,
-            comments: "Enterprise organization id. apply portal to all organization if it is null.")
+            //Specifies an organization
+            .AddColumn("org_id", System.Data.DbType.Int64, 0, 
+            reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
 
             //Name
             .AddColumn("name", System.Data.DbType.String, 250, isUnique:true,

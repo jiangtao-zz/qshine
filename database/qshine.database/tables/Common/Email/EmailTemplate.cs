@@ -1,5 +1,5 @@
 ﻿
-using qshine.database.organization;
+using qshine.database.tables.organization;
 
 namespace qshine.database.tables.common.email
 {
@@ -19,14 +19,8 @@ namespace qshine.database.tables.common.email
             AddPKColumn("id", System.Data.DbType.Int64)
 
                 //Specifies an organization
-                .AddColumn("enterprise_id", System.Data.DbType.Int64, 0, allowNull: false,
-                isIndex: true, reference: new Enterprise().PkColumn,
-                comments: "Enterprise organization id.")
-
-                //Specifies an organization unit
-                .AddColumn("ou_id", System.Data.DbType.Int64, 0,
-                reference: new OrganizationUnit().PkColumn,
-                comments: "Organization unit id.")
+                .AddColumn("org_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true,
+                reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
 
                 .AddColumn("subject", System.Data.DbType.String, 256, 
                 comments: "Email subject. It could contain placeholder variables defined by each usage.")

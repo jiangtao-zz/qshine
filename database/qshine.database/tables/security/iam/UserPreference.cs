@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace qshine.database.security.iam
+﻿namespace qshine.database.tables.security.iam
 { 
 
     /// <summary>

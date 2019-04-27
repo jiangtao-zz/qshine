@@ -48,8 +48,16 @@
     <Compile Include="ScriptCompiler.cs" />
     <Compile Include="program.cs" />
     <Compile Include="tables\Archive\ProcessArchive.cs" />
+    <Compile Include="tables\common\Country.cs" />
     <Compile Include="tables\common\email\EmailDeadLetter.cs" />
     <Compile Include="tables\common\email\EmailSentLog.cs" />
+    <Compile Include="tables\common\job\TaskJobLog.cs" />
+    <Compile Include="tables\common\job\ProcessStatus.cs" />
+    <Compile Include="tables\common\job\TaskJobQueue.cs" />
+    <Compile Include="tables\common\job\TaskJobScheduler.cs" />
+    <Compile Include="tables\common\Tag.cs" />
+    <Compile Include="tables\common\TagData.cs" />
+    <Compile Include="tables\common\TagMap.cs" />
     <Compile Include="tables\security\iam\ApplicationSetting.cs" />
     <Compile Include="tables\common\email\EmailOutQueue.cs" />
     <Compile Include="tables\common\email\EmailTemplate.cs" />

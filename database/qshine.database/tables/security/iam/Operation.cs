@@ -1,5 +1,5 @@
 ﻿using System;
-namespace qshine.database.security.iam
+namespace qshine.database.tables.security.iam
 {
     /// <summary>
     /// Critical function of operation/action table.

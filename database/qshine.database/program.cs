@@ -1,7 +1,6 @@
 ﻿using System;
 using qshine.Configuration;
-using qshine.database.common;
-using qshine.database.common.language;
+using qshine.database.tables.common.language;
 //using qshine.LogInterceptor;
 
 namespace qshine.database

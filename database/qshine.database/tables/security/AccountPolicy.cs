@@ -1,5 +1,5 @@
-﻿using qshine.database.organization;
-using qshine.database.security.iam;
+﻿using qshine.database.tables.organization;
+using qshine.database.tables.security.iam;
 
 namespace qshine.database.tables.Security
 {
@@ -20,11 +20,11 @@ namespace qshine.database.tables.Security
             : base("sec_account_policy", "Security", "Account Policy Table.", "secData", "secIndex")
         {
             AddPKColumn("id", System.Data.DbType.Int64)
-                //apply policy to specific organization
-                .AddColumn("enterprise_id", System.Data.DbType.Int64, 0,
-                isIndex: true, reference: new Enterprise().PkColumn, 
-                comments: "Enterprise organization id. It could be null which indicates the policy apply to all organization accounts")
-                
+                //Specifies an organization
+                .AddColumn("org_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true,
+                reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
+
+
                 //apply policy to specific group
                 .AddColumn("group_id", System.Data.DbType.Int64, 0,
                 isIndex: true, reference: new Group().PkColumn, 

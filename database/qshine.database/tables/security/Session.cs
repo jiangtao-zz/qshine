@@ -1,7 +1,4 @@
-﻿using qshine.database.security.iam;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using qshine.database.tables.security.iam;
 
 namespace qshine.database.tables.Security
 {

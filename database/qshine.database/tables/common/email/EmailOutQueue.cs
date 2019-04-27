@@ -1,4 +1,7 @@
-﻿namespace qshine.database.tables.common.email
+﻿using qshine.database.tables.job;
+using qshine.database.tables.organization;
+
+namespace qshine.database.tables.common.email
 {
     /// <summary>
     /// Email out queue contains business messages to be sent through email task process.
@@ -13,6 +16,10 @@
             : base("cm_em_outq", "Common", "Email out queue.", "comData", "comIndex")
         {
             AddPKColumn("id", System.Data.DbType.Int64)
+
+                //Specifies an organization
+                .AddColumn("org_id", System.Data.DbType.Int64, 0, allowNull: false, isIndex: true,
+                reference: new OrganizationUnit().PkColumn, comments: "Organization id.")
 
                 .AddColumn("subject", System.Data.DbType.String, 256, 
                 comments: "Email subject.")
@@ -55,8 +62,8 @@
                 .AddColumn("process_id", System.Data.DbType.String, 250, 
                 comments: "Working process id used to lock record for process.")
 
-                .AddColumn("status", System.Data.DbType.Int16, 0,
-                comments: "Working process status. valid values: 0=Initialized, 1=Ready, 2=waitingProcess, 5=running, 7=terminated_error, 8=terminated_warning, 9=terminated_success")
+                .AddColumn("status", System.Data.DbType.Int16, 0, reference: new ProcessStatus().PkColumn,
+                comments: "Working process status.")
 
                 .AddColumn("server_name", System.Data.DbType.String, 50, 
                 comments: "Working process server name.")

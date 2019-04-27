@@ -1,10 +1,9 @@
-﻿using qshine.database.common;
-using qshine.database.common.language;
-using qshine.database.organization;
-using qshine.database.security.iam;
+﻿using qshine.database.tables.common;
+using qshine.database.tables.common.language;
+using qshine.database.tables.organization;
+using qshine.database.tables.security.iam;
 using qshine.database.tables.common.email;
 using qshine.database.tables.Security;
-
 
 namespace qshine.database
 {
