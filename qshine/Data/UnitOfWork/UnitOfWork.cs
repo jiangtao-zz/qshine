@@ -28,7 +28,7 @@ namespace qshine
 				if(_providers == null){
                     lock (lockObject)
                     {
-                        _providers = ApplicationEnvironment.Current.GetProviders<IUnitOfWorkProvider>();
+                        _providers = ApplicationEnvironment.Default.Services.GetProviders<IUnitOfWorkProvider>();
                         if (_providers == null)
                         {
                             _providers = new List<IUnitOfWorkProvider>();

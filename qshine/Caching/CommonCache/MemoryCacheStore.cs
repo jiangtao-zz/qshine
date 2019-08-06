@@ -6,16 +6,16 @@ using System.Runtime.Caching;
 namespace qshine.Caching
 {
 	/// <summary>
-	/// In memory cache implementation
+	/// In-memory cache implementation
 	/// </summary>
-	public class MemoryCacheStore : ICache
-	{
+	public class MemoryCacheProvider : ICache, IProvider
+    {
 		MemoryCache _cache;
 
         /// <summary>
-        /// Memory cache store
+        /// Memory cache provider
         /// </summary>
-		public MemoryCacheStore()
+		public MemoryCacheProvider()
 		{
 			_cache = MemoryCache.Default;
 		}
@@ -30,7 +30,7 @@ namespace qshine.Caching
 		/// <param name="physicalMemoryLimitPercentage">The percentage of physical memory that the cache can use, expressed as an integer value from 1 to 100. 
 		/// The default is zero, which indicates that MemoryCache instances manage their own memory based on the amount of memory that is installed on the computer.</param>
 		/// <param name="pollingInterval">Polling interval in minutes. The cached item will be removed after polling interval time. The default value is 0 indicates 2 minutes</param>
-		public MemoryCacheStore(string name, int limitMegabytes, int physicalMemoryLimitPercentage, int pollingInterval)
+		public MemoryCacheProvider(string name, int limitMegabytes, int physicalMemoryLimitPercentage, int pollingInterval)
 		{
 			TimeSpan timeSpan;
 			System.Collections.Specialized.NameValueCollection cacheParameters;
@@ -79,7 +79,7 @@ namespace qshine.Caching
 		/// <param name="absoluteExpiration">The time at which the inserted object expires and is removed from the cache. 
 		/// To avoid possible issues with local time such as changes from standard time to daylight saving time, 
 		/// use UtcNow instead of Now for this parameter value. If you are using absolute expiration, the slidingExpiration
-		/// parameter must be set to TimeSpan.Zero.</param>
+		/// parameter must be set to null.</param>
 		/// <param name="slidingExpiration">The interval between the time that the cached object was last accessed and the time
 		/// at which that object expires. If this value is the equivalent of 20 minutes, the object will expire and be removed 
 		/// from the cache 20 minutes after it was last accessed. If you are using sliding expiration, the absoluteExpiration 
@@ -87,19 +87,19 @@ namespace qshine.Caching
 		/// <param name="priority">The cost of the object relative to other items stored in the cache, as expressed by the
 		/// CacheItemPriority enumeration. This value is used by the cache when it evicts objects; objects with a lower cost 
 		/// are removed from the cache before objects with a higher cost.</param>
-		public void Set(string key, object value, DateTime absoluteExpiration, TimeSpan slidingExpiration, CacheItemPriority priority)
+		public void Set(string key, object value, DateTimeOffset? absoluteExpiration, TimeSpan? slidingExpiration, CacheItemPriority priority)
 		{
 			var policy = new CacheItemPolicy();
 
 			policy.Priority = Convert2CacheItemPriority(priority);
 
-			if(absoluteExpiration!=DateTime.MaxValue)
+			if(absoluteExpiration!=null)
 			{
-				policy.AbsoluteExpiration = new DateTimeOffset(absoluteExpiration);
+				policy.AbsoluteExpiration = absoluteExpiration.Value;
 			}
-			else if (slidingExpiration != TimeSpan.Zero)
+			else if (slidingExpiration != null)
 			{
-				policy.SlidingExpiration = slidingExpiration;
+				policy.SlidingExpiration = slidingExpiration.Value;
 			}
 
 			_cache.Remove(key);
@@ -171,32 +171,32 @@ namespace qshine.Caching
 		}
 	}
 
-	/// <summary>
-	/// In memory cache provider.
-	/// </summary>
-	public class MemoryCacheProvider : ICacheProvider
-	{
-		/// <summary>
-		/// Wrap .NET MemoryCache instance in this provider.
-		/// </summary>
-		/// <returns>Create .NET MemoryCache wrap instance.</returns>
-		/// <param name="name">Name of the cache store.</param>
-		/// <param name="limitMegabytes">Limit megabytes.</param>
-		/// <param name="physicalMemoryLimitPercentage">Physical memory limit percentage.</param>
-		/// <param name="pollingInterval">Polling interval in minutes. The cached item will be removed after polling interval time.</param>
-		public ICache Create(string name, int limitMegabytes, int physicalMemoryLimitPercentage, int pollingInterval)
-		{
-			return new MemoryCacheStore(name,limitMegabytes,physicalMemoryLimitPercentage,pollingInterval);
-		}
+	///// <summary>
+	///// In memory cache provider.
+	///// </summary>
+	//public class MemoryCacheProvider : ICacheProvider
+	//{
+	//	/// <summary>
+	//	/// Wrap .NET MemoryCache instance in this provider.
+	//	/// </summary>
+	//	/// <returns>Create .NET MemoryCache wrap instance.</returns>
+	//	/// <param name="name">Name of the cache store.</param>
+	//	/// <param name="limitMegabytes">Limit megabytes.</param>
+	//	/// <param name="physicalMemoryLimitPercentage">Physical memory limit percentage.</param>
+	//	/// <param name="pollingInterval">Polling interval in minutes. The cached item will be removed after polling interval time.</param>
+	//	public ICache Create(string name, int limitMegabytes, int physicalMemoryLimitPercentage, int pollingInterval)
+	//	{
+	//		return new MemoryCacheStore(name,limitMegabytes,physicalMemoryLimitPercentage,pollingInterval);
+	//	}
 
-		/// <summary>
-		/// Create a default cache instance.
-		/// </summary>
-		/// <returns>The create.</returns>
-		public ICache Create()
-		{
-			return new MemoryCacheStore();
-		}
-	}
+	//	/// <summary>
+	//	/// Create a default cache instance.
+	//	/// </summary>
+	//	/// <returns>The create.</returns>
+	//	public ICache Create()
+	//	{
+	//		return new MemoryCacheStore();
+	//	}
+	//}
 
 }

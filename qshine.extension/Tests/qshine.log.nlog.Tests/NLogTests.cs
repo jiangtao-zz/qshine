@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using qshine.Configuration;
 using qshine.log.nlog;
 
 namespace qshine.log.nlog.Tests
@@ -6,6 +7,13 @@ namespace qshine.log.nlog.Tests
     [TestClass]
     public class NLogTests
     {
+
+        [ClassInitialize]
+        public static void ClassInit(TestContext context)
+        {
+            ApplicationEnvironment.Build("app.cofig");
+        }
+
         [TestMethod]
         public void TestMethod_default_config()
         {

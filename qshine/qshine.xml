@@ -217,6 +217,42 @@
             Who updated the entity
             </summary>
         </member>
+        <member name="T:qshine.Caching.CacheInfo">
+            <summary>
+            Cache entity object information
+            </summary>
+        </member>
+        <member name="P:qshine.Caching.CacheInfo.Key">
+            <summary>
+            Gets/Sets cache key. The cache key is a unique value for a cache entity object.
+            </summary>
+        </member>
+        <member name="P:qshine.Caching.CacheInfo.AbsoluteExpiration">
+            <summary>
+            Gets or sets an absolute expiration date for the cache entry.
+            </summary>
+        </member>
+        <member name="P:qshine.Caching.CacheInfo.Duration">
+            <summary>
+            Gets or sets cache time duration.
+            </summary>
+        </member>
+        <member name="P:qshine.Caching.CacheInfo.CacheService">
+            <summary>
+            Gets/Sets a cache service for the cache entity
+            </summary>
+        </member>
+        <member name="P:qshine.Caching.CacheInfo.DependencyTags">
+            <summary>
+            Dependency tags is a list of tags associated to a cacheobject.
+            The application can invalid cacheable objects by any tag.
+            </summary>
+        </member>
+        <member name="P:qshine.Caching.CacheInfo.Priority">
+            <summary>
+            Gets or sets the priority for keeping the cache entry in the cache
+            </summary>
+        </member>
         <member name="T:qshine.Caching.CacheObject`1">
             <summary>
             Cacheable object. 
@@ -369,17 +405,17 @@
             cache item has the Default Priority
             </summary>
         </member>
-        <member name="T:qshine.Caching.MemoryCacheStore">
+        <member name="T:qshine.Caching.MemoryCacheProvider">
             <summary>
-            In memory cache implementation
+            In-memory cache implementation
             </summary>
         </member>
-        <member name="M:qshine.Caching.MemoryCacheStore.#ctor">
+        <member name="M:qshine.Caching.MemoryCacheProvider.#ctor">
             <summary>
-            Memory cache store
+            Memory cache provider
             </summary>
         </member>
-        <member name="M:qshine.Caching.MemoryCacheStore.#ctor(System.String,System.Int32,System.Int32,System.Int32)">
+        <member name="M:qshine.Caching.MemoryCacheProvider.#ctor(System.String,System.Int32,System.Int32,System.Int32)">
             <summary>
             Wrap .NET MemoryCache instance.
             </summary>
@@ -391,14 +427,14 @@
             The default is zero, which indicates that MemoryCache instances manage their own memory based on the amount of memory that is installed on the computer.</param>
             <param name="pollingInterval">Polling interval in minutes. The cached item will be removed after polling interval time. The default value is 0 indicates 2 minutes</param>
         </member>
-        <member name="M:qshine.Caching.MemoryCacheStore.Get(System.String)">
+        <member name="M:qshine.Caching.MemoryCacheProvider.Get(System.String)">
             <summary>
             Get cached item by given key.
             </summary>
             <returns>Retrieved cached value. If no value found it returns null.</returns>
             <param name="key">The cache key.</param>
         </member>
-        <member name="M:qshine.Caching.MemoryCacheStore.Set(System.String,System.Object,System.DateTime,System.TimeSpan,qshine.Caching.CacheItemPriority)">
+        <member name="M:qshine.Caching.MemoryCacheProvider.Set(System.String,System.Object,System.Nullable{System.DateTimeOffset},System.Nullable{System.TimeSpan},qshine.Caching.CacheItemPriority)">
             <summary>
             Adds or replaces the specified entry to the cache by a key
             </summary>
@@ -407,7 +443,7 @@
             <param name="absoluteExpiration">The time at which the inserted object expires and is removed from the cache. 
             To avoid possible issues with local time such as changes from standard time to daylight saving time, 
             use UtcNow instead of Now for this parameter value. If you are using absolute expiration, the slidingExpiration
-            parameter must be set to TimeSpan.Zero.</param>
+            parameter must be set to null.</param>
             <param name="slidingExpiration">The interval between the time that the cached object was last accessed and the time
             at which that object expires. If this value is the equivalent of 20 minutes, the object will expire and be removed 
             from the cache 20 minutes after it was last accessed. If you are using sliding expiration, the absoluteExpiration 
@@ -416,53 +452,32 @@
             CacheItemPriority enumeration. This value is used by the cache when it evicts objects; objects with a lower cost 
             are removed from the cache before objects with a higher cost.</param>
         </member>
-        <member name="M:qshine.Caching.MemoryCacheStore.Remove(System.String)">
+        <member name="M:qshine.Caching.MemoryCacheProvider.Remove(System.String)">
             <summary>
             Removes the specified item from the cache
             </summary>
             <param name="key">The identifier for the cache item to remove</param>
         </member>
-        <member name="M:qshine.Caching.MemoryCacheStore.Clear">
+        <member name="M:qshine.Caching.MemoryCacheProvider.Clear">
             <summary>
             Clear cache store
             </summary>
         </member>
-        <member name="M:qshine.Caching.MemoryCacheStore.Contains(System.String)">
+        <member name="M:qshine.Caching.MemoryCacheProvider.Contains(System.String)">
             <summary>
             Returns true if key refers to item current stored in cache
             </summary>
             <param name="key">Key of item to check for</param>
             <returns>True if item referenced by the key is in the cache</returns>
         </member>
-        <member name="M:qshine.Caching.MemoryCacheStore.Dispose">
+        <member name="M:qshine.Caching.MemoryCacheProvider.Dispose">
             <summary>
             Releases all resource used by the <see cref="T:qshine.MemoryCacheStore"/> object.
             </summary>
-            <remarks>Call <see cref="M:qshine.Caching.MemoryCacheStore.Dispose"/> when you are finished using the <see cref="T:qshine.MemoryCacheStore"/>. The
-            <see cref="M:qshine.Caching.MemoryCacheStore.Dispose"/> method leaves the <see cref="T:qshine.MemoryCacheStore"/> in an unusable state. After
-            calling <see cref="M:qshine.Caching.MemoryCacheStore.Dispose"/>, you must release all references to the <see cref="T:qshine.MemoryCacheStore"/> so
+            <remarks>Call <see cref="M:qshine.Caching.MemoryCacheProvider.Dispose"/> when you are finished using the <see cref="T:qshine.MemoryCacheStore"/>. The
+            <see cref="M:qshine.Caching.MemoryCacheProvider.Dispose"/> method leaves the <see cref="T:qshine.MemoryCacheStore"/> in an unusable state. After
+            calling <see cref="M:qshine.Caching.MemoryCacheProvider.Dispose"/>, you must release all references to the <see cref="T:qshine.MemoryCacheStore"/> so
             the garbage collector can reclaim the memory that the <see cref="T:qshine.MemoryCacheStore"/> was occupying.</remarks>
-        </member>
-        <member name="T:qshine.Caching.MemoryCacheProvider">
-            <summary>
-            In memory cache provider.
-            </summary>
-        </member>
-        <member name="M:qshine.Caching.MemoryCacheProvider.Create(System.String,System.Int32,System.Int32,System.Int32)">
-            <summary>
-            Wrap .NET MemoryCache instance in this provider.
-            </summary>
-            <returns>Create .NET MemoryCache wrap instance.</returns>
-            <param name="name">Name of the cache store.</param>
-            <param name="limitMegabytes">Limit megabytes.</param>
-            <param name="physicalMemoryLimitPercentage">Physical memory limit percentage.</param>
-            <param name="pollingInterval">Polling interval in minutes. The cached item will be removed after polling interval time.</param>
-        </member>
-        <member name="M:qshine.Caching.MemoryCacheProvider.Create">
-            <summary>
-            Create a default cache instance.
-            </summary>
-            <returns>The create.</returns>
         </member>
         <member name="T:qshine.Caching.ICache">
             <summary>
@@ -476,7 +491,7 @@
             <returns>Retrieved cached value. If no value found it returns null.</returns>
             <param name="key">The cache key.</param>
         </member>
-        <member name="M:qshine.Caching.ICache.Set(System.String,System.Object,System.DateTime,System.TimeSpan,qshine.Caching.CacheItemPriority)">
+        <member name="M:qshine.Caching.ICache.Set(System.String,System.Object,System.Nullable{System.DateTimeOffset},System.Nullable{System.TimeSpan},qshine.Caching.CacheItemPriority)">
             <summary>
             Adds or replaces the specified entry to the cache by a key
             </summary>
@@ -485,11 +500,11 @@
             <param name="absoluteExpiration">The time at which the inserted object expires and is removed from the cache. 
             To avoid possible issues with local time such as changes from standard time to daylight saving time, 
             use UtcNow instead of Now for this parameter value. If you are using absolute expiration, the slidingExpiration
-            parameter must be set to TimeSpan.Zero.</param>
+            parameter must be set to null.</param>
             <param name="slidingExpiration">The interval between the time that the cached object was last accessed and the time
             at which that object expires. If this value is the equivalent of 20 minutes, the object will expire and be removed 
             from the cache 20 minutes after it was last accessed. If you are using sliding expiration, the absoluteExpiration 
-            parameter must be set to DateTime.MaxValue.</param>
+            parameter must be set to null.</param>
             <param name="priority">The cost of the object relative to other items stored in the cache, as expressed by the
             CacheItemPriority enumeration. This value is used by the cache when it evicts objects; objects with a lower cost 
             are removed from the cache before objects with a higher cost.</param>
@@ -514,22 +529,36 @@
         </member>
         <member name="T:qshine.Caching.Cache">
             <summary>
-            It provides cache service for the application.
-            1. Get plugable cache service
-             
+            It provides cache service for the application caching.
+            Each cacheable object could be temporarily stored in one of the cache store by the cache key. 
+            The cache key is used to lookup up a cache provider through environment provider name pattern matching.
+            The cache provider instance can be plugged through environment configure setting or by code directly.
+            
+            Using code inject a cache provider instance for the key cacheable object
+            <![CDATA[
+                
+                ICache cache = new MemoryCacheStore();
+                ApplicationEnvironment.Default.MapProvider<ICache>("unitTestCache*", cache);
+                
+                var testObject1 = Cache.GetOrSet("unitTestCache.key1", ()=>{return MyUnitTetstLoadData();}, TimeSpan.FromMinutes(5));
+                
+            ]]>
             </summary>
         </member>
-        <member name="P:qshine.Caching.Cache.Provider">
+        <member name="M:qshine.Caching.Cache.MappedCacheProvider(System.String)">
             <summary>
-            Gets or sets the cache provider.
+            Get cache service
             </summary>
-            <value>The cache provider instance</value>
+            <param name="key">cache key</param>
+            <returns>return ICache instance</returns>
         </member>
-        <member name="P:qshine.Caching.Cache.Current">
+        <member name="M:qshine.Caching.Cache.TryGet(System.String,System.Object@)">
             <summary>
-            Gets or sets the current cache store instance.
+            Try to get cacheable value by cache key.
             </summary>
-            <value>The current cache store instance.</value>
+            <param name="key">cache key</param>
+            <param name="value">return cacheable value</param>
+            <returns>Return true if the cacheable value found</returns>
         </member>
         <member name="M:qshine.Caching.Cache.Get(System.String)">
             <summary>
@@ -538,7 +567,7 @@
             <returns>Retrieved cached value. If no value found it returns null.</returns>
             <param name="key">The cache key.</param>
         </member>
-        <member name="M:qshine.Caching.Cache.Set(System.String,System.Object,System.DateTime,System.TimeSpan,System.Collections.Generic.IEnumerable{System.String},qshine.Caching.CacheItemPriority)">
+        <member name="M:qshine.Caching.Cache.Set(System.String,System.Object,System.Nullable{System.DateTimeOffset},System.Nullable{System.TimeSpan},System.Collections.Generic.IEnumerable{System.String},qshine.Caching.CacheItemPriority)">
             <summary>
             Adds or replaces the specified entry to the cache by a key
             </summary>
@@ -547,11 +576,11 @@
             <param name="absoluteExpiration">The time at which the inserted object expires and is removed from the cache. 
             To avoid possible issues with local time such as changes from standard time to daylight saving time, 
             use UtcNow instead of Now for this parameter value. If you are using absolute expiration, the slidingExpiration
-            parameter must be set to TimeSpan.Zero.</param>
+            parameter must be set to null.</param>
             <param name="slidingExpiration">The interval between the time that the cached object was last accessed and the time
             at which that object expires. If this value is the equivalent of 20 minutes, the object will expire and be removed 
             from the cache 20 minutes after it was last accessed. If you are using sliding expiration, the absoluteExpiration 
-            parameter must be set to DateTime.MaxValue.</param>
+            parameter must be set to null.</param>
             <param name="dependencyTags">A list of tags associate to the cache object. It is a dependent tag.
             When the cache object source data changed, the source data change monitor will raise change event with dependencyTags to reset the cache object.</param>
             <param name="priority">The cost of the object relative to other items stored in the cache, as expressed by the
@@ -576,7 +605,7 @@
             When the cache object source data changed, the source data change monitor will raise change event with dependencyTags to reset the cache object.</param>
             <param name="priority"></param>
         </member>
-        <member name="M:qshine.Caching.Cache.Set(System.String,System.Object,System.DateTime,System.Collections.Generic.IEnumerable{System.String},qshine.Caching.CacheItemPriority)">
+        <member name="M:qshine.Caching.Cache.Set(System.String,System.Object,System.DateTimeOffset,System.Collections.Generic.IEnumerable{System.String},qshine.Caching.CacheItemPriority)">
             <summary>
             Cache keyed value with more parameters
             </summary>
@@ -586,6 +615,64 @@
             <param name="dependencyTags">A list of tags associate to the cache object. It is a dependent tag.
             When the cache object source data changed, the source data change monitor will raise change event with dependencyTags to reset the cache object.</param>
             <param name="priority"></param>
+        </member>
+        <member name="M:qshine.Caching.Cache.GetOrSet(System.String,System.Func{System.Object},System.Nullable{System.DateTimeOffset},System.Nullable{System.TimeSpan},System.Collections.Generic.IEnumerable{System.String},qshine.Caching.CacheItemPriority)">
+            <summary>
+            Get cached object by given key.
+            If the cacheable object is not cached, it will load and cache data.
+            </summary>
+            <param name="key">Cache key</param>
+            <param name="dataLoader">cacheable data loader</param>
+            <param name="absoluteExpiration">The time at which the inserted object expires and is removed from the cache. 
+            To avoid possible issues with local time such as changes from standard time to daylight saving time, 
+            use UtcNow instead of Now for this parameter value. If you are using absolute expiration, the slidingExpiration
+            parameter must be set to null.</param>
+            <param name="slidingExpiration">The interval between the time that the cached object was last accessed and the time
+            at which that object expires. If this value is the equivalent of 20 minutes, the object will expire and be removed 
+            from the cache 20 minutes after it was last accessed. If you are using sliding expiration, the absoluteExpiration 
+            parameter must be set to null.</param>
+            <param name="dependencyTags">A list of tags associate to the cache object. It is a dependent tag.
+            When the cache object source data changed, the source data change monitor will raise change event with dependencyTags to reset the cache object.</param>
+            <param name="priority">The cost of the object relative to other items stored in the cache, as expressed by the
+            CacheItemPriority enumeration. This value is used by the cache when it evicts objects; objects with a lower cost 
+            are removed from the cache before objects with a higher cost.</param>
+            <returns>Returns cached data.</returns>
+        </member>
+        <member name="M:qshine.Caching.Cache.GetOrSet(System.String,System.Func{System.Object},System.Nullable{System.DateTimeOffset},System.Collections.Generic.IEnumerable{System.String},qshine.Caching.CacheItemPriority)">
+            <summary>
+            Get cached object by given key.
+            If the cacheable object is not cached, it will load and cache data.
+            </summary>
+            <param name="key">Cache key</param>
+            <param name="dataLoader">cacheable data loader</param>
+            <param name="absoluteExpiration">The time at which the inserted object expires and is removed from the cache. 
+            To avoid possible issues with local time such as changes from standard time to daylight saving time, 
+            use UtcNow instead of Now for this parameter value. If you are using absolute expiration, the slidingExpiration
+            parameter must be set to null.</param>
+            <param name="dependencyTags">A list of tags associate to the cache object. It is a dependent tag.
+            When the cache object source data changed, the source data change monitor will raise change event with dependencyTags to reset the cache object.</param>
+            <param name="priority">The cost of the object relative to other items stored in the cache, as expressed by the
+            CacheItemPriority enumeration. This value is used by the cache when it evicts objects; objects with a lower cost 
+            are removed from the cache before objects with a higher cost.</param>
+            <returns>Returns cached data.</returns>
+        </member>
+        <member name="M:qshine.Caching.Cache.GetOrSet(System.String,System.Func{System.Object},System.Nullable{System.TimeSpan},System.Collections.Generic.IEnumerable{System.String},qshine.Caching.CacheItemPriority)">
+            <summary>
+            Get cached object by given key.
+            If the cacheable object is not cached, it will load and cache data.
+            </summary>
+            <param name="key">Cache key</param>
+            <param name="dataLoader">cacheable data loader</param>
+            <param name="slidingExpiration">The interval between the time that the cached object was last accessed and the time
+            at which that object expires. If this value is the equivalent of 20 minutes, the object will expire and be removed 
+            from the cache 20 minutes after it was last accessed. If you are using sliding expiration, the absoluteExpiration 
+            parameter must be set to null.</param>
+            <param name="dependencyTags">A list of tags associate to the cache object. It is a dependent tag.
+            When the cache object source data changed, the source data change monitor will raise change event with dependencyTags to reset the cache object.</param>
+            <param name="priority">The cost of the object relative to other items stored in the cache, as expressed by the
+            CacheItemPriority enumeration. This value is used by the cache when it evicts objects; objects with a lower cost 
+            are removed from the cache before objects with a higher cost.</param>
+            <returns>Returns cached data.</returns>
         </member>
         <member name="M:qshine.Caching.Cache.Remove(System.String)">
             <summary>
@@ -618,18 +705,10 @@
             Store all cache data change monitor
             </summary>
         </member>
-        <member name="F:qshine.Caching.Cache._cacheKeyTagMaps">
+        <member name="F:qshine.Caching.Cache._cacheEntitys">
             <summary>
             Map cache key to tags
             </summary>
-        </member>
-        <member name="M:qshine.Caching.Cache.MapCacheKeyTags(System.String,System.Collections.Generic.IEnumerable{System.String})">
-            <summary>
-            Associate cache key to cache tags.
-            Any cache tag associated cache object source data updated, the associated cache key object must be updated
-            </summary>
-            <param name="cacheKey">cache key</param>
-            <param name="dependencyTags">cache key dependency tags</param>
         </member>
         <member name="M:qshine.Caching.Cache.CacheMonitorHandler(System.Object,qshine.Caching.CacheDataChangedEventArgs)">
             <summary>
@@ -658,139 +737,24 @@
             
             </summary>
         </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.#cctor">
+        <member name="P:qshine.Configuration.ApplicationEnvironment.Default">
             <summary>
-            Static ctor:: pre-initialization when first touch the ApplicationEnvironment component
+            Get default application environment
             </summary>
         </member>
-        <member name="P:qshine.Configuration.ApplicationEnvironment.EnvironmentContext">
+        <member name="M:qshine.Configuration.ApplicationEnvironment.Build(System.String,qshine.EnvironmentInitializationOption)">
             <summary>
-            Get/Set current environment context store.
-            The default current environment context store is Static Context store. It allows single current application environment.
-            You may want to have a different context store to have current application environment based on different context. 
-            In this case you can implement a special EnvironmentContextStore.
-            The EnvironmentContextStore need be set in application Startup before ApplicationEnvironment.Boot()
+            Build default environment
             </summary>
-        </member>
-        <member name="P:qshine.Configuration.ApplicationEnvironment.Current">
-            <summary>
-            Get current application environment. The current application environment is a global property
-            </summary>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.Build(System.String)">
-            <summary>
-            Build and Initialize current application environment from a specific configure file.
-            </summary>
-            <param name="rootConfigFile">Specifies a root configure file which contains the application environment setting. 
-            If the root config file is not set, a default application configure file such as app.config, web.config or others loaded by host .net application as config file.</param>
-            <returns>The application environment instance</returns>
-            <remarks>
-            The ApplicationEnvironment.Build() need be put in begin of the applciation execution path.
-            A default ApplicationEnvironment instance will be created if doesn't call ApplicationEnvironment.Build() explicitly.
-            </remarks>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.Build(qshine.EnvironmentInitializationOption)">
-            <summary>
-            Build and Initialize current application environment instance with specific options.
-            </summary>
-            <param name="options">Specifies application environment initialization options <see cref="T:qshine.EnvironmentInitializationOption"/>.</param>
-            <returns>The application environment instance</returns>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.Build(qshine.EnvironmentInitializationOption,System.String)">
-            <summary>
-            Build and Initialize a named application environment with different options.
-            </summary>
-            <param name="name">name of application environment</param>
-            <param name="options">Specifies application environment initialization options <see cref="T:qshine.EnvironmentInitializationOption"/>.</param>
-            <returns>The application environment instance</returns>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.GetProvider``1">
-            <summary>
-            Gets a given type provider instance from current application environment.
-            The provider must implemented IProvider interface.
-            </summary>
-            <returns>The provider instance.</returns>
-            <typeparam name="T">The type of the provider.</typeparam>
-            <remarks>The provider is a plugable component configured in application environment.
-            It will load first defined component if many components found.
-            </remarks>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.GetProvider``1(System.String)">
-            <summary>
-            Gets the provider component by name from current application environment.
-            The provider must implemented IProvider interface.
-            </summary>
-            <returns>The a named provider instance.</returns>
-            <param name="name">Name of the provider.</param>
-            <typeparam name="T">The type of the provider.</typeparam>
-            <remarks>The provider is a plugable component configured in application environment with a given name.
-            If the named provider is not configured, it returns null.
-            </remarks>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.GetProvider(System.Type)">
-            <summary>
-            Gets a given type provider instance from current application environment.
-            The provider must implemented IProvider interface.
-            </summary>
-            <returns>The provider instance.</returns>
-            <param name="providerInterface">type of provider.</param>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.GetProvider(System.Type,System.String)">
-             <summary>
-             Gets a named given type provider instance from current application environment.
-             The provider must implemented IProvider interface.
-             </summary>
-             <returns>The provider instance.</returns>
-             <param name="providerInterface">type of provider.</param>
-            <param name="name">provider name</param>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.GetTypeByName(System.String)">
-            <summary>
-            Gets the type by the type name. The type name could be a qualified type name accessible by the application environment.
-            The application environment could contain plugable assembly.
-            </summary>
-            <returns>The named type.</returns>
-            <param name="typeName">Type name.</param>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.IsCandidateAssembly(System.Reflection.Assembly)">
-            <summary>
-            Filter assemblies before add it into candidate assembly list
-            </summary>
-            <param name="assembly"></param>
+            <param name="configFile">configuration file.</param>
+            <param name="options">configuration options.</param>
             <returns></returns>
         </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.LoadRuntimeComponents">
+        <member name="M:qshine.Configuration.ApplicationEnvironment.#ctor(qshine.Configuration.ApplicationEnvironmentContext)">
             <summary>
-            Load application components from runtime location to application environment.
-            Those components types could be resolved directly from run-time.
-            The mapped runtime application components will be part of accessable types for plugable application environment.
-            It will not include most system or common share components.
+            Ctor:: build application environment by enironment context.
             </summary>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.CreateInstance(System.Type,System.Object[])">
-            <summary>
-            Creates the instance by type and given arguments.
-            </summary>
-            <returns>The instance.</returns>
-            <param name="type">Type of object</param>
-            <param name="parameters">Parameters.</param>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.#ctor">
-            <summary>
-            Ctor:: build default application environment
-            </summary>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.#ctor(System.String,qshine.EnvironmentInitializationOption)">
-            <summary>
-            Ctor:: build named application environment by given options.
-            </summary>
-            <param name="name">Name application environment</param>
-            <param name="options">Options to initialize application environment.</param>
-        </member>
-        <member name="P:qshine.Configuration.ApplicationEnvironment.ConfigurationStore">
-            <summary>
-            Configuration Store
-            </summary>
+            <param name="context">Application environment context</param>
         </member>
         <member name="P:qshine.Configuration.ApplicationEnvironment.Name">
             <summary>
@@ -808,138 +772,27 @@
             </summary>
             <param name="key">specifies an application environment setting key</param>
         </member>
-        <member name="P:qshine.Configuration.ApplicationEnvironment.InvalidReason">
-            <summary>
-            The reason of application environment construction failure. 
-            </summary>
-        </member>
         <member name="P:qshine.Configuration.ApplicationEnvironment.ConnectionStrings">
             <summary>
             Get connection strings
             </summary>
         </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.StartUp``1">
+        <member name="P:qshine.Configuration.ApplicationEnvironment.PlugableAssemblies">
             <summary>
-            it will invoke all instances that implemented type T interface or base class.
+            Get environment pluggable assembly collection.
+            </summary>
+        </member>
+        <member name="P:qshine.Configuration.ApplicationEnvironment.Services">
+            <summary>
+            Get pluggable component services
+            </summary>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironment.Startup``1">
+            <summary>
+            It will invoke all instances that implemented type T interface or base class.
             The type T constructor()
             </summary>
             <typeparam name="T">An interface or base class for start up class implementation.</typeparam>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.CreateProvider``1(System.String)">
-            <summary>
-            Create a specific interface type provider. The provider interface must inherit from IProvider
-            If the provider name is specified it create instance from named provider.
-            Get default or first interface provider if the name is not specified.
-            </summary>
-            <typeparam name="T">Specifies provider interface type or base type.</typeparam>
-            <param name="name">Provider name. If name is not specified, it will create default or first provider instance.
-            The default one can be configured in provider Maps section.</param>
-            <returns></returns>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.CreateProvider(System.Type,System.String)">
-            <summary>
-            Create a specific interface type provider. The provider interface must inherit from IProvider.
-            If the provider name is specified it create instance from named provider.
-            Get default or first interface provider if the name is not specified.
-            </summary>
-            <param name="providerInterface">Specifies provider interface type or base type.</param>
-            <param name="name">Provider name. If name is not specified, it will create default or first provider instance.
-            The default one can be configured in provider Maps section.</param>
-            <returns>Returns a given interface type instance.</returns>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.CreateMappedProvider``1(System.String)">
-            <summary>
-            Create a mapped specific interface type provider. The provider interface must inherit from IProvider.
-            If the mapped name is specified it create instance from named provider.
-            </summary>
-            <typeparam name="T">The provider interface type.</typeparam>
-            <param name="mapKey">The provider map name. 
-            If the mapKey is not configured or the mapped provider is invalid, it will create the default typed provider instance instead.</param>
-            <returns>Returns mapped provider instance</returns>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.CreateMappedProvider(System.Type,System.String)">
-            <summary>
-            Create a mapped specific interface type provider. The provider interface must inherit from IProvider.
-            If the mapped name is specified it create instance from named provider.
-            </summary>
-            <param name="providerInterface">The provider interface type.</param>
-            <param name="mapKey">The provider map name. 
-            If the mapKey is not configured or the mapped provider is invalid, it will create the default typed provider instance instead.</param>
-            <returns>Returns mapped provider instance</returns>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.GetProviders``1">
-            <summary>
-            Get all given type of providers from configured components
-            </summary>
-            <typeparam name="T">type of provider interface</typeparam>
-            <returns></returns>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.CreateComponent``1(System.String)">
-            <summary>
-            Create a specific interface type component instance.
-            If the component name is specified it create instance from named component.
-            Get default or first typed component if the name is not specified.
-            </summary>
-            <typeparam name="T">The interface type of the component.</typeparam>
-            <param name="name">The component name defined in component setting configure. If name is blank, it will try to get default or first component listed in configure setting.</param>
-            <returns>returns typed component instance</returns>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.CreateComponent(System.Type,System.String)">
-            <summary>
-            Create a specific interface type component instance.
-            If the component name is specified it create instance from named component.
-            Get default or first typed component if the name is not specified.
-            </summary>
-            <param name="interfaceType">The interface type of the component.</param>
-            <param name="name">The component name defined in component setting configure. If name is blank, it will try to get default or first component listed in configure setting.</param>
-            <returns>returns typed component instance object</returns>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.CreateMappedComponent``1(System.String)">
-            <summary>
-            Get or create a mapped provider.
-            A mapped provider is one of the provider built from configure file component maps setting.
-            The component map setting is a list of map key and provider name pair. 
-            Provider configure setting map sample:
-            <![CDATA[
-                <maps name="providerTypeName" default="defaultProviderName">
-                    <add key="mapKey" value="providerName" />
-                </maps>
-                <components>
-                    <component name="providerName1" interface="Ixxx" type="xxx" />
-                    <component name="providerName" interface="Ixxx" type="xxx2" />
-                </components>
-            ]]>
-            </summary>
-            <typeparam name="T">Provider interface type</typeparam>
-            <param name="mapKey">A map key associated to named provider. If the mapKey or associated provider name is blank, get the default provider</param>
-            <returns>A provider instance mapped mapKey</returns>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.CreatedMappedComponent(System.Type,System.String)">
-            <summary>
-            See above CreatedMappedComponent() comments.
-            </summary>
-            <param name="componentInterfaceType"></param>
-            <param name="mapKey"></param>
-            <returns></returns>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.GetMappedComponentName(System.Type,System.String)">
-            <summary>
-            Get component interface mapped name.
-            </summary>
-            <param name="componentInterfaceType">Component interface type</param>
-            <param name="mapKey">Component map key</param>
-            <returns>Returns configured component map key.</returns>
-        </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.GetPluggableComponent(System.Type,System.String)">
-            <summary>
-            Get specific interface plugin component by given name. if the name is not specified, it returns default or first typed component.
-            </summary>
-            <param name="interfaceType">Specifies component interface type</param>
-            <param name="name">Specifies the component name. If teh name is blank, it will get default or first component.
-            if plugin associated to a maps collection, the name parameter will be a map key instead a component name.
-            The component name is a map key associated value.
-            </param>
-            <returns>pluggable component</returns>
         </member>
         <member name="M:qshine.Configuration.ApplicationEnvironment.GetConfigFilePathIfAny(System.String)">
             <summary>
@@ -948,42 +801,125 @@
             <returns>The config file path if any or null.</returns>
             <param name="configFileName">Config file name.</param>
         </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.SafeLoadAssembly(System.String)">
+        <member name="M:qshine.Configuration.ApplicationEnvironment.PlugComponent(qshine.PluggableComponent)">
             <summary>
-            Load assembly from plugin folder
+            Add a pluggable component into application environment
             </summary>
-            <param name="path">path of plugin component</param>
+            <param name="component"></param>
             <returns></returns>
         </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.Init">
+        <member name="M:qshine.Configuration.ApplicationEnvironment.PlugComponent``2(System.String,qshine.IocInstanceScope,System.Collections.Generic.IDictionary{System.String,System.String})">
             <summary>
-            Initializes the <see cref="T:qshine.Configuration.ApplicationEnvironment"/>.
+            
             </summary>
+            <typeparam name="IT"></typeparam>
+            <typeparam name="T"></typeparam>
+            <param name="name"></param>
+            <param name="scope"></param>
+            <param name="args"></param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironment.PlugComponent(System.Type,System.Type,System.String,qshine.IocInstanceScope,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            
+            </summary>
+            <param name="interfaceType"></param>
+            <param name="classType"></param>
+            <param name="name"></param>
+            <param name="scope"></param>
+            <param name="args"></param>
+            <returns></returns>
         </member>
         <member name="F:qshine.Configuration.ApplicationEnvironment._logger">
             <summary>
             Logger
             </summary>
         </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.ApplicationAssemblyResolve(System.Object,System.ResolveEventArgs)">
+        <member name="T:qshine.Configuration.ApplicationEnvironmentBuilder">
             <summary>
-            Resolve assembly location when lookup type by a qualified type name.
+            Build application environment instance
             </summary>
-            <param name="sender"></param>
-            <param name="args"></param>
+            <example>
+            <![CDATA[
+                
+                var options = new EnvironmentInitializationOption {
+                    OverwriteConnectionString = true
+                };
+                var builder = new ApplicationEnvironmentBuilder();
+                
+                builder
+                    .Config((appContext, config)=>{
+                        config.LoadConfigFile("app.config", options);
+                        config.AddCommandLine(args);
+                        appContext.PlugableAssemblyFilter((assembly)=>{
+                                return assembly.FullName.Contains("MyService.P1"));
+                            }
+                        })
+                    .Build()
+                    .AddComponent<IMyService, MyService>()
+                    .AddComponent<IMyService, MyService2>(name)
+                    .AddComponent<IMyService, MyService3>(name, arg1,arg2,arg3)
+                    .StartUp<Bootstrapper>()
+            
+            
+            ]]>
+            
+                ApplicationEnvironment(1) => EnvironmentConfigure(*)
+                ApplicationEnvironmentContext(1) ==> EnvironmentConfigure(1)
+                ApplicationEnvironmentBuilder(1) ==> ApplicationEnvironmentContext(as parameter)
+                PlugableAssembly => assembly
+                PlugableComponent => Type, assembly, instance
+                
+            </example>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.#ctor">
+            <summary>
+            Build default ApplicationEnvironment.
+            </summary>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.#ctor(System.String)">
+            <summary>
+            Build a named ApplicationEnvironment.
+            </summary>
+            <param name="name"></param>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.#ctor(qshine.Configuration.ApplicationEnvironmentContext)">
+            <summary>
+            Build ApplicationEnvironment with given application environment context.
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.Configure(System.Action{qshine.Configuration.ApplicationEnvironmentContext,qshine.Configuration.EnvironmentConfigure})">
+            <summary>
+            Configure application environment
+            </summary>
+            <param name="configureSetting">application environment configure delegate</param>
             <returns></returns>
         </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.LoadComponents">
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.Build">
+            <summary>
+            Build applicationEnvironment
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.AddConfigure(qshine.Configuration.IConfigurationStore)">
+            <summary>
+            
+            </summary>
+            <param name="config"></param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.LoadComponents">
             <summary>
             Load components from application configuration file
             </summary>
         </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.LoadModules">
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.LoadModules">
             <summary>
             Load modules from application configuration file
             </summary>
         </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.LoadModule(qshine.PlugableComponent)">
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.LoadModule(qshine.PluggableComponent)">
             <summary>
             Try to load a module.
             </summary>
@@ -994,25 +930,116 @@
             The module must have a public constructor without parameter. 
             </remarks>
         </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.LoadBinaryFiles">
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.ApplicationAssemblyResolve(System.Object,System.ResolveEventArgs)">
+            <summary>
+            Resolve assembly location when lookup type by a qualified type name.
+            </summary>
+            <param name="sender"></param>
+            <param name="args"></param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.LoadBinaryFiles">
             <summary>
             Add all assembly files from binary folders into application environment.
             The AssemblyResolveHandler try to resolve assembly from those files.
             </summary>
         </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.GetComponentMap(System.Type)">
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.SafeLoadAssembly(System.String)">
             <summary>
-            Get the component map
+            Load assembly from plugin folder
             </summary>
-            <param name="componentType">type of component</param>
-            <returns>type specific component map</returns>
+            <param name="path">path of plugin component</param>
+            <returns></returns>
         </member>
-        <member name="M:qshine.Configuration.ApplicationEnvironment.GetEnvironmentMap(System.String)">
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.LoadRuntimeComponents">
             <summary>
-            Get map by name
+            Load application components from runtime location to application environment.
+            Those components types could be resolved directly from run-time.
+            The mapped runtime application components will be part of accessable types for plugable application environment.
+            It will not include most system or common share components.
             </summary>
-            <param name="mapName">map name</param>
-            <returns>return a environment map</returns>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironmentBuilder.#cctor">
+            <summary>
+            Static ctor:: pre-initialization when first touch the ApplicationEnvironmentBuilder component
+            </summary>
+        </member>
+        <member name="T:qshine.Configuration.ApplicationEnvironmentContext">
+            <summary>
+            Application environment context.
+            The running application could have more than one application environment settings.
+            Same named application environments shared same application environment context.
+            </summary>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironmentContext.#ctor(System.String)">
+            <summary>
+            Ctor
+            </summary>
+        </member>
+        <member name="P:qshine.Configuration.ApplicationEnvironmentContext.EnvironmentConfigure">
+            <summary>
+            Application environment configure setting
+            </summary>
+        </member>
+        <member name="P:qshine.Configuration.ApplicationEnvironmentContext.Properties">
+            <summary>
+            Context properties
+            </summary>
+        </member>
+        <member name="P:qshine.Configuration.ApplicationEnvironmentContext.RuntimeAssemblies">
+            <summary>
+            Get/Set Runtime Assemblies.
+            The default runtime assemblies is from AppDomain.CurrentDomain.GetAssemblies() 
+            </summary>
+        </member>
+        <member name="P:qshine.Configuration.ApplicationEnvironmentContext.PlugableAssemblyFilter">
+            <summary>
+            A delegate to filter out non-plugable assemblies from RuntimeAssemblies.
+            The delegate returns true if it is a plugable (service) assembly.
+            </summary>
+        </member>
+        <member name="P:qshine.Configuration.ApplicationEnvironmentContext.PlugableAssemblies">
+            <summary>
+            Plugable assemblies
+            </summary>
+        </member>
+        <member name="P:qshine.Configuration.ApplicationEnvironmentContext.Name">
+            <summary>
+            Get application environment context name
+            </summary>
+        </member>
+        <member name="P:qshine.Configuration.ApplicationEnvironmentContext.Default">
+            <summary>
+            Get default application environment context
+            </summary>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironmentContext.GetContext(System.String)">
+            <summary>
+            Get named application environment context
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="P:qshine.Configuration.ApplicationEnvironmentContext.ContextStore">
+            <summary>
+            Get/Set current environment context store.
+            The default current environment context store is Static Context store. It allows single current application environment.
+            You may want to have a different context store to have current application environment based on different context. 
+            In this case you can implement a special EnvironmentContextStore.
+            The EnvironmentContextStore need be set in application Startup before ApplicationEnvironment.Boot()
+            </summary>
+        </member>
+        <member name="F:qshine.Configuration.ApplicationEnvironmentContext.environmentContextStoreName">
+            <summary>
+            Default environment context store name.
+            </summary>
+        </member>
+        <member name="M:qshine.Configuration.ApplicationEnvironmentContext.IsPlugableAssembly(System.Reflection.Assembly)">
+            <summary>
+            Determine whether an assembly could be a plugable (service) assembly
+            </summary>
+            <param name="assembly">assembly object</param>
+            <returns></returns>
         </member>
         <member name="T:qshine.Configuration.ConfigurationException">
             <summary>
@@ -1024,15 +1051,35 @@
             Gete a list of Exception
             </summary>
         </member>
+        <member name="T:qshine.Configuration.ConfigurationStore.XmlConfigurationLoader">
+            <summary>
+            EnvironmentConfigure extension to Load XML formatted configure files
+            </summary>
+        </member>
+        <member name="M:qshine.Configuration.ConfigurationStore.XmlConfigurationLoader.LoadConfigFile(qshine.Configuration.EnvironmentConfigure,System.String,qshine.EnvironmentInitializationOption)">
+            <summary>
+            Load XML formatted application configure files
+            </summary>
+            <param name="config">environment configure instance</param>
+            <param name="rootConfigFile">root configure file path. such as app.config</param>
+            <param name="options">configuration setting options</param>
+        </member>
         <member name="T:qshine.Configuration.ConfigurationStore.XmlConfigurationStore">
             <summary>
             Implement .NET framework formatted application environment configure files 
             </summary>
         </member>
-        <member name="M:qshine.Configuration.ConfigurationStore.XmlConfigurationStore.LoadConfig(qshine.EnvironmentInitializationOption)">
+        <member name="M:qshine.Configuration.ConfigurationStore.XmlConfigurationStore.#ctor(qshine.Configuration.EnvironmentConfigure)">
+            <summary>
+            Create XmlConfigurationStore instance
+            </summary>
+            <param name="environmentConfigure"></param>
+        </member>
+        <member name="M:qshine.Configuration.ConfigurationStore.XmlConfigurationStore.LoadConfig(System.String,qshine.EnvironmentInitializationOption)">
             <summary>
             Load specific config file with options
             </summary>
+            <param name="rootConfigFile"> root configure file path</param>
             <param name="option">EnvironmentInitializationOption object to indicate how to load the the config files.</param>
             <returns></returns>
         </member>
@@ -1259,6 +1306,11 @@
             Get number of connection string elements 
             </summary>
         </member>
+        <member name="M:qshine.Configuration.ConnectionStrings.Clear">
+            <summary>
+            Clear all connections
+            </summary>
+        </member>
         <member name="T:qshine.Configuration.IConfigurationStore">
             <summary>
             Application environment configuration store interface,
@@ -1272,29 +1324,46 @@
             <returns>Environment configure instance</returns>
         </member>
         <member name="T:qshine.Configuration.Map">
-            <summary>
-            A named map collection
-            </summary>
+             <summary>
+             A named map collection is a list of key value pair associated with a particular name.
+            The name usually is a tag to group or categorize a set of value mapping.
+            Each value mapping item represets a key associated with a meaningful value.
+            
+            For example, an interface type name can be used to group a set of interface type implementations.
+            One mapping item could be used to map a namespace to a particular interface implementation.
+            
+             </summary>
         </member>
         <member name="P:qshine.Configuration.Map.Name">
             <summary>
-            Map name or category
+            Map name or category.
+            Example, "qshine.Messaging.IEventBusFactory" represents a collection of event bus factory class implementations.
             </summary>
         </member>
         <member name="P:qshine.Configuration.Map.Default">
             <summary>
-            Default map item
+            Specifies a default map item value.
+            A map collection only list a number of map items. This default value will be selected if map key is not in the collection.
             </summary>
         </member>
         <member name="P:qshine.Configuration.Map.Items">
             <summary>
-            Map items
+            Key/Value pair map items
+            The Key could be a regular expression pattern used to match given key map item.
             </summary>
         </member>
         <member name="P:qshine.Configuration.Map.Item(System.String)">
             <summary>
-            Map item by name
+            Get/Set map item value
             </summary>
+        </member>
+        <member name="M:qshine.Configuration.Map.MatchKeyValue(System.String)">
+            <summary>
+            Match key to one of map collection item.
+            </summary>
+            <param name="key">A key value to be match</param>
+            <returns>Returns a matched mapping item or default value if nothing found.
+            The default value could be null or empty if the default value is not set.</returns>
         </member>
         <member name="M:qshine.Configuration.Map.ContainsKey(System.String)">
             <summary>
@@ -1313,6 +1382,337 @@
             Get Map name by the type.
             </summary>
             <param name="type">Type of component</param>
+            <returns></returns>
+        </member>
+        <member name="T:qshine.Configuration.MappedComponents">
+            <summary>
+            The Mapped Components is a service component collection.
+            User can get service component by
+            1. By service interface type.
+            2. By service interface type and provider name defined in configure setting.
+            3. By service interface type and provider mapping name in configure setting.
+            
+            Using mapping name to find a provider is a most flexible way to work with pluggable component.
+            The mapping name could be a business object related name or tag.
+            </summary>
+        </member>
+        <member name="M:qshine.Configuration.MappedComponents.#ctor(qshine.Configuration.EnvironmentConfigure)">
+            <summary>
+            Create a mapped components instance
+            </summary>
+            <param name="configure"></param>
+        </member>
+        <member name="M:qshine.Configuration.MappedComponents.GetProvider``1">
+            <summary>
+            Get a specific interfaced type provider. 
+            The provider must be inherited from IProvider.
+            If plugged more than one provider, a default provider will be return.
+            </summary>
+            <typeparam name="T">Specifies provider interface type or base type.</typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.MappedComponents.GetProvider``1(System.String)">
+            <summary>
+            Get a named service provider
+            </summary>
+            <typeparam name="T">Specifies provider interface type or base type.</typeparam>
+            <param name="name">Component name.</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.MappedComponents.GetProvider(System.Type,System.String)">
+            <summary>
+            Get a specific interface type provider. The provider must be inherited from IProvider.
+            If the provider name is specified it create an instance from named provider or mapped name provider.
+            Get default or first interface provider if the name is not specified or doesn't match to the provider name or map key.
+            Provider configure setting map sample:
+            <![CDATA[
+                <maps name="providerTypeName" default="providerName1">
+                    <add key="mapKey" value="providerName" />
+                </maps>
+                <components>
+                    <component name="providerName1" interface="Ixxx" type="xxx" />
+                    <component name="providerName" interface="Ixxx" type="xxx2" />
+                </components>
+            ]]>        /// </summary>
+            <param name="providerInterface">Specifies provider interface type or base type.</param>
+            <param name="name">Provider name or provider mapping name.</param>
+            <returns>Returns a interface type implementation instance.</returns>
+        </member>
+        <member name="M:qshine.Configuration.MappedComponents.GetProviderByName``1(System.String)">
+            <summary>
+            Get provider by provider name.
+            Returns null if the specified provider name is not found.
+            </summary>
+            <typeparam name="T">Type of provider</typeparam>
+            <param name="providerName">provider name</param>
+            <returns>Returns named provider.</returns>
+        </member>
+        <member name="M:qshine.Configuration.MappedComponents.GetComponentByName(System.Type,System.String)">
+            <summary>
+            Get component by component name
+            </summary>
+            <param name="interfaceType">type of component interface</param>
+            <param name="componentName">Component name</param>
+            <returns>Returns named component or null if name is not found.</returns>
+        </member>
+        <member name="M:qshine.Configuration.MappedComponents.GetProviders``1">
+            <summary>
+            Get all given type of providers from configured components
+            </summary>
+            <typeparam name="T">type of provider interface</typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.MappedComponents.GetComponent``1(System.String)">
+            <summary>
+            Get a specific interface type component instance.
+            If the component name is specified it create instance from named component.
+            Get default or first typed component if the name is not specified.
+            </summary>
+            <typeparam name="T">The interface type of the component.</typeparam>
+            <param name="name">The component name defined in component setting configure. If name is blank, it will try to get default or first component listed in configure setting.</param>
+            <returns>returns typed component instance</returns>
+        </member>
+        <member name="M:qshine.Configuration.MappedComponents.GetComponent(System.Type,System.String)">
+            <summary>
+            Create a specific interface type component instance.
+            If the component name is specified it create instance from named component.
+            Get default or first typed component if the name is not specified.
+            </summary>
+            <param name="interfaceType">The interface type of the component.</param>
+            <param name="name">The component name defined in component setting configure. If name is blank, it will try to get default or first component listed in configure setting.</param>
+            <returns>returns typed component instance object</returns>
+        </member>
+        <member name="M:qshine.Configuration.MappedComponents.GetPluggableComponent(System.Type,System.String)">
+            <summary>
+            Get a named interface type plugin component.
+            If the name is not specified, it returns default or first typed component.
+            The name could be a component provider name or component mapping key name or matched mapping item.
+            </summary>
+            <param name="interfaceType">Specifies component interface type</param>
+            <param name="name">Specifies the component name. If the name is blank, it returns default typed component or the first valid component from the component list.
+            if plugin associated to a map collection, the name parameter can be a map key.
+            </param>
+            <returns>Returns a named or default pluggable component.</returns>
+        </member>
+        <member name="M:qshine.Configuration.MappedComponents.GetComponentMap(System.Type)">
+            <summary>
+            Get the component map by component interface type
+            </summary>
+            <param name="componentType">interface type of the component</param>
+            <returns>Returns type specific component map or null if the mapping is not found.</returns>
+        </member>
+        <member name="M:qshine.Configuration.MappedComponents.GetEnvironmentMap(System.String)">
+            <summary>
+            Get map by name from environment configure
+            </summary>
+            <param name="mapName">map name</param>
+            <returns>return a environment map or null if mapping is not found</returns>
+        </member>
+        <member name="T:qshine.Configuration.PluggableAssemblyCollection">
+            <summary>
+            Pluggable assembly collection
+            </summary>
+        </member>
+        <member name="F:qshine.Configuration.PluggableAssemblyCollection._pluggableAssemblies">
+            <summary>
+            pluggable assemblies
+            </summary>
+        </member>
+        <member name="M:qshine.Configuration.PluggableAssemblyCollection.Add(System.String,qshine.PluggableAssembly)">
+            <summary>
+            Add a pluggable assembly into the collection
+            </summary>
+            <param name="name">simple assembly name</param>
+            <param name="assembly">Pluggable assembly compoenent (may not loaded yet)</param>
+            <returns>returns true if assembly added into the collection</returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableAssemblyCollection.Contains(System.String)">
+            <summary>
+            Determines whether the pluggable assembly in the collection.
+            </summary>
+            <param name="name">The pluggable assembly name.</param>
+            <returns>return true if the assembly exists in the collection.</returns>
+        </member>
+        <member name="P:qshine.Configuration.PluggableAssemblyCollection.Item(System.String)">
+            <summary>
+            Get pluggable assembly by name
+            </summary>
+            <param name="name">The pluggable assembly name.</param>
+            <returns>Returns a pluggable assembly by name. Or, returns null if the assembly not found.</returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableAssemblyCollection.GetAssembly(System.String)">
+            <summary>
+            Get assembly from assembly collection
+            </summary>
+            <param name="assemblyName">simple assembly name</param>
+            <returns>Loaded Assembly</returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableAssemblyCollection.SafeGetInterfacedTypes(System.Type)">
+            <summary>
+            Find all types which implemented a specific interface or base class type from all loaded assemblies. 
+            </summary>
+            <param name="interfaceType">Specifies interface or base class type.</param>
+            <returns>A list of implementation class types.</returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableAssemblyCollection.GetType(System.String)">
+            <summary>
+            Gets the type by the type name. The type name could be a qualified type name accessible by the application environment.
+            The application environment could contain plugable assembly.
+            </summary>
+            <returns>The named type.</returns>
+            <param name="typeName">Type name.</param>
+        </member>
+        <member name="M:qshine.Configuration.PluggableAssemblyCollection.GetType(System.String,System.String,System.Boolean)">
+            <summary>
+            Get type by given assembly name and object type name from a pluggable assembly Map.
+            To avoid pluggable component dll hell, it only allow one version be loaded for pluggable assembly.
+            </summary>
+            <param name="assemblyName">Simple assembly name. </param>
+            <param name="typeName">Simple type name.</param>
+            <param name="throwError">throw exception if it is true.</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableAssemblyCollection.GetTypeByName(System.String)">
+            <summary>
+            Get type by type name. It finds first found type from assembly Map
+            </summary>
+            <param name="typeName">Simple type name.</param>
+            <returns></returns>
+        </member>
+        <member name="T:qshine.Configuration.PluggableComponentCollection">
+            <summary>
+            Pluggable component collection
+            </summary>
+        </member>
+        <member name="F:qshine.Configuration.PluggableComponentCollection._pluggableComponents">
+            <summary>
+            pluggable assemblies
+            </summary>
+        </member>
+        <member name="P:qshine.Configuration.PluggableComponentCollection.Count">
+            <summary>
+            Count the number of components.
+            </summary>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.Add(System.String,qshine.PluggableComponent)">
+            <summary>
+            Add a pluggable assembly into the collection
+            </summary>
+            <param name="name">simple assembly name</param>
+            <param name="assembly">Pluggable assembly compoenent (may not loaded yet)</param>
+            <returns>returns true if assembly added into the collection</returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.Contains(System.String)">
+            <summary>
+            Determines whether the pluggable assembly in the collection.
+            </summary>
+            <param name="name">The pluggable assembly name.</param>
+            <returns>return true if the assembly exists in the collection.</returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.Clear">
+            <summary>
+            Clear all pluggable components from the collection
+            </summary>
+        </member>
+        <member name="P:qshine.Configuration.PluggableComponentCollection.Item(System.String)">
+            <summary>
+            Get pluggable assembly by name
+            </summary>
+            <param name="name">The pluggable assembly name.</param>
+            <returns>Returns a pluggable assembly by name. Or, returns null if the assembly not found.</returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.AddTransien``2(System.String)">
+            <summary>
+            Register a given interface type with its implementation class.
+            </summary>
+            <typeparam name="IT">Interface type</typeparam>
+            <typeparam name="T">implementation class</typeparam>
+            <param name="name">service name</param>
+            <returns>It returns true when the component registered sucessfully.</returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.AddTransien``2">
+            <summary>
+            Register a transient service
+            </summary>
+            <typeparam name="IT">Service interface type</typeparam>
+            <typeparam name="T">Service class type</typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.AddTransien(System.String,System.Type,System.Type)">
+            <summary>
+            Register a transient service
+            </summary>
+            <param name="name">Service name</param>
+            <param name="interfaceType">Service interface type</param>
+            <param name="implementationType">Service implementation class type</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.AddSingleton``2(System.String)">
+            <summary>
+            Register a signleton service
+            </summary>
+            <typeparam name="IT">Interface type</typeparam>
+            <typeparam name="T">implementation class</typeparam>
+            <param name="name">service name</param>
+            <returns>It returns true when the component registered sucessfully.</returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.AddSingleton``2">
+            <summary>
+            Register a signleton service
+            </summary>
+            <typeparam name="IT">Service interface type</typeparam>
+            <typeparam name="T">Service class type</typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.AddSingleton(System.String,System.Type,System.Type)">
+            <summary>
+            Register a signleton service
+            </summary>
+            <param name="name">Service name</param>
+            <param name="interfaceType">Service interface type</param>
+            <param name="implementationType">Service implementation class type</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.AddService``2(System.String,qshine.IocInstanceScope,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            Register a service component
+            </summary>
+            <typeparam name="IT">Service interface type</typeparam>
+            <typeparam name="T">Service class type</typeparam>
+            <param name="name">name of the component</param>
+            <param name="scope">component lifetime scope</param>
+            <param name="args">service component constructor arguments</param>
+            <returns>It returns true when the component registered sucessfully.</returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.AddService(System.String,System.Type,System.Type,qshine.IocInstanceScope,System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            Register a service component
+            </summary>
+            <param name="interfaceType">Service interface type</param>
+            <param name="classType">Service component class type</param>
+            <param name="name">name of the component</param>
+            <param name="scope">component lifetime scope</param>
+            <param name="args">service component constructor arguments</param>
+            <returns>It returns true when the component registered sucessfully.</returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.GetServices``1">
+            <summary>
+            Get all valid services from pluggable component collection
+            </summary>
+            <typeparam name="T">Type of component interface</typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.GetEnumerator">
+            <summary>
+            Exposes the enumerator, which supports a simple iteration over a collection of a specified type.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Configuration.PluggableComponentCollection.GetAutoName(System.String)">
+            <summary>
+            Generate a key name automatimatically.
+            </summary>
+            <param name="baseName"></param>
             <returns></returns>
         </member>
         <member name="T:qshine.Configuration.Setting.NamedKeyValueElementCollection">
@@ -1650,6 +2050,11 @@
             Ctor
             </summary>
         </member>
+        <member name="M:qshine.Configuration.EnvironmentConfigure.Clear">
+            <summary>
+            Clear all configure setting
+            </summary>
+        </member>
         <member name="P:qshine.Configuration.EnvironmentConfigure.AppSettings">
             <summary>
             Get/Set Application setting key/value pair
@@ -1698,6 +2103,16 @@
             Get/Set Connection strings
             </summary>
         </member>
+        <member name="P:qshine.Configuration.EnvironmentConfigure.BuildErrorHandler">
+            <summary>
+            Get/Set ApplicationEnvironment build error and warning handler.
+            As default, all build error will be ignored and error will be logged through default Logger.
+            
+            The Builder error and warning handler take two arguments:
+                arg1 - error or warning code
+                arg2 - error message.
+            </summary>
+        </member>
         <member name="M:qshine.Configuration.EnvironmentConfigure.AddEnvironment(qshine.Configuration.Setting.EnvironmentElement,System.Boolean)">
             <summary>
             Adds named environment setting.
@@ -1714,7 +2129,7 @@
             <param name="component">Component.</param>
             <param name="overWrite">If set to <c>true</c> overwrite exists component.</param>
         </member>
-        <member name="M:qshine.Configuration.EnvironmentConfigure.AddModule(qshine.PlugableComponent,System.Boolean)">
+        <member name="M:qshine.Configuration.EnvironmentConfigure.AddModule(qshine.PluggableComponent,System.Boolean)">
             <summary>
             Adds the module.
             </summary>
@@ -1847,12 +2262,6 @@
             Option to throw exception for any error. 
             If the option is not set, only fatal error will be thrown. 
             The non-fatal error will be hold in property InnerException.
-            </summary>
-        </member>
-        <member name="P:qshine.EnvironmentInitializationOption.RootConfigFile">
-            <summary>
-            Specifies a new application root configure file.
-            A blank value indicates the default application config file,
             </summary>
         </member>
         <member name="P:qshine.EnvironmentInitializationOption.Logger">
@@ -2819,7 +3228,7 @@
             Get tracking table
             </summary>
         </member>
-        <member name="M:qshine.database.SqlDDLBuilder.Build(qshine.BatchException,System.Boolean)">
+        <member name="M:qshine.database.SqlDDLBuilder.Build(qshine.Specification.Validator,System.Boolean)">
             <summary>
             Build database instance from registered tables.
             The builder will analyze the table structure to generate and perform table structure DDL statements.
@@ -2827,7 +3236,7 @@
             <returns>It returns true if database build sucessfully. Otherwise, it returns false with LastErrorMessage.
             A full action log will be generated in Log information level through Log configuration.
             </returns>
-            <param name="batchException">BatchException to hold error messages</param>
+            <param name="validator">Validator to hold error messages</param>
             <param name="createNewDatabase">Indicates whether a new database should be created. If the flag is true it will only create new database if the given database is not existing.</param>
         </member>
         <member name="P:qshine.database.SqlDDLBuilder.DBClient">
@@ -4099,6 +4508,485 @@
             </summary>
             <param name="events">History events from event store</param>
         </member>
+        <member name="T:qshine.MessageCode">
+            <summary>
+            Represents a predefined system error which contains an error code and message.
+            <![CDATA[
+                var code = new MessageCode("TestClass", "E");
+                
+                code.ToString(100)
+                code.ToString(100, "This is a sample message");
+                //The result will like 
+                //    TestClass-E-100
+                //    TestClass-E-100::This is a sample message
+            
+                //optional
+                code.MessageFormat = (prefix, code, messageType) => { return string.Format("{0}-{1}-{2}",prefix, messageType, code);
+                };
+                
+            ]]>
+            
+            
+            </summary>
+        </member>
+        <member name="M:qshine.MessageCode.ErrorCode(System.String)">
+            <summary>
+            Get error code
+            </summary>
+            <param name="prefix">ErrorCode prefix</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.MessageCode.WarningCode(System.String)">
+            <summary>
+            Get error code
+            </summary>
+            <param name="prefix">code prefix</param>
+            <returns></returns>
+        </member>
+        <member name="F:qshine.MessageCode.GlobalMessageFormat">
+            <summary>
+            Global message format
+            </summary>
+        </member>
+        <member name="M:qshine.MessageCode.#ctor(System.String,System.String)">
+            <summary>
+            Defines a message code
+            </summary>
+            <param name="prefix">code prefix.</param>
+            <param name="codeType">The message code type. 
+            </param>
+        </member>
+        <member name="M:qshine.MessageCode.#ctor(System.String)">
+            <summary>
+            Defines a message code
+            </summary>
+            <param name="prefix">code prefix.</param>
+        </member>
+        <member name="M:qshine.MessageCode.ToString(System.String)">
+            <summary>
+            Output a formatted code
+            </summary>
+            <param name="code">message code</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.MessageCode.ToString(System.String,System.String)">
+            <summary>
+            Output cided message
+            </summary>
+            <param name="code">message code</param>
+            <param name="message">message</param>
+            <returns></returns>
+        </member>
+        <member name="F:qshine.MessageCode.MessageFormat">
+            <summary>
+            Set message format
+            </summary>
+        </member>
+        <member name="T:qshine.Globalization.ILocalString">
+            <summary>
+            Local string resource storage
+            </summary>
+        </member>
+        <member name="M:qshine.Globalization.ILocalString.GetString(System.String,System.Object[])">
+            <summary>
+            Get localized string
+            </summary>
+            <param name="format">string format in Invariant Culture (Neutral resource language)</param>
+            <param name="arguments">The values to format the string with.</param>
+            <returns></returns>
+        </member>
+        <member name="T:qshine.Globalization.ILocalStringProvider">
+            <summary>
+            Provide string localization service.
+            </summary>
+        </member>
+        <member name="M:qshine.Globalization.ILocalStringProvider.Create(System.String)">
+            <summary>
+            Create a named local string store.
+            </summary>
+            <param name="name">The name of local resource store.
+            The name is used to categorize the local string resource storage.
+            </param>
+            <returns>Returns an instance of local string resource store.</returns>
+        </member>
+        <member name="T:qshine.Globalization.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.InvalidCommandBusFactory">
+            <summary>
+              Looks up a localized string similar to Couldn&apos;t find a configured named command bus factory ({0}:{1})..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.IoCExceptionProviderNotFound">
+            <summary>
+              Looks up a localized string similar to The IoC provider {0} is not found..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.IoCExceptionRegisterMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occured while trying register a type {0}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.IoCExceptionRegisterModuleMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occurred while trying to register a module..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.IoCExceptionRegisterNameMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occured while trying register a type {0} with a name {1}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.IoCExceptionRegisterSectionFirstMessage">
+            <summary>
+              Looks up a localized string similar to Castle Windsor configuration registration should be done earlier than  any other type registration..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.IoCExceptionRegisterSectionMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occured while trying to register types through a XML configuration section {0}. .
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.IoCExceptionResolveAllMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occured while trying to resolve all registered type {0}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.IoCExceptionResolveMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occured while trying to resolve type {0}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.IoCExceptionResolveNamedMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occured while trying to resolve type {0} with a specific name {1}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.My_Test__0_">
+            <summary>
+              Looks up a localized string similar to My Test {0}.
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.SectionNotFound">
+            <summary>
+              Looks up a localized string similar to The section {0} is not found. Check the section name and section handler type..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resources.TypeNotFound">
+            <summary>
+              Looks up a localized string similar to The type {0} is not found..
+            </summary>
+        </member>
+        <member name="T:qshine.Globalization.ResourceStringProvider">
+            <summary>
+            Implement ILocalStringProvider interface using Resource Manager.
+            
+            Get localized strings from the resource file through Resource manager.
+            
+            </summary>
+        </member>
+        <member name="M:qshine.Globalization.ResourceStringProvider.#ctor">
+            <summary>
+            load local resource from current assembly
+            </summary>
+        </member>
+        <member name="M:qshine.Globalization.ResourceStringProvider.#ctor(System.String)">
+            <summary>
+            load resource from given assembly file path.
+            
+            Ex:
+                var provider = new ResourceStringProvider("");
+            </summary>
+            <param name="resourceAssemblyFile">assembly resource file</param>
+        </member>
+        <member name="M:qshine.Globalization.ResourceStringProvider.#ctor(System.Reflection.Assembly)">
+            <summary>
+            load resource from a given assembly
+            </summary>
+            <param name="resourceAssembly">The resource assembly</param>
+        </member>
+        <member name="M:qshine.Globalization.ResourceStringProvider.Create(System.String)">
+            <summary>
+            Get resource store by the resource name.
+            The local string will search from all related resource files.
+            It could be one of:
+                name.resources.fr-CA.resx
+                name.resources.fr.resx
+                name.resources.resx
+                name.fr-CA.resx
+                name.fr.resx
+                name.resx
+                
+            </summary>
+            <param name="name">The name is the base name of the resource (Neutral Resources).</param>
+            <returns></returns>
+        </member>
+        <member name="T:qshine.Globalization.ResourceStringStore">
+            <summary>
+            Resource string store
+            </summary>
+        </member>
+        <member name="M:qshine.Globalization.ResourceStringStore.#ctor(System.Reflection.Assembly,System.String)">
+            <summary>
+            Ctor.
+            <seealso href="https://docs.microsoft.com/en-us/dotnet/api/system.resources.resourcemanager.-ctor?view=netframework-4.8"/>
+            </summary>
+            <param name="assembly">resource assembly</param>
+            <param name="name">The base name of the resource such as "Resources".</param>
+        </member>
+        <member name="M:qshine.Globalization.ResourceStringStore.GetString(System.String,System.Object[])">
+            <summary>
+            Get localized string
+            </summary>
+            <param name="format">format string in Neutral resource language</param>
+            <param name="arguments">format arguments</param>
+            <returns></returns>
+        </member>
+        <member name="T:qshine.Globalization.LocalString">
+            <summary>
+            Lable translation object.
+            Transalte an English phase to other environment language
+            
+            <![CDATA[
+                var localizer = new Localizer(string name);
+                //var localizer = new Localizer<ResourceType>();
+                //var localizer = new Localizer(Type ResourceType);
+            
+                var nativeText = localizer.GetString("English Message");
+                
+            ]]>
+            </summary>
+        </member>
+        <member name="M:qshine.Globalization.LocalString._G(System.String,System.Object[])">
+            <summary>
+            Translate to native language
+            </summary>
+            <param name="format">English phase with format</param>
+            <param name="args">arguments.</param>
+            <returns></returns>
+        </member>
+        <member name="T:qshine.Globalization.Localizer">
+            <summary>
+            Localization (l10n).
+            The localizer provides service to translate a Neutral resource language text to local language text 
+            based on current locale.
+            
+            The language resource categorized by the resource name.
+            The resource name is a dot noation component which contains 1 to many fields separated with the period(.) symbol.
+            When searching for a text resource, it will search any levels combination of the fields.
+            Example: 
+                Resource Name: qshine.Resources.LevelOne.LevelTwo
+            The localizer will search below resources in order
+                "qshine.LevelOne.LevelTwo"
+                "qshine.LevelOne"
+                "qshine"
+                
+            If the resources file (ex:resources.resx) is under one of the project namespace (ex: qshine, qshine.LevelOne), the locale resource could be in
+                "qshine.LevelOne.LevelTwo.Resources.fr-CA.resx"
+                "qshine.LevelOne.LevelTwo.Resources.fr.resx"
+                "qshine.LevelOne.Resources.fr-CA.resx"
+                "qshine.LevelOne.Resources.fr.resx"
+                "qshine.Resources.fr-CA.resx"
+                "qshine.Resources.fr.resx"
+            
+            </summary>
+        </member>
+        <member name="M:qshine.Globalization.Localizer.#ctor(System.String)">
+            <summary>
+            Create a string localizer for particular resource category.
+            The resource name is used to categorize application local string resources.
+            </summary>
+            <param name="resourceName">resource name</param>
+        </member>
+        <member name="M:qshine.Globalization.Localizer.#ctor(System.Type)">
+            <summary>
+            Create a string localizer for particular resource type.
+            The resource type is used to categorize an application resource.
+            </summary>
+            <param name="resourceType">Resource type</param>
+        </member>
+        <member name="M:qshine.Globalization.Localizer.#ctor(qshine.Globalization.ILocalStringProvider,System.String)">
+            <summary>
+            Ctor.
+            </summary>
+            <param name="provider"></param>
+            <param name="resourceName"></param>
+        </member>
+        <member name="M:qshine.Globalization.Localizer.GetString(System.String,System.Object[])">
+            <summary>
+            Get localized string
+            </summary>
+            <param name="format">The format string in neutral language.
+            The format string need be converted to local text by the local string provider.
+            </param>
+            <param name="args">The format arguments</param>
+            <returns></returns>
+        </member>
+        <member name="T:qshine.Globalization.Localizer`1">
+            <summary>
+            Localization (l10n).
+            </summary>
+            <typeparam name="T">A resource class type to categorize application resource.</typeparam>
+        </member>
+        <member name="M:qshine.Globalization.Localizer`1.#ctor">
+            <summary>
+            Ctor.
+            </summary>
+        </member>
+        <member name="T:qshine.Globalization.Resource">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.ArgumentNotEmpty">
+            <summary>
+              Looks up a localized string similar to {0} is required but was null or empty..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.ArgumentNotNULL">
+            <summary>
+              Looks up a localized string similar to {0} is required but was null..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.CacheAddDependenciesNotSupportedException">
+            <summary>
+              Looks up a localized string similar to Cache.Add:dependencies must be null..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.CacheAddOnRemoveCallbackNotSupport">
+            <summary>
+              Looks up a localized string similar to Cache.Add:onRemoveCallback must be null..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.DateFieldRangeMessage">
+            <summary>
+              Looks up a localized string similar to The {0} field value must be a date between {1} and {2}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.DuplicateRules">
+            <summary>
+              Looks up a localized string similar to Unable to add same rule {0} twice..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.FieldDataTypeMessage">
+            <summary>
+              Looks up a localized string similar to The {0} field must be a valid {1}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.FieldLengthMessage">
+            <summary>
+              Looks up a localized string similar to The {0} field size should be limited between {1} to {2} characters..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.FieldMaxLengthMessage">
+            <summary>
+              Looks up a localized string similar to The {0} field characters could not exceed {1} characters..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.FieldRequiredMessage">
+            <summary>
+              Looks up a localized string similar to The {0} field value is required..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.LoggingException">
+            <summary>
+              Looks up a localized string similar to Exception in Enterprise Library Logging Application Block.
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.NumericFieldRangeMessage">
+            <summary>
+              Looks up a localized string similar to The {0} field value must be a number between {1} and {2}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.OneRuleRequired">
+            <summary>
+              Looks up a localized string similar to The AddRules method takes at least one argument..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.ValidationFailed">
+            <summary>
+              Looks up a localized string similar to  Validation Failed..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.IoCExceptionProviderNotFound">
+            <summary>
+              Looks up a localized string similar to The IoC provider {0} is not found..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.IoCExceptionRegisterMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occured while trying register a type {0}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.IoCExceptionRegisterModuleMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occurred while trying to register a module..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.IoCExceptionRegisterNameMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occured while trying register a type {0} with a name {1}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.IoCExceptionRegisterSectionFirstMessage">
+            <summary>
+              Looks up a localized string similar to Castle Windsor configuration registration should be done earlier than  any other type registration..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.IoCExceptionRegisterSectionMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occured while trying to register types through a XML configuration section {0}. .
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.IoCExceptionResolveAllMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occured while trying to resolve all registered type {0}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.IoCExceptionResolveMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occured while trying to resolve type {0}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.IoCExceptionResolveNamedMessage">
+            <summary>
+              Looks up a localized string similar to IoC error occured while trying to resolve type {0} with a specific name {1}..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.SectionNotFound">
+            <summary>
+              Looks up a localized string similar to The section {0} is not found. Check the section name and section handler type..
+            </summary>
+        </member>
+        <member name="P:qshine.Globalization.Resource.TypeNotFound">
+            <summary>
+              Looks up a localized string similar to The type {0} is not found..
+            </summary>
+        </member>
         <member name="T:qshine.Messaging.IDomainEvent">
             <summary>
             Domain event:: An event affects the domain state changed.
@@ -4256,9 +5144,9 @@
         </member>
         <member name="T:qshine.BatchException">
             <summary>
-            Defines application multiple error exception and exception policy object.
+            Defines application multiple validation exception and exception policy object.
             The exception policy is used to indicate how to handle application exception in batch process.
-            It could raise or supress rasied exception based on exception policy.
+            It could raise or supress exception based on exception policy.
             Common Exception policy:
             
             BatchException.SkipException - it returns BatchException object which can hold multiple errors without throw exception.
@@ -4277,46 +5165,7 @@
             </summary>
             <param name="message"></param>
         </member>
-        <member name="P:qshine.BatchException.SkipException">
-            <summary>
-            it returns BatchException object which can hold multiple errors without throw exception.
-            </summary>
-        </member>
-        <member name="P:qshine.BatchException.FirstException">
-            <summary>
-            it returns BatchException object which will throw in first application process exception.
-            </summary>
-        </member>
-        <member name="P:qshine.BatchException.LastException">
-            <summary>
-            it returns BatchException object which will throw in end of process if any error capture with in the process.
-            </summary>
-        </member>
-        <member name="P:qshine.BatchException.NeedSkipException">
-            <summary>
-            Indicates whether the exception should be skipped.
-            </summary>
-        </member>
-        <member name="P:qshine.BatchException.ExceptionLimit">
-            <summary>
-            Limitaion of the exceptions.
-                -1:     Skip all exceptions. Do not keep any exception in BatchException instance.
-            When SkipException == true:
-                0:      Skip all exceptions, but keep all exception data in BatchException instance.
-                1:      Terminate the batch process in first exception.
-                [N]:    Terminate the batch process after reach to N times of exceptions.
-            When SkipException == false:
-                0:      Throw BatchException in end of the process. 
-                1:      Throw BatchException in first exception.
-                [N]:    Throw BatchException after reach to N times of exceptions.
-            </summary>
-        </member>
-        <member name="P:qshine.BatchException.TotalException">
-            <summary>
-            Total number of exceptions
-            </summary>
-        </member>
-        <member name="P:qshine.BatchException.Exceptions">
+        <member name="P:qshine.BatchException.InnerExceptions">
             <summary>
             Keep batch exceptions.
             </summary>
@@ -4326,25 +5175,22 @@
             Chain batch exception for multi-level batch call
             </summary>
         </member>
+        <member name="M:qshine.BatchException.AddException(System.Exception)">
+            <summary>
+            Add exception into batch exception.
+            </summary>
+            <param name="ex"></param>
+        </member>
         <member name="M:qshine.BatchException.TryThrow(System.Exception)">
             <summary>
-            Try throw exception if BatchException SkipException is false.
+            
             </summary>
-            <param name="ex">Exception object. It could be null to indicate a flush required.</param>
+            <param name="ex"></param>
         </member>
-        <member name="T:qshine.LabelTranslation">
+        <member name="F:qshine.BatchException.Exceptions">
             <summary>
-            Lable translation object.
-            Transalte an English phase to other environment language 
+            
             </summary>
-        </member>
-        <member name="M:qshine.LabelTranslation._G(System.String,System.Object[])">
-            <summary>
-            Translate to native language
-            </summary>
-            <param name="format">English phase with format</param>
-            <param name="args">arguments.</param>
-            <returns></returns>
         </member>
         <member name="T:qshine.Logger.ConsoleLoggerProvider">
             <summary>
@@ -5038,6 +5884,892 @@
             <param name="message">Message.</param>
             <param name="ex">Ex.</param>
             <param name="properties">Properties.</param>
+        </member>
+        <member name="T:qshine.Specification.BusinessActionRule`1">
+            <summary>
+            The business rule is a statement defines a business specification.
+            When a business specification is satisfied by the business entity, the action will be executed.
+            Otherwise the false action will be executed.
+            
+            Example:
+            <![CDATA[
+                var approvalActionRule = new BusinessActionRule("approval rule",
+                   (spec1 & spec2 & spec3)| (spec4 & spec5), ApproveAction, null);
+                
+                approvalActionRule.Evaluate(new MyObject());
+            ]]>
+            
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.BusinessActionRule`1.#ctor(System.String,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Action{`0},System.Action{`0})">
+            <summary>
+            Creates a new instance of the <see cref="T:qshine.Specification.BusinessActionRule`1"/> class.
+            </summary>
+            <param name="ruleName">name of the business rule</param>
+            <param name="rule">Rule expression</param>
+            <param name="action">rule action when the rule fullfill</param>
+            <param name="falseAction">rule action when the rule doesn't follow</param>
+        </member>
+        <member name="M:qshine.Specification.BusinessActionRule`1.#ctor(System.String,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Action{`0})">
+            <summary>
+            Creates a new instance of the <see cref="T:qshine.Specification.BusinessActionRule`1"/> class.
+            </summary>
+            <param name="ruleName">The name of the rule</param>
+            <param name="rule">The specification of the rule</param>
+            <param name="action">The rule action applied when the rule fullfill.</param>
+            <remarks>No action if teh rule condition failed</remarks>
+        </member>
+        <member name="M:qshine.Specification.BusinessActionRule`1.#ctor(System.String,qshine.Specification.ISpecification{`0},System.Action{`0},System.Action{`0})">
+            <summary>
+            Creates a new instance of the <see cref="T:qshine.Specification.BusinessActionRule`1"/> class.
+            </summary>
+            <param name="ruleName">name of the business rule</param>
+            <param name="rule">Rule specification</param>
+            <param name="action">rule action when the rule fullfill</param>
+            <param name="falseAction">rule action when the rule doesn't follow</param>
+        </member>
+        <member name="M:qshine.Specification.BusinessActionRule`1.#ctor(System.String,qshine.Specification.ISpecification{`0},System.Action{`0})">
+            <summary>
+            Creates a new instance of the <see cref="T:qshine.Specification.BusinessActionRule`1"/> class.
+            </summary>
+            <param name="ruleName">The name of the rule</param>
+            <param name="rule">The specification of the rule</param>
+            <param name="action">The action applied ti the rule.</param>
+        </member>
+        <member name="M:qshine.Specification.BusinessActionRule`1.#ctor(qshine.Specification.SpecificationRule{`0},System.Action{`0},System.Action{`0})">
+            <summary>
+            Creates a new instance of the <see cref="T:qshine.Specification.BusinessActionRule`1"/> class.
+            </summary>
+            <param name="rule">Instance of specification rule</param>
+            <param name="action">rule action when the rule fullfill</param>
+            <param name="falseAction">rule action when the rule doesn't follow</param>
+        </member>
+        <member name="M:qshine.Specification.BusinessActionRule`1.#ctor(qshine.Specification.SpecificationRule{`0},System.Action{`0})">
+            <summary>
+            Creates a new instance of the <see cref="T:qshine.Specification.BusinessActionRule`1"/> class.
+            </summary>
+            <param name="rule">The specification rule</param>
+            <param name="action">The action applied ti the rule.</param>
+        </member>
+        <member name="P:qshine.Specification.BusinessActionRule`1.FalseAction">
+            <summary>
+            Get/Set the rule action for rule evaluation when the specification rule is not satisfied by the entity object.
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.BusinessActionRule`1.TrueAction">
+            <summary>
+            Get/Set the rule action for rule evaluation when the specification rule is satisfied by the entity object.
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.BusinessActionRule`1.Evaluate(`0)">
+            <summary>
+            Evaluates the rule against the business entity instance
+            </summary>
+            <param name="candidate">entity instance to be evaluated by the rule</param>
+        </member>
+        <member name="T:qshine.Specification.CommonCheck">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.CommonCheck.PrecisionScale(System.Object,System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            Precision and Scale validation:
+                Precision is the total number of digits in a Numeric value, both to the right and left of the decimal point.
+                Scale refers to the total number of digits after the decimal point.
+                So, for 123.45 or -123.45 the Precision is 5 and Scale is 2. 
+                    for 123 the Precision is 3 and Scale is 0.
+            </summary>
+            <param name="value">The value to be evaluated</param>
+            <param name="precision">Expected precision.</param>
+            <param name="scale">Expected scale</param>
+            <param name="ignoreNull">Treat null is true</param>
+            <returns>Returns True if the value satisfied the requirement.</returns>
+        </member>
+        <member name="M:qshine.Specification.CommonCheck.Range(System.Object,System.IComparable,System.IComparable,System.Boolean)">
+            <summary>
+            Range validation:
+                Compare date, number and any IComparable object
+            
+            </summary>
+            <param name="value">The value to be evaluated</param>
+            <param name="minValue">minimal value to be compare</param>
+            <param name="maxValue">maximum value to be compare</param>
+            <param name="ignoreNull">Treat null as true.</param>
+            <returns>Returns True if the value satisfied the requirement.</returns>
+        </member>
+        <member name="T:qshine.Specification.IDomainValidator">
+            <summary>
+            Create a domain validation interface
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.IDomainValidator.Validate">
+            <summary>
+            Validate domain entity
+            </summary>
+            <returns>Validation result.</returns>
+        </member>
+        <member name="T:qshine.Specification.ISpecification`1">
+            <summary>
+            It provides a contract to implement a re-usable business logic satisfaction based on certain business conditions.
+            It is a common <see href="http://en.wikipedia.org/wiki/Specification_pattern">Specification Pattern</see> used to define domain validation and business rules.
+            </summary>
+            <typeparam name="T">Type of object to be validated. It usually is a </typeparam>
+        </member>
+        <member name="M:qshine.Specification.ISpecification`1.IsSatisfiedBy(`0)">
+            <summary>
+            Validates against a candidate object to satisfy the specification.
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.ISpecification`1.And(qshine.Specification.ISpecification{`0})">
+            <summary>
+            Combine current specification with other specification togather in boolean AND logic
+            </summary>
+            <param name="other">Other specification to be combined</param>
+            <returns>A new specifiction which combines with other specification.</returns>
+        </member>
+        <member name="M:qshine.Specification.ISpecification`1.AndNot(qshine.Specification.ISpecification{`0})">
+            <summary>
+            Combine current specification with other specification togather in boolean AND NOT logic
+            </summary>
+            <param name="other">Other specification to be combined AND NOT logic</param>
+            <returns>A new specifiction which combines with other specification.</returns>
+        </member>
+        <member name="M:qshine.Specification.ISpecification`1.Or(qshine.Specification.ISpecification{`0})">
+            <summary>
+            Combine current specification with other specification togather in boolean OR logic
+            </summary>
+            <param name="other">Other specification to be combined</param>
+            <returns>A new specifiction which combines with other specification.</returns>
+        </member>
+        <member name="M:qshine.Specification.ISpecification`1.OrNot(qshine.Specification.ISpecification{`0})">
+            <summary>
+            Combine current specification with other specification togather in boolean OR NOT logic
+            </summary>
+            <param name="other">Other specification to be combined OR NOT logic</param>
+            <returns>A new specifiction which combines with other specification.</returns>
+        </member>
+        <member name="M:qshine.Specification.ISpecification`1.Not">
+            <summary>
+            Get opposite specification
+            </summary>
+            <returns>A new specifiction which its opposite logic.</returns>
+        </member>
+        <member name="P:qshine.Specification.ISpecification`1.ConditionExpression">
+            <summary>
+            Gets the specification condition expression.
+            </summary>
+        </member>
+        <member name="T:qshine.Specification.IValidationRule">
+            <summary>
+            RealSuite validation rule interface
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.IValidationRule.IsSatisfiedBy(System.Object)">
+             <summary>
+             Test whether a given value satisfis the rule.
+             </summary>
+             <param name="value">A value to be evaludated</param>
+             <returns>It returns true if the value is satisfied by the rule.
+            </returns>
+        </member>
+        <member name="P:qshine.Specification.IValidationRule.TargetPropertyName">
+            <summary>
+            Get the target object property name the rule refer to.
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.IValidationRule.Rank">
+            <summary>
+            the lower the rank, the earlier to validate
+            </summary>
+        </member>
+        <member name="T:qshine.Specification.RuleCollection`1">
+            <summary>
+            Define a rule Collection
+            </summary>
+            <typeparam name="T">type of rule</typeparam>
+        </member>
+        <member name="M:qshine.Specification.RuleCollection`1.#ctor">
+            <summary>
+            default constructor
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.RuleCollection`1.RemoveAll(System.Predicate{`0})">
+            <summary>
+            Remove all the elements that match the condition
+            </summary>
+            <param name="match">Match condition</param>
+        </member>
+        <member name="T:qshine.Specification.Specification`1">
+            <summary>
+            Provides an implementation for common specification and composite specification.
+            </summary>
+            <typeparam name="T">Type of object to be validated</typeparam>
+        </member>
+        <member name="M:qshine.Specification.Specification`1.#ctor">
+            <summary>
+            Default constractor for the concrete class that overrides the specification condition expression
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.Specification`1.#ctor(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            Constructor with a validation condition expression
+            </summary>
+            <param name="conditionExpression">validation condition expression against a specific class.</param>
+        </member>
+        <member name="P:qshine.Specification.Specification`1.ConditionExpression">
+            <summary>
+            Get/Set specification condition expression
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.Specification`1.IsSatisfiedBy(`0)">
+            <summary>
+            Test against a candidate object based on speification.
+            </summary>
+            <param name="entity">The object to be tested</param>
+            <returns>Returns true if the object is satisfied by the specification</returns>
+            <remarks>
+            The specification will compile conditional expression and evaulate the expression.
+            </remarks>
+        </member>
+        <member name="M:qshine.Specification.Specification`1.And(qshine.Specification.ISpecification{`0})">
+            <summary>
+            Combine current specification with other specification togather in boolean AND logic
+            </summary>
+            <param name="other">Other specification to be combined</param>
+            <returns>A new specifiction which combines with other specification.</returns>
+        </member>
+        <member name="M:qshine.Specification.Specification`1.AndNot(qshine.Specification.ISpecification{`0})">
+            <summary>
+            Combine current specification with other specification togather in boolean AND NOT logic
+            </summary>
+            <param name="other">Other specification to be combined AND NOT logic</param>
+            <returns>A new specifiction which combines with other specification.</returns>
+        </member>
+        <member name="M:qshine.Specification.Specification`1.Or(qshine.Specification.ISpecification{`0})">
+            <summary>
+            Combine current specification with other specification togather in boolean OR logic
+            </summary>
+            <param name="other">Other specification to be combined</param>
+            <returns>A new specifiction which combines with other specification.</returns>
+        </member>
+        <member name="M:qshine.Specification.Specification`1.OrNot(qshine.Specification.ISpecification{`0})">
+            <summary>
+            Combine current specification with other specification togather in boolean OR NOT logic
+            </summary>
+            <param name="other">Other specification to be combined OR NOT logic</param>
+            <returns>A new specifiction which combines with other specification.</returns>
+        </member>
+        <member name="M:qshine.Specification.Specification`1.Not">
+            <summary>
+            Get opposite specification
+            </summary>
+            <returns>A new specifiction which its opposite logic.</returns>
+        </member>
+        <member name="M:qshine.Specification.Specification`1.op_BitwiseAnd(qshine.Specification.Specification{`0},qshine.Specification.Specification{`0})">
+            <summary>
+            overload operator &amp; to combine two specification togather in a boolean AND logic.
+            </summary>
+            <param name="left">The left hand specification to be combined</param>
+            <param name="right">The right hand specification to be combined</param>
+            <returns>A new specification combined both left and right hand specification.</returns>
+        </member>
+        <member name="M:qshine.Specification.Specification`1.op_BitwiseOr(qshine.Specification.Specification{`0},qshine.Specification.Specification{`0})">
+            <summary>
+            overload operator | to combine two specification togather in a boolean OR logic.
+            </summary>
+            <param name="left">The left hand specification to be combined</param>
+            <param name="right">The right hand specification to be combined</param>
+            <returns>A new specification combined both left and right hand specification.</returns>
+        </member>
+        <member name="M:qshine.Specification.Specification`1.op_LogicalNot(qshine.Specification.Specification{`0})">
+            <summary>
+            overload operator ! to change the specification to its opposite logic.
+            </summary>
+            <param name="current">The specification to be change</param>
+            <returns>A new specification with opposite logic</returns>
+        </member>
+        <member name="T:qshine.Specification.AndSpecification`1">
+            <summary>
+            Implement the combined Composite Specification Pattern with AND expression
+            </summary>
+            <typeparam name="T">Type of object to against the specification</typeparam>
+        </member>
+        <member name="T:qshine.Specification.AndNotSpecification`1">
+            <summary>
+            Implement the combined Composite Specification Pattern with AND NOT expression
+            </summary>
+            <typeparam name="T">Type of object to against the specification</typeparam>
+        </member>
+        <member name="T:qshine.Specification.OrSpecification`1">
+            <summary>
+            Implement Composite Specification Pattern OR specification
+            </summary>
+            <typeparam name="T">Type of object to against the specification</typeparam>
+        </member>
+        <member name="T:qshine.Specification.OrNotSpecification`1">
+            <summary>
+            Implement Composite Specification Pattern OR NOT specification
+            </summary>
+            <typeparam name="T">Type of object to against the specification</typeparam>
+        </member>
+        <member name="T:qshine.Specification.NotSpecification`1">
+            <summary>
+            Implement Composite Specification Pattern NOT specification
+            </summary>
+            <typeparam name="T">Type of object to against the specification</typeparam>
+        </member>
+        <member name="T:qshine.Specification.SpecificationRule`1">
+            <summary>
+            Specification Rule of Entity used by validation rule and business rule.
+            </summary>
+            <typeparam name="T">The entity to be evaluated</typeparam>
+            <example>
+            <![CDATA[
+            
+                public class MyOfficeAreaRule:SpecificationRule<Custom>
+                {
+                    public MyOfficeAreaRule()
+                    {
+                        Name ="MyOffliceAreaRule";
+                        Priority = 10;
+                        ConditionExpression = c=>c.PostCode.Contains("L3M");
+                        AddTags("Test","Demo");
+                    }
+                }
+            
+            ]]>
+            
+            </example>
+        </member>
+        <member name="M:qshine.Specification.SpecificationRule`1.#ctor">
+            <summary>
+            Ctro. with default rule name.
+            </summary>
+            <remarks>The default constructor is useful when override the Expression() by the concrete class</remarks>
+        </member>
+        <member name="M:qshine.Specification.SpecificationRule`1.#ctor(System.String,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Int32)">
+            <summary>
+            Ctro a named rule using expression
+            </summary>
+            <param name="ruleName">The name of the rule</param>
+            <param name="rule">The rule specification</param>
+            <param name="priority">The rule priority. The higher rule priority get executed first from rule set.</param>
+        </member>
+        <member name="M:qshine.Specification.SpecificationRule`1.#ctor(System.String,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            Initialize a named rule using specification
+            </summary>
+            <param name="ruleName">The name of the rule</param>
+            <param name="rule">The rule specification</param>
+        </member>
+        <member name="M:qshine.Specification.SpecificationRule`1.#ctor(System.String,qshine.Specification.ISpecification{`0})">
+            <summary>
+            Initialize a named rule using specification
+            </summary>
+            <param name="ruleName">The name of the rule</param>
+            <param name="rule">The rule specification</param>
+        </member>
+        <member name="M:qshine.Specification.SpecificationRule`1.#ctor(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            Initialize a rule
+            </summary>
+            <param name="rule">The rule specification</param>
+        </member>
+        <member name="P:qshine.Specification.SpecificationRule`1.Name">
+            <summary>
+            The specification rule name
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.SpecificationRule`1.Priority">
+            <summary>
+            Rule priority. The higher rule priority get executed first from the rule set.
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.SpecificationRule`1.Enabled">
+            <summary>
+            Sets/Gets specification rule active inactive flag
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.SpecificationRule`1.Tags">
+            <summary>
+            Gets tags associated with rule.
+            A tag is an arbitrary value assicated with the rule that can be used to categorize or filter the business rules.
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.SpecificationRule`1.AddTags(System.String[])">
+            <summary>
+            Add tags
+            </summary>
+            <param name="ruleTags">Tags to be attached</param>
+            <returns>this instance</returns>
+        </member>
+        <member name="M:qshine.Specification.SpecificationRule`1.HasTag(System.String[])">
+            <summary>
+            Check the rule whether it contains required tag.
+            </summary>
+            <param name="tagsArray">Tag array to be searching for</param>
+            <returns>Whether the specific tags associated with the rule.</returns>
+        </member>
+        <member name="T:qshine.Specification.ValidationPolicy">
+            <summary>
+            Specification validation policy.
+            
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.ValidationPolicy.ErrorPolicy">
+            <summary>
+            Defines validation policy how to handle validation failure.
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.ValidationPolicy.EnableDataAnnotations">
+            <summary>
+            Enable/disable entity data annotation
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.ValidationPolicy.EnableChildDataAnnotations">
+            <summary>
+            Enable/disable child entity data annotation
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.ValidationPolicy.MaxErrorLimit">
+            <summary>
+            Specified a maximum error results the ValidationResults can hold.
+            The default number is 100
+            The 0 value indicates unlimited.
+            
+            </summary>
+        </member>
+        <member name="T:qshine.Specification.ValidationErrorPolicy">
+            <summary>
+            Validation failure policy
+            The policy guide how to handle validation error.
+            </summary>
+        </member>
+        <member name="F:qshine.Specification.ValidationErrorPolicy.CatchAllExceptions">
+            <summary>
+            Catch all validation errors without throw exception.
+            </summary>
+        </member>
+        <member name="F:qshine.Specification.ValidationErrorPolicy.CatchExceptionOnFirstFailure">
+            <summary>
+            Catch first validation error without throw exception.
+            The validation rules stop running if one of the rule is not satisfied.
+            </summary>
+        </member>
+        <member name="F:qshine.Specification.ValidationErrorPolicy.ThrowExceptionOnFirstFailure">
+            <summary>
+            A ValidationException will be thrown if one of the rule is not satisfied.
+            </summary>
+        </member>
+        <member name="F:qshine.Specification.ValidationErrorPolicy.ThrowExceptionOnLastFailure">
+            <summary>
+            The validation rules continue to run if one of the rule is not satisfied. 
+            A ValidationException will be thrown in the end of the rule validation if one of the rule is not satisfied.
+            </summary>
+        </member>
+        <member name="T:qshine.Specification.ValidationResult">
+            <summary>
+            Represents the result of an atomic validation rule.
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.ValidationResult.#ctor(System.String,System.String,System.Object)">
+            <summary>
+            Initializes a new instance of the ValidationResult class by using a rule name, error message and associated proeprty name
+            </summary>
+            <param name="source">source of the validation error message</param>
+            <param name="message">error message</param>
+            <param name="property">Error associated property</param>
+        </member>
+        <member name="M:qshine.Specification.ValidationResult.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the ValidationResult class by error message
+            </summary>
+            <param name="message">validation error message</param>
+        </member>
+        <member name="M:qshine.Specification.ValidationResult.#ctor(System.Exception)">
+            <summary>
+            Initializes a new instance of the ValidationResult class by error exception
+            </summary>
+            <param name="ex">Error exception</param>
+        </member>
+        <member name="M:qshine.Specification.ValidationResult.#ctor">
+            <summary>
+            Initializes a new instance of the ValidationResult class without error.
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.ValidationResult.Success">
+            <summary>
+            Gets the indication of whether the validation success or failure
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.ValidationResult.Error">
+            <summary>
+            Gets a message describing the failure.
+            </summary>
+        </member>
+        <member name="T:qshine.Specification.ValidationResults">
+            <summary>
+            Represents the results of validating an object or process.
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.ValidationResults.IsValid">
+            <summary>
+            Gets the indication of whether the validation successful or failure
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.ValidationResults.ObjectInstance">
+            <summary>
+            Gets/Sets the object to validate
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.ValidationResults.ThrowExceptionOnError">
+            <summary>
+            Throw Validation exception
+            </summary>
+        </member>
+        <member name="T:qshine.Specification.BusinessValidationRule`1">
+            <summary>
+            Represents a specification based validation rule.
+            Example:
+                Defines all entity rules in validator and apply selected rules to corresponding action.
+            <![CDATA[
+                public class AccountValidator:Validator<Account>
+                {
+                    BusinessValidationRule[] = {
+                        {
+                        new BusinessValidationRule(
+                            "rule1", x=>x.Name.Contains("Special"),
+                            (x)=>{return string.Format("Validation rule 1 failed {0}",x.MyProperty);},
+                            1
+                            )
+                        },
+                        {}
+                    };
+                }
+            
+            ]]>    
+            
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:qshine.Specification.BusinessValidationRule`1.#ctor(qshine.Specification.SpecificationRule{`0},System.Func{`0,System.String},System.Int32,System.String)">
+            <summary>
+            Initialize a business validation rule instance of the <see cref="T:qshine.Specification.BusinessValidationRule`1"/> class.
+            </summary>
+            <param name="rule">Specifies rule name.</param>
+            <param name="validationMessage">A delegator to generate a validation error message.</param>
+            <param name="rank">Rank of the rule.</param>
+            <param name="property">validation rule asociated property.</param>
+        </member>
+        <member name="M:qshine.Specification.BusinessValidationRule`1.#ctor(qshine.Specification.SpecificationRule{`0},System.Func{`0,System.String},System.Int32)">
+            <summary>
+            Initialize a business validation rule instance of the <see cref="T:qshine.Specification.BusinessValidationRule`1"/> class.
+            </summary>
+            <param name="rule">Specifies rule name.</param>
+            <param name="validationMessage">A delegator to generate a validation error message.</param>
+            <param name="rank">Rank of the rule.</param>
+        </member>
+        <member name="M:qshine.Specification.BusinessValidationRule`1.#ctor(qshine.Specification.SpecificationRule{`0},System.Func{`0,System.String})">
+            <summary>
+            Initialize a business validation rule instance of the <see cref="T:qshine.Specification.BusinessValidationRule`1"/> class.
+            </summary>
+            <param name="rule">Specifies rule name.</param>
+            <param name="validationMessage">A delegator to generate a validation error message.</param>
+        </member>
+        <member name="M:qshine.Specification.BusinessValidationRule`1.#ctor(System.String,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Func{`0,System.String},System.Int32,System.String)">
+            <summary>
+            Defines a new business validation rule instance of the <see cref="T:qshine.Specification.BusinessValidationRule`1"/> class.
+            </summary>
+            <param name="ruleName">The name of the rule</param>
+            <param name="rule">The specification of the rule using Lambda expression</param>
+            <param name="validationMessage">A delegator to generate a validation error message.</param>
+            <param name="rank">Rank of the rule.</param>
+            <param name="property">validation rule asociated property.</param>
+        </member>
+        <member name="M:qshine.Specification.BusinessValidationRule`1.#ctor(System.String,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Func{`0,System.String},System.Int32)">
+            <summary>
+            Defines a new business validation rule instance of the <see cref="T:qshine.Specification.BusinessValidationRule`1"/> class.
+            </summary>
+            <param name="ruleName">The name of the rule</param>
+            <param name="rule">The specification of the rule using Lambda expression</param>
+            <param name="validationMessage">A delegator to generate a validation error message.</param>
+            <param name="rank">Rank of the rule.</param>
+        </member>
+        <member name="M:qshine.Specification.BusinessValidationRule`1.#ctor(System.String,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Func{`0,System.String})">
+            <summary>
+            Defines a new business validation rule instance of the <see cref="T:qshine.Specification.BusinessValidationRule`1"/> class.
+            </summary>
+            <param name="ruleName">The name of the rule</param>
+            <param name="rule">The specification of the rule using Lambda expression</param>
+            <param name="validationMessage">A delegator to generate a validation error message.</param>
+        </member>
+        <member name="M:qshine.Specification.BusinessValidationRule`1.#ctor(System.String,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Func{`0,System.String},System.String)">
+            <summary>
+            
+            </summary>
+            <param name="ruleName"></param>
+            <param name="rule"></param>
+            <param name="validationMessage">A delegator to generate a validation error message.</param>
+            <param name="property"></param>
+        </member>
+        <member name="M:qshine.Specification.BusinessValidationRule`1.#ctor(System.String,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.String,System.String)">
+            <summary>
+            Defines a new business validation rule instance of the <see cref="T:qshine.Specification.BusinessValidationRule`1"/> class.
+            </summary>
+            <param name="ruleName">The name of the rule</param>
+            <param name="rule">The specification of the rule using Lambda expression</param>
+            <param name="validationErrorMessage">The validation message associated with the rule.</param>
+            <param name="property">The name of the validation target object.</param>
+        </member>
+        <member name="M:qshine.Specification.BusinessValidationRule`1.#ctor(System.String,qshine.Specification.ISpecification{`0},System.String,System.String)">
+            <summary>
+            Creates a new instance of the <see cref="T:qshine.Specification.BusinessValidationRule`1"/> class.
+            </summary>
+            <param name="ruleName">The name of the rule</param>
+            <param name="rule">The specification of the rule</param>
+            <param name="validationErrorMessage">The validation message associated with the rule.</param>
+            <param name="property">The name of the candidate.</param>
+        </member>
+        <member name="P:qshine.Specification.BusinessValidationRule`1.TargetPropertyName">
+            <summary>
+            The property associate to the rule. It usually is an entity property name, 
+            but it could be any meaningful value that user could identify which rule is applied. 
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.BusinessValidationRule`1.Validate(`0)">
+            <summary>
+            Validates a candidate based on rule
+            </summary>
+            <param name="candidate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Specification.BusinessValidationRule`1.IsSatisfiedBy(System.Object)">
+            <summary>
+            Implement the IsSatisfiedBy interface
+            </summary>
+            <param name="candidate">candidate to be evaluated</param>
+            <returns>return of the validation</returns>
+        </member>
+        <member name="P:qshine.Specification.BusinessValidationRule`1.Rank">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:qshine.Specification.Validator`1">
+             <summary>
+             A helper class for entity validation.
+             </summary>
+             <typeparam name="T">Entity type</typeparam>
+             <remarks>
+             The entity validator is used to validate an entity rules.
+             The entity validator contains all specifications of an entity.
+             Use rule tags to categorize the different rule set.
+             
+             The service create a business entity validator and apply the the entity object to the validator before perform the action.
+             The validator may raise exception or returns ValidationResults based on validator policy.
+             Default validator will raise exception on last failed rule.
+             </remarks>
+             <example>
+             For example, 
+                 When perform Account entity method ChangeAddress() we need apply AccountValidator to the entity.
+             <![CDATA[
+             
+              public class AccountValidator():Validator<Account>
+              {
+                 public AccountValidator()
+                 {
+                 
+                     Policy = new ValidationPolicy {
+                         ErrorPolicy = ErrorPolicy.ThrowExceptionOnFirstFailure,
+                         EnableDataAnnotation = true
+                     }();
+                     
+                 AddRule ("Base Rules", Rule1 & Rule2 & Rule3);
+                 AddRule ("Address Rules", Rule4);
+              }
+            ...
+             void ChangeAddress(Account account)
+             {
+                 var validator = new AccountValidator();
+                 var repository = new AccountRepository();
+            
+                 validator.Validate(account, repository.Save);
+                 
+             }
+             ]]>
+             </example>
+        </member>
+        <member name="P:qshine.Specification.Validator`1.RuleSet">
+            <summary>
+            Get a collection of validation rules
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.Validator`1.AddRule(System.String,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.String,System.String)">
+            <summary>
+            Add validation rule by expression
+            </summary>
+            <param name="ruleName"></param>
+            <param name="rule"></param>
+            <param name="message"></param>
+            <param name="property"></param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Specification.Validator`1.AddRule(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.String,System.String)">
+            <summary>
+            Add anoymous rule
+            </summary>
+            <param name="rule"></param>
+            <param name="message"></param>
+            <param name="property"></param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Specification.Validator`1.AddRule(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.String)">
+            <summary>
+            Add anonymous rule
+            </summary>
+            <param name="rule"></param>
+            <param name="message"></param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Specification.Validator`1.AddRule(qshine.Specification.BusinessValidationRule{`0})">
+            <summary>
+            Add a validation rule for specific entity
+            </summary>
+            <param name="validationRule">validation rule</param>
+            <returns>return instance self</returns>
+        </member>
+        <member name="M:qshine.Specification.Validator`1.AddRule(qshine.Specification.Validator{`0})">
+            <summary>
+            Add a validator in
+            </summary>
+            <param name="validator">validator</param>
+            <returns>return instance self</returns>
+        </member>
+        <member name="M:qshine.Specification.Validator`1.AddRules(qshine.Specification.BusinessValidationRule{`0}[])">
+            <summary>
+            Add multiple validation rules for specific entity
+            </summary>
+            <param name="rules">ValidationRules to be added into validator</param>
+            <returns>return instance self</returns>
+        </member>
+        <member name="M:qshine.Specification.Validator`1.RemoveRule(qshine.Specification.BusinessValidationRule{`0})">
+            <summary>
+            Remove one validation rule from the validator
+            </summary>
+            <param name="rule">The validation rule to be removed</param>
+        </member>
+        <member name="M:qshine.Specification.Validator`1.RemoveRules(System.String)">
+            <summary>
+            Remove validation rules by a specific rule name
+            </summary>
+            <param name="ruleName">The name of the validation rule</param>
+        </member>
+        <member name="M:qshine.Specification.Validator`1.Validate(`0)">
+            <summary>
+            Perform validation against an entity instance.
+            On ExceptionOnValidationError.ExceptionOnFirstError and  ExceptionOnValidationError.ExceptionOnLastError
+            it throw a validation exception when the validation failure.
+            </summary>
+            <param name="entity">Entity instance to be validated</param>
+            <returns>validation results</returns>
+        </member>
+        <member name="M:qshine.Specification.Validator`1.Validate(`0,System.String[])">
+            <summary>
+            Perform validation rules against an entity instance.Only the given tagged rules will be evaluated.
+            </summary>
+            <param name="entity">Entity instance to be validated</param>
+            <param name="tags">Expected tagged rules</param>
+            <returns>validation results</returns>
+        </member>
+        <member name="M:qshine.Specification.Validator`1.Validate(`0,System.Linq.IOrderedEnumerable{qshine.Specification.BusinessValidationRule{`0}})">
+            <summary>
+            perform all entity rules validation
+            </summary>
+            <param name="entity"></param>
+            <param name="activeRules"></param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Specification.Validator`1.ValidateDataAnnotations(System.Object)">
+            <summary>
+            Validate using data annotation
+            </summary>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="T:qshine.Specification.Validator">
+            <summary>
+            A validator validates a object using business rules and validation annotation based on validation policy.
+            Each validation rule result will be added in result queue.
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.Validator.#ctor">
+            <summary>
+            Ctor::
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.Validator.#ctor(qshine.Specification.ValidationErrorPolicy)">
+            <summary>
+            Create a validator by given error policy 
+            </summary>
+            <param name="errorPolicy"></param>
+        </member>
+        <member name="M:qshine.Specification.Validator.#ctor(qshine.Specification.ValidationPolicy)">
+            <summary>
+            Ctor::
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.Validator.ValidationResults">
+            <summary>
+            Gets validation results which hold a collection of failed validation results.
+            </summary>
+        </member>
+        <member name="P:qshine.Specification.Validator.Policy">
+            <summary>
+            Get validation policy
+            </summary>
+        </member>
+        <member name="M:qshine.Specification.Validator.TryAddValidationResult(qshine.Specification.ValidationResult)">
+            <summary>
+            Add a validation result into the error result collection.
+            It returns false if maximum number of errors reached.
+            </summary>
+            <param name="validationResult"></param>
+        </member>
+        <member name="M:qshine.Specification.Validator.AddValidationError(System.String)">
+            <summary>
+            Add a validation error into validation result collection.
+            </summary>
+            <param name="errorMessage">error message</param>
+            <returns>Returns true if the error message can be added into collection.
+            Returns false if the error reach to maximum number of errors.</returns>
+        </member>
+        <member name="M:qshine.Specification.Validator.AddValidationError(System.Exception)">
+            <summary>
+            Add validation exception
+            </summary>
+            <param name="ex"></param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Specification.Validator.AddValidationResult(qshine.Specification.ValidationResult)">
+            <summary>
+            Add a validation result into validation result collection.
+            </summary>
+            <param name="validationResult">validation result</param>
+            <returns>return false when error number reached to teh limitation.</returns>
+        </member>
+        <member name="T:qshine.Utility.AssemblyExtension">
+            <summary>
+            Assembly extension
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.AssemblyExtension.SafeGetInterfacedTypes(System.Reflection.Assembly,System.Type)">
+            <summary>
+            Find all class types which inplemented a given interface type
+            </summary>
+            <param name="assembly">Assembly may contain interfaced class</param>
+            <param name="interfacedType">Specifies an interface to be lookup.</param>
+            <returns>A list of class types which implemented a given interface or base class.</returns>
         </member>
         <member name="T:qshine.Utility.NamedMapper">
              <summary>
@@ -6019,223 +7751,6 @@
             Use context bind/unbind to scope and release instance per-context request.
             </summary>
         </member>
-        <member name="T:qshine.Globalization.Resource">
-            <summary>
-              A strongly-typed resource class, for looking up localized strings, etc.
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.ResourceManager">
-            <summary>
-              Returns the cached ResourceManager instance used by this class.
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.Culture">
-            <summary>
-              Overrides the current thread's CurrentUICulture property for all
-              resource lookups using this strongly typed resource class.
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.ArgumentNotEmpty">
-            <summary>
-              Looks up a localized string similar to {0} is required but was null or empty..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.ArgumentNotNULL">
-            <summary>
-              Looks up a localized string similar to {0} is required but was null..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.CacheAddDependenciesNotSupportedException">
-            <summary>
-              Looks up a localized string similar to Cache.Add:dependencies must be null..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.CacheAddOnRemoveCallbackNotSupport">
-            <summary>
-              Looks up a localized string similar to Cache.Add:onRemoveCallback must be null..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.DateFieldRangeMessage">
-            <summary>
-              Looks up a localized string similar to The {0} field value must be a date between {1} and {2}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.DuplicateRules">
-            <summary>
-              Looks up a localized string similar to Unable to add same rule {0} twice..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.FieldDataTypeMessage">
-            <summary>
-              Looks up a localized string similar to The {0} field must be a valid {1}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.FieldLengthMessage">
-            <summary>
-              Looks up a localized string similar to The {0} field size should be limited between {1} to {2} characters..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.FieldMaxLengthMessage">
-            <summary>
-              Looks up a localized string similar to The {0} field characters could not exceed {1} characters..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.FieldRequiredMessage">
-            <summary>
-              Looks up a localized string similar to The {0} field value is required..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.LoggingException">
-            <summary>
-              Looks up a localized string similar to Exception in Enterprise Library Logging Application Block.
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.NumericFieldRangeMessage">
-            <summary>
-              Looks up a localized string similar to The {0} field value must be a number between {1} and {2}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.OneRuleRequired">
-            <summary>
-              Looks up a localized string similar to The AddRules method takes at least one argument..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.ValidationFailed">
-            <summary>
-              Looks up a localized string similar to  Validation Failed..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.IoCExceptionProviderNotFound">
-            <summary>
-              Looks up a localized string similar to The IoC provider {0} is not found..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.IoCExceptionRegisterMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occured while trying register a type {0}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.IoCExceptionRegisterModuleMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occurred while trying to register a module..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.IoCExceptionRegisterNameMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occured while trying register a type {0} with a name {1}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.IoCExceptionRegisterSectionFirstMessage">
-            <summary>
-              Looks up a localized string similar to Castle Windsor configuration registration should be done earlier than  any other type registration..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.IoCExceptionRegisterSectionMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occured while trying to register types through a XML configuration section {0}. .
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.IoCExceptionResolveAllMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occured while trying to resolve all registered type {0}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.IoCExceptionResolveMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occured while trying to resolve type {0}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.IoCExceptionResolveNamedMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occured while trying to resolve type {0} with a specific name {1}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.SectionNotFound">
-            <summary>
-              Looks up a localized string similar to The section {0} is not found. Check the section name and section handler type..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resource.TypeNotFound">
-            <summary>
-              Looks up a localized string similar to The type {0} is not found..
-            </summary>
-        </member>
-        <member name="T:qshine.Globalization.Resources">
-            <summary>
-              A strongly-typed resource class, for looking up localized strings, etc.
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.ResourceManager">
-            <summary>
-              Returns the cached ResourceManager instance used by this class.
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.Culture">
-            <summary>
-              Overrides the current thread's CurrentUICulture property for all
-              resource lookups using this strongly typed resource class.
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.InvalidCommandBusFactory">
-            <summary>
-              Looks up a localized string similar to Couldn&apos;t find a configured named command bus factory ({0}:{1})..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.IoCExceptionProviderNotFound">
-            <summary>
-              Looks up a localized string similar to The IoC provider {0} is not found..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.IoCExceptionRegisterMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occured while trying register a type {0}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.IoCExceptionRegisterModuleMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occurred while trying to register a module..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.IoCExceptionRegisterNameMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occured while trying register a type {0} with a name {1}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.IoCExceptionRegisterSectionFirstMessage">
-            <summary>
-              Looks up a localized string similar to Castle Windsor configuration registration should be done earlier than  any other type registration..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.IoCExceptionRegisterSectionMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occured while trying to register types through a XML configuration section {0}. .
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.IoCExceptionResolveAllMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occured while trying to resolve all registered type {0}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.IoCExceptionResolveMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occured while trying to resolve type {0}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.IoCExceptionResolveNamedMessage">
-            <summary>
-              Looks up a localized string similar to IoC error occured while trying to resolve type {0} with a specific name {1}..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.SectionNotFound">
-            <summary>
-              Looks up a localized string similar to The section {0} is not found. Check the section name and section handler type..
-            </summary>
-        </member>
-        <member name="P:qshine.Globalization.Resources.TypeNotFound">
-            <summary>
-              Looks up a localized string similar to The type {0} is not found..
-            </summary>
-        </member>
         <member name="T:qshine.TinyIocProvider">
             <summary>
             
@@ -6330,23 +7845,23 @@
             </summary>
             <returns>The container.</returns>
         </member>
-        <member name="T:qshine.PlugableComponent">
+        <member name="T:qshine.PluggableComponent">
             <summary>
             Pluggable component from plugin configure setting
             </summary>
         </member>
-        <member name="P:qshine.PlugableComponent.ConfigureFilePath">
+        <member name="P:qshine.PluggableComponent.ConfigureFilePath">
             <summary>
             Component configure file path. 
             </summary>
         </member>
-        <member name="P:qshine.PlugableComponent.Name">
+        <member name="P:qshine.PluggableComponent.Name">
             <summary>
             Gets or sets the name of component.
             </summary>
             <value>The name.</value>
         </member>
-        <member name="P:qshine.PlugableComponent.InterfaceTypeName">
+        <member name="P:qshine.PluggableComponent.InterfaceTypeName">
             <summary>
             Gets or sets the name of the interface type.
             It represents qualified type of component interface or base class.
@@ -6354,13 +7869,13 @@
             </summary>
             <value>The name of the interface type.</value>
         </member>
-        <member name="P:qshine.PlugableComponent.InterfaceType">
+        <member name="P:qshine.PluggableComponent.InterfaceType">
             <summary>
             Gets or sets the type of the interface type.
             </summary>
             <value>The type of the interface.</value>
         </member>
-        <member name="P:qshine.PlugableComponent.ClassTypeName">
+        <member name="P:qshine.PluggableComponent.ClassTypeName">
             <summary>
             Gets or sets the name of the class type setting value.
             It represents a qualified type for interface implementation class
@@ -6368,19 +7883,19 @@
             </summary>
             <value>The name of the class type.</value>
         </member>
-        <member name="P:qshine.PlugableComponent.ClassType">
+        <member name="P:qshine.PluggableComponent.ClassType">
             <summary>
             Gets or sets the type of the class.
             </summary>
             <value>The type of the class.</value>
         </member>
-        <member name="P:qshine.PlugableComponent.Parameters">
+        <member name="P:qshine.PluggableComponent.Parameters">
             <summary>
             Gets or sets the parameters for component class constructor.
             </summary>
             <value>The parameters.</value>
         </member>
-        <member name="P:qshine.PlugableComponent.Scope">
+        <member name="P:qshine.PluggableComponent.Scope">
             <summary>
             Defines a life scope of the component.
             The valid scopes are:
@@ -6390,44 +7905,42 @@
             The value could be mapped to IocInstanceScope.
             </summary>
         </member>
-        <member name="P:qshine.PlugableComponent.IsDefault">
+        <member name="P:qshine.PluggableComponent.IsDefault">
             <summary>
-            Indicates a default service for given interface.
+            Indicates a default type of service for given interface.
             If more than one default components found, it always picks first one as default.
             </summary>
         </member>
-        <member name="M:qshine.PlugableComponent.CreateInstance">
+        <member name="P:qshine.PluggableComponent.InvalidReason">
+            <summary>
+            The reason of failure. 
+            </summary>
+        </member>
+        <member name="M:qshine.PluggableComponent.CreateInstance">
             <summary>
             Create a component instance.
             If the scope of compoennt is a singleton instance, it always returns the same one.
             Otherwise, it creates a new instance.
             </summary>
+            <remarks>
+            The component will hold an reference of singleton instance.
+            </remarks>
         </member>
-        <member name="M:qshine.PlugableComponent.Instantiate">
+        <member name="M:qshine.PluggableComponent.Instantiate(qshine.Configuration.ApplicationEnvironmentContext)">
             <summary>
             Instantiate the plugable component
             </summary>
-            <returns></returns>
+            <returns>
+            Returns true if the component instanciated without error.
+            </returns>
         </member>
-        <member name="M:qshine.PlugableComponent.CreateInstance(System.Type,System.Object[])">
-            <summary>
-            Creates the instance by type and given arguments.
-            </summary>
-            <returns>The instance.</returns>
-            <param name="type">Type of object</param>
-            <param name="parameters">Parameters.</param>
-        </member>
-        <member name="M:qshine.PlugableComponent.SafeLoadType(System.String)">
+        <member name="M:qshine.PluggableComponent.SafeLoadType(qshine.Configuration.ApplicationEnvironmentContext,System.String)">
             <summary>
             Load a qualified type without throw exception
             </summary>
             <returns>The type or null.</returns>
+            <param name="context">Application environment contex.</param>
             <param name="typeValue">Type value.</param>
-        </member>
-        <member name="P:qshine.PlugableComponent.InvalidReason">
-            <summary>
-            Find teh reason why the component failed to Instantiate. 
-            </summary>
         </member>
         <member name="T:qshine.PluggableAssembly">
             <summary>
@@ -6450,77 +7963,6 @@
             <summary>
             Indicates the assembly has been initialized
             </summary>
-        </member>
-        <member name="F:qshine.PluggableAssembly._assemblyMaps">
-            <summary>
-            AssemblyMaps
-            </summary>
-        </member>
-        <member name="P:qshine.PluggableAssembly.Maps">
-            <summary>
-            Pluggable assembly maps
-            </summary>
-        </member>
-        <member name="M:qshine.PluggableAssembly.GetType(System.String,System.String,System.Boolean)">
-            <summary>
-            Get type by given assembly name and object type name from a pluggable assembly Map.
-            To avoid pluggable component dll hell, it only allow one version be loaded for pluggable assembly.
-            </summary>
-            <param name="assemblyName">Simple assembly name. </param>
-            <param name="typeName">Simple type name.</param>
-            <param name="throwError">throw exception if it is true.</param>
-            <returns></returns>
-        </member>
-        <member name="M:qshine.PluggableAssembly.GetType(System.String)">
-            <summary>
-            Get type by type name. It finds first found type from assembly Map
-            </summary>
-            <param name="typeName">Simple type name.</param>
-            <returns></returns>
-        </member>
-        <member name="M:qshine.PluggableAssembly.GetAssembly(System.String)">
-            <summary>
-            Get assembly from assembly Map
-            </summary>
-            <param name="assemblyName">simple assembly name</param>
-            <returns>Loaded Assembly</returns>
-        </member>
-        <member name="M:qshine.PluggableAssembly.GetPluggableAssembly(System.String)">
-            <summary>
-            Get pluggable assembly component by name
-            </summary>
-            <param name="assemblyName">simple assembly name</param>
-            <returns>Pluggable assembly compoenent (may not loaded yet)</returns>
-        </member>
-        <member name="M:qshine.PluggableAssembly.AddAssembly(System.String,qshine.PluggableAssembly)">
-            <summary>
-            Add a pluggable assembly into Map
-            </summary>
-            <param name="assemblyName">simple assembly name</param>
-            <param name="assembly">Pluggable assembly compoenent (may not loaded yet)</param>
-            <returns>returns true if assembly added in the Map</returns>
-        </member>
-        <member name="M:qshine.PluggableAssembly.SafeGetInterfacedTypes(System.Type)">
-            <summary>
-            Find all types which implemented a specific interface or base class type from all loaded assemblies. 
-            </summary>
-            <param name="interfaceType">Specifies interface or base class type.</param>
-            <returns>A list of implementation class types.</returns>
-        </member>
-        <member name="M:qshine.PluggableAssembly.SafeLoadType(System.String)">
-            <summary>
-            Load a qualified type without throw exception
-            </summary>
-            <returns>The type or null.</returns>
-            <param name="typeValue">Type value.</param>
-        </member>
-        <member name="M:qshine.PluggableAssembly.SafeGetInterfacedTypes(System.Reflection.Assembly,System.Type)">
-            <summary>
-            Find all class types which inplemented a given interface type
-            </summary>
-            <param name="assembly">Assembly may contain interfaced class</param>
-            <param name="interfacedType">Specifies an interface to be lookup.</param>
-            <returns>A list of class types which implemented a given interface or base class.</returns>
         </member>
         <member name="T:qshine.EnvironmentEx">
             <summary>
@@ -6624,6 +8066,14 @@
                 default is original enum string
             </param>
             <returns>Returns a given formatted enum property string</returns>
+        </member>
+        <member name="M:qshine.EnumExtension.Format(System.Enum,System.Object[])">
+            <summary>
+            Using String.Format() to format a given enum StringValue.
+            </summary>
+            <param name="value">A enum property</param>
+            <param name="args">format arguments</param>
+            <returns></returns>
         </member>
         <member name="M:qshine.EnumExtension.GetEnumValue``1(System.String,qshine.EnumValueType)">
             <summary>
@@ -7041,12 +8491,12 @@
             <param name="parameters">input and output parameters for SQL statement.</param>
             <returns>Return rows affected</returns>
         </member>
-        <member name="M:qshine.DbClient.Sql(System.Collections.Generic.List{System.String},qshine.BatchException)">
+        <member name="M:qshine.DbClient.Sql(System.Collections.Generic.List{System.String},qshine.Specification.Validator)">
             <summary>
             Execute a SQL statements with parameters
             </summary>
             <param name="batchStatements">sql statement</param>
-            <param name="batchException">Batch exception option.
+            <param name="results">Receives validation results
             It also receives batch exception if some sqls failed.</param>
             <returns></returns>
         </member>
@@ -7057,20 +8507,20 @@
             <param name="sql">sql statement with parameters</param>
             <returns>result of the sql statement</returns>
         </member>
-        <member name="M:qshine.DbClient.Sql(System.Collections.Generic.List{qshine.DbSqlStatement},qshine.BatchException)">
+        <member name="M:qshine.DbClient.Sql(System.Collections.Generic.List{qshine.DbSqlStatement},qshine.Specification.Validator)">
             <summary>
             Execute a batch Sql statements
             </summary>
             <param name="batchStatements">sql statements</param>
-            <param name="batchException">batch exception policy</param>
+            <param name="results">Receive validation results</param>
             <returns>True to indicate success.</returns>
         </member>
-        <member name="M:qshine.DbClient.Sql(qshine.ConditionalSql,qshine.BatchException)">
+        <member name="M:qshine.DbClient.Sql(qshine.ConditionalSql,qshine.Specification.Validator)">
             <summary>
             Execute sql when condition satisfied
             </summary>
             <param name="sql">conditional sql instance.</param>
-            <param name="batchException">batch exception policy</param>
+            <param name="results">Receive validation results</param>
             <returns></returns>
         </member>
         <member name="M:qshine.DbClient.Sql(System.Collections.Generic.List{qshine.ConditionalSql})">
@@ -7080,12 +8530,12 @@
             <param name="batchSqls">a list of condition sql</param>
             <returns></returns>
         </member>
-        <member name="M:qshine.DbClient.Sql(System.Collections.Generic.List{qshine.ConditionalSql},qshine.BatchException)">
+        <member name="M:qshine.DbClient.Sql(System.Collections.Generic.List{qshine.ConditionalSql},qshine.Specification.Validator)">
             <summary>
             Execute conditional sqls.
             </summary>
             <param name="batchSqls">conditional sqls</param>
-            <param name="batchException">batch sql exception policy</param>
+            <param name="results">Receive validation results</param>
             <returns>true if no any exception.</returns>
         </member>
         <member name="M:qshine.DbClient.StoredProcedure(System.String,qshine.DbParameters)">
@@ -7219,6 +8669,11 @@
             </summary>
             <typeparam name="T">type of a class</typeparam>
             <returns>interceptor instance</returns>
+        </member>
+        <member name="M:qshine.Interceptor.LoadInterceptors">
+            <summary>
+            Load all interceptors from default app domain and pluggable assemblies
+            </summary>
         </member>
         <member name="M:qshine.Interceptor.RegisterHandlerType(System.Type)">
             <summary>

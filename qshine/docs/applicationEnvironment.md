@@ -388,6 +388,7 @@ The named bus "securityAuditBus" will use "kafkaProvider" provider.
             <add key="defaultBus"  value="dbBusProvider" />
             <add key="apInvoiceBus"  value="rabbitMQProvider" />
             <add key="securityAuditBus"  value="kafkaProvider" />
+            <add key="*.Audit.*"  value="kafkaProvider" />
         </maps>
 ```
 

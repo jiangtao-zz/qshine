@@ -56,7 +56,7 @@ namespace qshine.EventStore
         /// <param name="connectionStringName">connection string for the event store</param>
         public AggregateEventStore(string aggregateName, string connectionStringName)
         {
-            var connection = ApplicationEnvironment.Current.ConnectionStrings[connectionStringName];
+            var connection = ApplicationEnvironment.Default.ConnectionStrings[connectionStringName];
             Check.Assert<ArgumentNullException>(connection != null, "Couldn't find name [{0}] EventStore connection string.", connectionStringName);
 
             _connectionString = connection.ConnectionString;

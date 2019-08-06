@@ -33,6 +33,7 @@
     <Compile Include="InterceptorTests.cs" />
     <Compile Include="IStartupInitializerTests.cs" />
     <Compile Include="jsonTests.cs" />
+    <Compile Include="LocalStringTests.cs" />
     <Compile Include="logTests.cs" />
     <Compile Include="ObjectExtenstionTests.cs" />
     <Compile Include="TestObject1.cs" />

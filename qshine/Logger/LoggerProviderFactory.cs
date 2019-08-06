@@ -19,7 +19,7 @@ namespace qshine.Logger
         {
             if (_map.ContainsKey(category)) return _map[category];
 
-            var provider = ApplicationEnvironment.Current.CreateMappedProvider<ILoggerProvider>(category);
+            var provider = ApplicationEnvironment.Default.Services.GetProvider<ILoggerProvider>(category);
             if (provider == null)
             {
                 if (_defaultProvider != null)
@@ -29,7 +29,7 @@ namespace qshine.Logger
                 else
                 {
                     //try get the default provider
-                    provider = ApplicationEnvironment.Current.CreateComponent<ILoggerProvider>();
+                    provider = ApplicationEnvironment.Default.Services.GetProvider<ILoggerProvider>();
                     if (provider != null)
                     {
                         _defaultProvider = provider;

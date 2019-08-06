@@ -20,8 +20,9 @@ namespace SampleApp
                 Console.WriteLine(x);
             }
 
-                ApplicationEnvironment.Build();
-            var count = ApplicationEnvironment.Current.EnvironmentConfigure.Environments.Count;
+            ApplicationEnvironment.Build();
+
+            var count = ApplicationEnvironment.Default.EnvironmentConfigure.Environments.Count;
             Console.WriteLine($"Environments={count}");
             Console.ReadKey();
 

@@ -5,6 +5,7 @@ using qshine.Configuration;
 using qshine.Utility;
 using qshine.Logger;
 using System.Linq;
+using qshine.Globalization;
 
 namespace qshine
 {
@@ -30,7 +31,7 @@ namespace qshine
             //Ensure provider and connection string available
             Check.Assert<InvalidProviderException>(
                 !string.IsNullOrEmpty(ProviderName) && !string.IsNullOrEmpty(ConnectionString),
-                "The given database provider or connection string couldn't be empty.");
+                "The given database provider or connection string couldn't be empty."._G());
         }
 
         /// <summary>
@@ -56,9 +57,9 @@ namespace qshine
             //1. Find a given named connection string setting from configure
             //a. The name exactly match.
             //b. The "default" name if name not present
-            for (int i = 0; i<ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings.Count;i++)
+            for (int i = 0; i<ApplicationEnvironment.Default.EnvironmentConfigure.ConnectionStrings.Count;i++)
 			{
-				var connectionStringSetting = ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings[i];
+				var connectionStringSetting = ApplicationEnvironment.Default.EnvironmentConfigure.ConnectionStrings[i];
 
 				if (name.Equals(connectionStringSetting.Name, StringComparison.InvariantCultureIgnoreCase))
 				{
@@ -70,17 +71,16 @@ namespace qshine
 
             //Get first one if name is empty or null
 			if (string.IsNullOrEmpty(configedConnectionName) 
-                && ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings.Count>0)
+                && ApplicationEnvironment.Default.EnvironmentConfigure.ConnectionStrings.Count>0)
 			{
-				ProviderName = ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings[0].ProviderName;
-				ConnectionString = ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings[0].ConnectionString;
+				ProviderName = ApplicationEnvironment.Default.EnvironmentConfigure.ConnectionStrings[0].ProviderName;
+				ConnectionString = ApplicationEnvironment.Default.EnvironmentConfigure.ConnectionStrings[0].ConnectionString;
 			}
 
             //Ensure provider and connection string available
             Check.Assert< InvalidProviderException >(
                 !string.IsNullOrEmpty(ProviderName) && !string.IsNullOrEmpty(ConnectionString),
-				"The named {0} database provider and connection string couldn't be found from configuration setting.",
-                name);
+				"The named {0} database provider and connection string couldn't be found from configuration setting."._G(name));
 		}
 
         #endregion
@@ -138,9 +138,7 @@ namespace qshine
                     _factory = DbProviderFactories.GetFactory(ProviderName);
 
                     Check.Assert<InvalidProviderException>(_factory != null,
-                        ".NET DbProviderFactory {0} load error.",
-                        ProviderName
-                        );
+                        ".NET DbProviderFactory {0} load error."._G(ProviderName));
 
                     if (!_parameterPrefixLookup.ContainsKey(ProviderName))
                     {

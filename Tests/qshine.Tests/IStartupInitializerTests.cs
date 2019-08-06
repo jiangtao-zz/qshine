@@ -13,14 +13,14 @@ namespace qshine.Tests
         [TestMethod()]
         public void Initialized_By_ApplicationEnvironment_Build()
         {
-            ApplicationEnvironment.Build().StartUp<SampleStaticInitializerClass>();
-            Assert.AreEqual(2, TestValue);
+            ApplicationEnvironment.Build().Startup<IBoot>();
+            Assert.AreEqual(6, TestValue);
         }
 
         [TestMethod()]
         public void Initialized_By_ApplicationEnvironment_Module_Configure()
         {
-            ApplicationEnvironment.Build().StartUp<SampleStaticInitializerClass>();
+            ApplicationEnvironment.Build();
             Assert.AreEqual(4, TestValue2);
         }
     }
@@ -28,25 +28,35 @@ namespace qshine.Tests
     /// <summary>
     /// Class load automatically based on interface
     /// </summary>
-    public class SampleStaticInitializerClass
+    public class SampleStaticInitializerClass1: IBoot
     {
-        static SampleStaticInitializerClass()
-        {
-            IStartupInitializerTests.TestValue = 2;
-        }
 
-        public SampleStaticInitializerClass()
+        public SampleStaticInitializerClass1()
         {
             //Initialize before build environment
-            IStartupInitializerTests.TestValue = 2;
+            IStartupInitializerTests.TestValue += 2;
         }
 
-        public SampleStaticInitializerClass(ApplicationEnvironment env)
-            :this()
+    }
+
+    public class SampleStaticInitializerClass2: IBoot
+    {
+
+        public SampleStaticInitializerClass2()
+        {
+            //Initialize before build environment
+            IStartupInitializerTests.TestValue += 3;
+        }
+
+        public SampleStaticInitializerClass2(ApplicationEnvironment env)
+            : this()
         {
 
         }
     }
+
+    public interface IBoot { }
+
 
     /// <summary>
     /// Sample module class loaded through environment configure setting

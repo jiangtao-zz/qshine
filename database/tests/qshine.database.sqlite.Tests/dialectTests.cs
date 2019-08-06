@@ -5,6 +5,7 @@ using qshine.Logger;
 using qshine.Configuration;
 using qshine.database;
 using System.Data;
+using qshine.Specification;
 
 namespace qshine.database.sqlite.Tests
 {
@@ -23,11 +24,13 @@ namespace qshine.database.sqlite.Tests
     [TestClass]
     public class DialectTests
     {
+        static ApplicationEnvironment app;
+
         [ClassInitialize()]
         public static void ClassInit(TestContext context)
         {
             //This is only running once. Ignore subsequently call ApplicationEnvironment.Boot().
-            ApplicationEnvironment.Build("app.config");
+            app = ApplicationEnvironment.Build("app.config");
         }
 
         [ClassCleanup()]
@@ -40,7 +43,7 @@ namespace qshine.database.sqlite.Tests
         {
 
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
 
             Assert.IsTrue(dialect.CanCreate);
@@ -55,7 +58,7 @@ namespace qshine.database.sqlite.Tests
         public void TableNotExists()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
             var sql = dialect.TableExistSql("table1");
@@ -72,7 +75,7 @@ namespace qshine.database.sqlite.Tests
         public void TableCreate()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
@@ -111,7 +114,10 @@ namespace qshine.database.sqlite.Tests
             var sql = dialect.TableCreateSqls(table);
             using (var dbclient = new DbClient(database))
             {
-                var result = dbclient.Sql(sql, BatchException.SkipException);
+
+                var validator = new Validator();
+
+                var result = dbclient.Sql(sql, validator);
                 Assert.IsTrue(result);
 
                 dbclient.Sql("insert into table1(T1) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -157,7 +163,7 @@ namespace qshine.database.sqlite.Tests
         public void TableUpdate_Rename_column_add_new_column()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
@@ -179,7 +185,9 @@ namespace qshine.database.sqlite.Tests
             {
                 try { dbclient.Sql("drop table table2;"); } catch { }
                 //Create a new table
-                dbclient.Sql(sqls, BatchException.SkipException);
+
+                var validator = new Validator();
+                dbclient.Sql(sqls, validator);
 
                 //insert a new record
                 dbclient.Sql("insert into table2(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -234,7 +242,7 @@ namespace qshine.database.sqlite.Tests
         public void TableUpdate_Rename_table()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
@@ -254,8 +262,8 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table3;"); } catch { }
                 try { dbclient.Sql("drop table table3_1;"); } catch { }
 
-                var result = dbclient.Sql(sqls, BatchException.SkipException);
-
+                var validator = new Validator();
+                var result = dbclient.Sql(sqls, validator);
 
                 dbclient.Sql("insert into table3(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
 
@@ -277,7 +285,7 @@ namespace qshine.database.sqlite.Tests
         public void TableUpdate_remove_default()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
@@ -299,8 +307,9 @@ namespace qshine.database.sqlite.Tests
                 //drop table if exists
                 try { dbclient.Sql("drop table table4;"); } catch { }
 
+                var validator = new Validator(ValidationErrorPolicy.CatchAllExceptions);
                 //create a new table
-                var result = dbclient.Sql(sqls, BatchException.SkipException);
+                var result = dbclient.Sql(sqls, validator);
 
 
                 //insert data for compare
@@ -322,8 +331,10 @@ namespace qshine.database.sqlite.Tests
 
 
                 sqls = dialect.TableUpdateSqls(table);
+
+                validator.ValidationResults.Clear();
                 //update table remove the default
-                dbclient.Sql(sqls, BatchException.SkipException);
+                dbclient.Sql(sqls, validator);
 
 
 
@@ -351,7 +362,7 @@ namespace qshine.database.sqlite.Tests
         public void TableUpdate_add_index_and_notnull()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
@@ -373,8 +384,9 @@ namespace qshine.database.sqlite.Tests
                 //drop table if exists
                 try { dbclient.Sql("drop table table5;"); } catch { }
 
+                var validator = new Validator(ValidationErrorPolicy.CatchAllExceptions);
                 //create a new table
-                var result = dbclient.Sql(sqls, BatchException.SkipException);
+                var result = dbclient.Sql(sqls, validator);
 
                 //insert data for compare
                 dbclient.Sql("insert into table5(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -397,7 +409,9 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(sqls, BatchException.SkipException);
+                validator.ValidationResults.Clear();
+                //create a new table
+                dbclient.Sql(sqls, validator);
 
 
                 var data = dbclient.SqlDataTable("select * from table5 where T2='AAA'");
@@ -427,7 +441,7 @@ namespace qshine.database.sqlite.Tests
         public void TableUpdate_add_checkConstraint()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
@@ -450,7 +464,9 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table6;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(sqls, BatchException.SkipException);
+                var validator = new Validator(ValidationErrorPolicy.CatchAllExceptions);
+                //create a new table
+                var result = dbclient.Sql(sqls, validator);
 
                 //insert data for compare
                 dbclient.Sql("insert into table6(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -469,7 +485,8 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(sqls, BatchException.SkipException);
+                validator.ValidationResults.Clear();
+                dbclient.Sql(sqls, validator);
 
                 try
                 {
@@ -489,7 +506,7 @@ namespace qshine.database.sqlite.Tests
         public void TableUpdate_remove_not_null()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
@@ -512,7 +529,9 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table7;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(sqls, BatchException.SkipException);
+                var validator = new Validator(ValidationErrorPolicy.CatchAllExceptions);
+                //create a new table
+                var result = dbclient.Sql(sqls, validator);
 
                 //insert data for compare
                 dbclient.Sql("insert into table7(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -542,7 +561,9 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(sqls, BatchException.SkipException);
+                validator.ValidationResults.Clear();
+                //create a new table
+                result = dbclient.Sql(sqls, validator);
 
                 var c = dbclient.Sql("insert into table7(T2, T3) values('BBB',null)");
                 Assert.AreEqual("1", c.ToString());
@@ -555,7 +576,7 @@ namespace qshine.database.sqlite.Tests
         public void TableUpdate_remove_CheckConstraint()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
@@ -577,7 +598,9 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table8;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(sqls, BatchException.SkipException);
+                var validator = new Validator(ValidationErrorPolicy.CatchAllExceptions);
+                //create a new table
+                var result = dbclient.Sql(sqls, validator);
 
                 //insert data for compare
                 dbclient.Sql("insert into table8(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -606,7 +629,8 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(sqls, BatchException.SkipException);
+                validator.ValidationResults.Clear();
+                dbclient.Sql(sqls, validator);
 
                 var c = dbclient.Sql("insert into table8(T2, T3) values('BBB',5)");
                 Assert.AreEqual("1", c.ToString());
@@ -619,7 +643,7 @@ namespace qshine.database.sqlite.Tests
         public void TableUpdate_remove_index()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
@@ -641,7 +665,9 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table9;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(sqls, BatchException.SkipException);
+                var validator = new Validator(ValidationErrorPolicy.CatchAllExceptions);
+                //create a new table
+                var result = dbclient.Sql(sqls, validator);
 
                 //insert data for compare
                 dbclient.Sql("insert into table9(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -662,7 +688,8 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(sqls, BatchException.SkipException);
+                validator.ValidationResults.Clear();
+                dbclient.Sql(sqls, validator);
 
                 //check for index
                 var count1 = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table9';");
@@ -677,7 +704,7 @@ namespace qshine.database.sqlite.Tests
         public void TableUpdate_remove_unique_index()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
@@ -699,7 +726,9 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table10;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(sqls, BatchException.SkipException);
+                var validator = new Validator(ValidationErrorPolicy.CatchAllExceptions);
+                //create a new table
+                var result = dbclient.Sql(sqls, validator);
 
                 //insert data for compare
                 dbclient.Sql("insert into table10(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -719,7 +748,8 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(sqls, BatchException.SkipException);
+                validator.ValidationResults.Clear();
+                dbclient.Sql(sqls, validator);
 
                 //check for index
                 var count1 = dbclient.SqlSelect("select count(*) from sqlite_master  where type = 'index' and tbl_name = 'table10';");
@@ -734,7 +764,7 @@ namespace qshine.database.sqlite.Tests
         public void TableUpdate_add_unique()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
@@ -756,7 +786,9 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table11;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(sqls, BatchException.SkipException);
+                var validator = new Validator(ValidationErrorPolicy.CatchAllExceptions);
+                //create a new table
+                var result = dbclient.Sql(sqls, validator);
 
                 //insert data for compare
                 dbclient.Sql("insert into table11(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -775,7 +807,8 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(sqls, BatchException.SkipException);
+                validator.ValidationResults.Clear();
+                dbclient.Sql(sqls, validator);
 
                 try
                 {
@@ -796,7 +829,7 @@ namespace qshine.database.sqlite.Tests
         public void TableUpdate_add_default()
         {
             var database = new Database("testdb");
-            var dialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var dialectProvider = app.Services.GetProvider<ISqlDialectProvider>();
             var dialect = dialectProvider.GetSqlDialect(database.ConnectionString);
             dialect.CreateDatabase(); //ensure database exists
 
@@ -818,7 +851,9 @@ namespace qshine.database.sqlite.Tests
                 try { dbclient.Sql("drop table table12;"); } catch { }
 
                 //create a new table
-                dbclient.Sql(sqls, BatchException.SkipException);
+                var validator = new Validator(ValidationErrorPolicy.CatchAllExceptions);
+                //create a new table
+                var result = dbclient.Sql(sqls, validator);
 
                 //insert data for compare
                 dbclient.Sql("insert into table12(T2) values(@p1)", DbParameters.New.Input("p1", "AAA"));
@@ -837,7 +872,8 @@ namespace qshine.database.sqlite.Tests
 
                 sqls = dialect.TableUpdateSqls(table);
                 //update table remove the default
-                dbclient.Sql(sqls, BatchException.SkipException);
+                validator.ValidationResults.Clear();
+                dbclient.Sql(sqls, validator);
 
                 dbclient.Sql("insert into table12(T2) values('BBB')");
 

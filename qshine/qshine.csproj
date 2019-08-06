@@ -31,21 +31,28 @@
     <DocumentationFile>D:\hjt\qshine\qshine\qshine.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.2|AnyCPU'">
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
+    <Reference Include="System.Runtime" />
+    <Reference Include="System.Runtime.Caching" />    
     <Reference Include="System.Xml" />
-    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Data" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Transactions" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' or  '$(TargetFramework)' == 'netcoreapp2.2' ">
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
-    <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />    
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,10 +64,13 @@
     <Compile Include="Audit\AuditValue.cs" />
     <Compile Include="Audit\EntityAudit.cs" />
     <Compile Include="Audit\IAuditable.cs" />
+    <Compile Include="Caching\CacheInfo.cs" />
     <Compile Include="Caching\CacheObject.cs" />
     <Compile Include="Caching\CacheDataChangedMonitor.cs" />
     <Compile Include="Configuration\ApplicationAssemblyResolver.cs" />
     <Compile Include="Configuration\ApplicationEnvironment.Service.cs" />
+    <Compile Include="Configuration\ApplicationEnvironmentBuilder.cs" />
+    <Compile Include="Configuration\ApplicationEnvironmentContext.cs" />
     <Compile Include="Configuration\ConfigurationException.cs" />
     <Compile Include="Configuration\ConfigurationStore\XmlConfigurationStore.cs" />
     <Compile Include="Configuration\ConnectionString.cs" />
@@ -68,6 +78,9 @@
     <Compile Include="Configuration\IConfigurationStore.cs" />
     <Compile Include="Configuration\Map.cs" />
     <Compile Include="Configuration\ConfigurationStore\XmlDbProviderFactoriesSection.cs" />
+    <Compile Include="Configuration\MappedComponents.cs" />
+    <Compile Include="Configuration\PluggableAssemblyCollection.cs" />
+    <Compile Include="Configuration\PluggableComponentCollection.cs" />
     <Compile Include="Configuration\Setting\NamedKeyValueElementCollection.cs" />
     <Compile Include="Configuration\ConfigurationStore\XmlDiagnosticsSection.cs" />
     <Compile Include="Context\ContextStoreType.cs" />
@@ -93,13 +106,36 @@
     <Compile Include="EventSourcing\EventStoreRepository.cs" />
     <Compile Include="EventSourcing\IEventStore.cs" />
     <Compile Include="EventSourcing\IEventStoreProvider.cs" />
+    <Compile Include="Exception\MessageCode.cs" />
+    <Compile Include="Globalization\ILocalString.cs" />
+    <Compile Include="Globalization\ILocalStringProvider.cs" />
+    <Compile Include="Globalization\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Globalization\ResourceStringProvider.cs" />
     <Compile Include="Messaging\IDomainEvent.cs" />
     <Compile Include="EventSourcing\IAggregate.cs" />
     <Compile Include="Exception\BatchException.cs" />
-    <Compile Include="Globalization\LabelTranslation.cs" />
+    <Compile Include="Globalization\LocalString.cs" />
     <Compile Include="Logger\ConsoleLoggerProvider.cs" />
     <Compile Include="Logger\ILoggerProviderFactory.cs" />
     <Compile Include="Logger\LoggerProviderFactory.cs" />
+    <Compile Include="Specification\BusinessActionRule.cs" />
+    <Compile Include="Specification\CommonValidationRule.cs" />
+    <Compile Include="Specification\IDomainValidate.cs" />
+    <Compile Include="Specification\ISpecification.cs" />
+    <Compile Include="Specification\IValidationRule.cs" />
+    <Compile Include="Specification\RuleCollection.cs" />
+    <Compile Include="Specification\Specification.cs" />
+    <Compile Include="Specification\SpecificationRule.cs" />
+    <Compile Include="Specification\ValidationPolicy.cs" />
+    <Compile Include="Specification\ValidationResult.cs" />
+    <Compile Include="Specification\ValidationResults.cs" />
+    <Compile Include="Specification\BusinessValidationRule.cs" />
+    <Compile Include="Specification\Validator.cs" />
+    <Compile Include="Utility\AssemblyExtension.cs" />
     <Compile Include="Utility\NamedMapper.cs" />
     <Compile Include="Messaging\EventBus.cs" />
     <Compile Include="Messaging\EventBusNames.cs" />
@@ -135,8 +171,8 @@
     <Compile Include="Configuration\Setting\ParameterElementCollection.cs" />
     <Compile Include="Configuration\Setting\SectionHandler.cs" />
     <Compile Include="Configuration\ApplicationEnvironment.cs" />
-    <Compile Include="Configuration\PlugableComponent.cs" />
-    <Compile Include="Configuration\PlugableAssembly.cs" />
+    <Compile Include="Configuration\PluggableComponent.cs" />
+    <Compile Include="Configuration\PluggableAssembly.cs" />
     <Compile Include="Logger\ILoggerProvider.cs" />
     <Compile Include="Logger\Log.cs" />
     <Compile Include="Logger\ILogger.cs" />
@@ -147,11 +183,6 @@
     <Compile Include="Utility\Json\JsonDiffer.cs" />
     <Compile Include="Utility\ObjectInspector.cs" />
     <Compile Include="Utility\EnumExtension.cs" />
-    <Compile Include="Globalization\Resources.Designer.cs">
-      <DependentUpon>Resources.resx</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <Compile Include="Context\ContextManager.cs" />
     <Compile Include="Context\CallContextStore.cs" />
     <Compile Include="Context\LocalContextStore.cs" />
@@ -244,12 +275,18 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Globalization\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
+  </ItemGroup>
+  <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Specification\CommonRule\" />
   </ItemGroup>
 
 </Project>

@@ -3,6 +3,8 @@ using qshine.database.sqlite;
 using System;
 using qshine.Logger;
 using qshine.Configuration;
+using qshine;
+using qshine.Configuration.ConfigurationStore;
 
 namespace ComponentDirectReferenceTest
 {
@@ -11,8 +13,19 @@ namespace ComponentDirectReferenceTest
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            //This is only running once. Ignore subsequently call ApplicationEnvironment.Boot().
-            ApplicationEnvironment.Build("app.config");
+
+            var options = new EnvironmentInitializationOption {
+                OverwriteConnectionString = true
+            };
+            var builder = new ApplicationEnvironmentBuilder();
+
+            builder.Configure(
+                (appContext, config) =>
+                {
+                    config.LoadConfigFile("app.config", options);
+                }
+                )
+                .Build();
 
             //var connectionString = "user id=sampledb;password=royal1;data source=sampledb";
             var connectionString = "Data Source=testsqlite.db";

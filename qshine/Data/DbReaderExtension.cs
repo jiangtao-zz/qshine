@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Data;
+using qshine.Globalization;
+
 namespace qshine
 {
 	/// <summary>

@@ -7,6 +7,14 @@ namespace qshine.autofac.Tests
     [TestClass]
     public class iocTests
     {
+        [AssemblyInitialize]
+        public static void AssemblyInit(TestContext context)
+        {
+            //This is only running once. Ignore subsequently call ApplicationEnvironment.Boot().
+            ApplicationEnvironment.Build("app.config");
+
+        }
+
         [TestMethod]
         public void provider_created()
         {

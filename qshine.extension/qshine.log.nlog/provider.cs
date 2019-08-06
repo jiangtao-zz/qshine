@@ -12,7 +12,7 @@ namespace qshine.log.nlog
             //Find nlog.config file from one of the application environment config folder.
             const string nlogConfigFileName = "nlog.config";
 
-            var filePath = ApplicationEnvironment.Current.GetConfigFilePathIfAny(nlogConfigFileName);
+            var filePath = ApplicationEnvironment.Default.GetConfigFilePathIfAny(nlogConfigFileName);
             //load config if file found
             if (!string.IsNullOrEmpty(filePath))
             {

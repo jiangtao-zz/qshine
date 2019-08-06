@@ -40,6 +40,13 @@ Most logging frameworks can configure logging setting separately by logging cate
     - App.Invoice
     - App.Vendor
 
+To simplify the class logging category, the logging category could be a class type name.
+```c#
+    var logger = Log.GetLogger<ApInvoice>();
+    logger.Trace("Create account {0}", accountNumber);
+```
+
+
 ### Logging priority levels
 
 Typically there are 6 levels of logging message.
@@ -86,12 +93,14 @@ Sample of NLog logging framework system
     <!--plug-in component -->
     <components>
       <component name="nlog" interface="qshine.ILoggerProvider" type="qshine.log.nlog.Provider, qshine.log.nlog"/>
-      <component name="default" interface="qshine.ILoggerProvider" type="qshine.TraceLoggerProvider, qshine"/>
+      <component name="system" interface="qshine.ILoggerProvider" type="qshine.TraceLoggerProvider, qshine"/>
+      <component name="localLog" interface="qshine.ILoggerProvider" type="MyProject.Logger, MyProject"/>
     </components>
 
     <!--map logging framework system -->
     <maps name="qshine.ILoggerProvider"  default="nlog">
-        <map key="System" value="default" />
+        <map key="System" value="system" />
+        <map key="MyProject.Repository.*" value="localLog" />
     </maps>
 
   </qshine>
@@ -119,12 +128,13 @@ Using environment configure Maps setting to setup default Logger provider, and m
   <qshine>
     <!--set system logging -->
     <components>
-      <component name="default" interface="qshine.ILoggerProvider" type="qshine.TraceLoggerProvider, qshine"/>
+      <component name="trace" interface="qshine.ILoggerProvider" type="qshine.TraceLoggerProvider, qshine"/>
+      <component name="nlog" interface="qshine.ILoggerProvider" type="qshine.log.nlog.Provider, qshine.log.nlog"/>
     </components>
 
     <!--map logging framework system -->
     <maps name="qshine.ILoggerProvider"  default="nlog">
-        <map key="System" value="default" />
+        <map key="System" value="trace" />
     </maps>
 
   </qshine>

@@ -1,9 +1,11 @@
 {
   "ExpandedNodes": [
     "",
-    "\\qshine.extension\\qshine.ioc.autofac",
+    "\\qshine\\Exception",
+    "\\qshine\\Specification",
+    "\\qshine\\Specification\\CommonRule",
     "\\qshine\\Utility"
   ],
-  "SelectedNode": "\\readme.md",
+  "SelectedNode": "\\qshine",
   "PreviewInSolutionExplorer": false
 }

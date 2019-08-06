@@ -35,6 +35,17 @@ namespace qshine
         }
 
         /// <summary>
+        /// Using String.Format() to format a given enum StringValue.
+        /// </summary>
+        /// <param name="value">A enum property</param>
+        /// <param name="args">format arguments</param>
+        /// <returns></returns>
+        public static string Format(this Enum value, params object[] args)
+        {
+            return string.Format(value.GetStringValue(EnumValueType.StringValue), args);
+        }
+
+        /// <summary>
         /// Convert a string to a particular type of enum value.
         /// </summary>
         /// <returns>The enum value or throw an exception if it is not an expected string.</returns>

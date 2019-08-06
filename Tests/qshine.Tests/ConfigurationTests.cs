@@ -3,6 +3,7 @@ using qshine.Logger;
 using qshine.Configuration;
 using System;
 using System.Reflection;
+using qshine.Configuration.ConfigurationStore;
 
 namespace qshine.Tests
 {
@@ -26,10 +27,25 @@ namespace qshine.Tests
     [DeploymentItem("app.config", "./testhost.dll.config")]
     public class ApplicationEnvironmentTests
     {
+        ApplicationEnvironment app;
+
+        [TestInitialize]
+        public void Init()
+        {
+            var builder = new ApplicationEnvironmentBuilder("test1");
+
+            app = builder.Configure(
+                (context, configure) =>
+                {
+                    configure.LoadConfigFile("app.config",null);
+                }).Build();
+        }
+
+
         [TestMethod()]
         public void LoadConfig_Default_File()
         {
-            var configure = ApplicationEnvironment.Current.EnvironmentConfigure;
+            var configure = app.EnvironmentConfigure;
 
             //Assert.AreEqual("config", configure.Environments["root"].Path);
             //Assert.AreEqual("", configure.Environments["root"].Host);
@@ -40,15 +56,15 @@ namespace qshine.Tests
             Assert.AreEqual("level0 key0 value", configure.AppSettings["key0"]);
             Assert.AreEqual("moduleTest", configure.Modules["moduleTest"].Name);
             Assert.AreEqual("qshine.NHibernateRepository.BootStraper, QShine.NHibernateRepository", configure.Modules["moduleTest"].ClassTypeName);
-            Assert.IsFalse(configure.Modules.ContainsKey("xyz"));
+            Assert.IsFalse(configure.Modules.Contains("xyz"));
 
 
             Assert.IsTrue(configure.ConfigureFolders.Count > 0);
             Assert.IsTrue(configure.AssemblyFolders.Count > 0);
 
-            Assert.IsTrue(PluggableAssembly.Maps["qshine.ioc.autofac"].Path.Contains("qshine.ioc.autofac.dll"));
-            Assert.IsTrue(PluggableAssembly.Maps["Autofac"].Path.Contains("Autofac.dll"));
-            Assert.IsTrue(PluggableAssembly.Maps["qshine.log.nlog"].Path.Contains("qshine.log.nlog.dll"));
+            Assert.IsTrue(app.PlugableAssemblies["qshine.ioc.autofac"].Path.Contains("qshine.ioc.autofac.dll"));
+            Assert.IsTrue(app.PlugableAssemblies["Autofac"].Path.Contains("Autofac.dll"));
+            Assert.IsTrue(app.PlugableAssemblies["qshine.log.nlog"].Path.Contains("qshine.log.nlog.dll"));
             //            Assert.IsTrue(ApplicationEnvironment.AssemblyMaps["NLog"].Path.Contains("NLog.dll"));
 
             Assert.IsTrue(configure.Maps.ContainsKey("qshine.Tests.ITest1Provider"));
@@ -67,38 +83,40 @@ namespace qshine.Tests
         [TestMethod()]
         public void App_init()
         {
-            var iocProvider = ApplicationEnvironment.GetProvider<IIocProvider>();
+            //var app = ApplicationEnvironment.Default;
+
+            var iocProvider = app.Services.GetProvider<IIocProvider>();
             Assert.IsNotNull(iocProvider);
         }
 
         [TestMethod()]
         public void CreateProvider_NoProvider()
         {
-            var provider = ApplicationEnvironment.GetProvider<IProvider>();
+            var provider = app.Services.GetProvider<IProvider>();
             Assert.IsNull(provider);
         }
 
         [TestMethod()]
         public void CreateNamedProvider_NoName()
         {
-            var provider = ApplicationEnvironment.GetProvider<IIocProvider>("NoName");
+            var provider = app.Services.GetProviderByName<IIocProvider>("NoName");
             Assert.IsNull(provider);
         }
 
         [TestMethod()]
         public void CreateNamedProvider_GoodName()
         {
-            var provider = ApplicationEnvironment.GetProvider<ITest1Provider>("c1");
+            var provider = app.Services.GetProvider<ITest1Provider>("c1");
             Assert.IsNotNull(provider as TestC1Provider);
 
-            provider = ApplicationEnvironment.GetProvider<ITest1Provider>("c2");
+            provider = app.Services.GetProvider<ITest1Provider>("c2");
             Assert.IsNotNull(provider as TestC2Provider);
         }
 
         [TestMethod()]
         public void CreateMappedProvider_NoMapAtAll()
         {
-            var provider = ApplicationEnvironment.Current.CreateMappedProvider<IIocProvider>("NoMap");
+            var provider = app.Services.GetProvider<IIocProvider>("NoMap");
             Assert.IsNotNull(provider,"Should be default provider");
 
         }
@@ -106,16 +124,16 @@ namespace qshine.Tests
         [TestMethod()]
         public void CreateMappedProvider_GoodMap()
         {
-            var provider = ApplicationEnvironment.Current.CreateMappedProvider<ITest1Provider>("c1Key");
+            var provider = app.Services.GetProvider<ITest1Provider>("c1Key");
             Assert.IsNotNull(provider as TestC1Provider, "Should be TestC1Provider");
 
-            provider = ApplicationEnvironment.Current.CreateMappedProvider<ITest1Provider>("c11Key");
+            provider = app.Services.GetProvider<ITest1Provider>("c11Key");
             Assert.IsNotNull(provider as TestC1Provider, "Should be TestC1Provider");
 
-            provider = ApplicationEnvironment.Current.CreateMappedProvider<ITest1Provider>("c11Keyxxxxx");
+            provider = app.Services.GetProvider<ITest1Provider>("c11Keyxxxxx");
             Assert.IsNotNull(provider as TestC2Provider, "Should be Default provider");
 
-            provider = ApplicationEnvironment.Current.CreateMappedProvider<ITest1Provider>("c2");
+            provider = app.Services.GetProvider<ITest1Provider>("c2");
             Assert.IsNotNull(provider as TestC2Provider, "Should be c2 provider");
 
         }
@@ -123,14 +141,14 @@ namespace qshine.Tests
         [TestMethod()]
         public void CreateComponent_Good()
         {
-            var provider = ApplicationEnvironment.Current.CreateComponent<ITest1Provider>("c1");
+            var provider = app.Services.GetComponent<ITest1Provider>("c1");
             Assert.IsTrue(provider is TestC1Provider, "Should be TestC1Provider");
         }
 
         [TestMethod()]
         public void CreateMappedComponent_Good()
         {
-            var provider = ApplicationEnvironment.Current.CreateMappedComponent <ITest1Provider >("c2Key");
+            var provider = app.Services.GetProvider<ITest1Provider >("c2Key");
             Assert.IsTrue(provider is TestC2Provider, "Should be TestC1Provider");
         }
 
@@ -138,15 +156,15 @@ namespace qshine.Tests
         [TestMethod()]
         public void ConnectionStrings()
         {
-            var db1 = ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings["db1"];
+            var db1 = app.EnvironmentConfigure.ConnectionStrings["db1"];
             Assert.AreEqual("testProvider", db1.ProviderName);
             Assert.AreEqual("abc,002", db1.ConnectionString);
 
-            var db2 = ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings["db2"];
+            var db2 = app.EnvironmentConfigure.ConnectionStrings["db2"];
             Assert.AreEqual("testProvider2", db2.ProviderName);
             Assert.AreEqual("abc2,aaa", db2.ConnectionString);
 
-            var db3 = ApplicationEnvironment.Current.EnvironmentConfigure.ConnectionStrings["db3"];
+            var db3 = app.EnvironmentConfigure.ConnectionStrings["db3"];
             Assert.IsNull(db3);
 
         }
@@ -163,11 +181,11 @@ namespace qshine.Tests
         {
             var option = new EnvironmentInitializationOption
             {
-                RootConfigFile = "unitTest/test_app1.config",
                 OverwriteConnectionString = false
             };
+            var configureFile = "unitTest/test_app1.config";
 
-            var appEnv = new ApplicationEnvironment("c1", option);
+            var appEnv = ApplicationEnvironment.Build(configureFile, option);
 
             //Test connectionStrings
             Assert.IsTrue(appEnv.EnvironmentConfigure.ConnectionStrings.Count >= 3);
@@ -197,7 +215,7 @@ namespace qshine.Tests
             option.OverwriteModule = true;
             option.OverwriteComponent = true;
 
-            var appEnv1 = new ApplicationEnvironment("c2", option);
+            var appEnv1 = ApplicationEnvironment.Build(configureFile, option);
 
             //Test connectionStrings overwrite
             Assert.AreEqual(appEnv.EnvironmentConfigure.ConnectionStrings.Count,
@@ -231,13 +249,7 @@ namespace qshine.Tests
             System.Configuration.Configuration config =
                 System.Configuration.ConfigurationManager.OpenMachineConfiguration();
 
-            var option = new EnvironmentInitializationOption
-            {
-                RootConfigFile = config.FilePath
-                //RootConfiguration = config
-            };
-
-            var appEnv = new ApplicationEnvironment("c3", option);
+            var appEnv = ApplicationEnvironment.Build("config.FilePath", null);
 
             Assert.IsTrue(appEnv.EnvironmentConfigure.ConnectionStrings["dbTest1"] == null);
 
@@ -258,12 +270,7 @@ namespace qshine.Tests
             EnvironmentInitializationOption.IsCandidateAssembly = isCandidateAssembly;
 
 
-            var option = new EnvironmentInitializationOption
-            {
-                RootConfigFile = "unitTest/test_app1.config"//this line will be ignored
-            };
-
-            var appEnv = new ApplicationEnvironment("c4", option);
+            var appEnv = ApplicationEnvironment.Build("unitTest/test_app1.config", null);
 
             //Assert.IsTrue(appEnv.EnvironmentConfigure.ConnectionStrings["dbTest1"] != null);
         }
@@ -274,12 +281,7 @@ namespace qshine.Tests
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             EnvironmentInitializationOption.RuntimeComponents = assemblies;
 
-            var option = new EnvironmentInitializationOption
-            {
-                RootConfigFile = "unitTest/test_app1.config",//this line will be ignored
-            };
-
-            var appEnv = new ApplicationEnvironment("c5", option);
+            var appEnv = ApplicationEnvironment.Build("unitTest/test_app1.config", null);
 
             //Assert.IsTrue(appEnv.EnvironmentConfigure.ConnectionStrings["dbTest1"] != null);
         }
@@ -287,22 +289,22 @@ namespace qshine.Tests
         [TestMethod()]
         public void ApplicationEnvironment_GetNamedType_From_Plugin_Test()
         {
-            var theType = ApplicationEnvironment.GetTypeByName("qshine.Tests.SampleModuleClass");
+            var theType = app.PlugableAssemblies.GetTypeByName("qshine.Tests.SampleModuleClass");
             Assert.AreEqual(typeof(SampleModuleClass), theType);
 
-            var theType1 = ApplicationEnvironment.GetTypeByName("qshine.Tests.SampleModuleClass, qshine.Tests");
+            var theType1 = app.PlugableAssemblies.GetTypeByName("qshine.Tests.SampleModuleClass, qshine.Tests");
             Assert.AreEqual(typeof(SampleModuleClass), theType1);
 
-            var theType2 = ApplicationEnvironment.GetTypeByName("qshine.Tests.SampleModuleClass, qshine.Tests, Version=1.0.0.0");
+            var theType2 = app.PlugableAssemblies.GetTypeByName("qshine.Tests.SampleModuleClass, qshine.Tests, Version=1.0.0.0");
             Assert.AreEqual(typeof(SampleModuleClass), theType2);
 
-            var theType3 = ApplicationEnvironment.GetTypeByName("qshine.ioc.autofac.Provider");
+            var theType3 = app.PlugableAssemblies.GetTypeByName("qshine.ioc.autofac.Provider");
             Assert.AreEqual("qshine.ioc.autofac.Provider", theType3.FullName);
 
-            var theType4 = ApplicationEnvironment.GetTypeByName("qshine.ioc.autofac.Provider, qshine.ioc.autofac");
+            var theType4 = app.PlugableAssemblies.GetTypeByName("qshine.ioc.autofac.Provider, qshine.ioc.autofac");
             Assert.AreEqual("qshine.ioc.autofac.Provider", theType4.FullName);
 
-            var theType5 = ApplicationEnvironment.GetTypeByName("qshine.ioc.autofac.Provider, qshine.ioc.autofac, Version=1.0.0.0");
+            var theType5 = app.PlugableAssemblies.GetTypeByName("qshine.ioc.autofac.Provider, qshine.ioc.autofac, Version=1.0.0.0");
             Assert.AreEqual("qshine.ioc.autofac.Provider", theType5.FullName);
 
         }
@@ -313,11 +315,14 @@ namespace qshine.Tests
             Assert.AreEqual(1, Startup1.Result);
             Assert.AreEqual(1, Startup2.Result);
 
-            ApplicationEnvironment.Build(new EnvironmentInitializationOption
-            {
-                RootConfigFile ="app.config"
-            },"Tetst1")
-            .StartUp<IStartupClass>();
+            var builder = new ApplicationEnvironmentBuilder("Tetst1");
+            builder.Configure(
+                (context, configure) =>
+                {
+                    configure.LoadConfigFile("app.config", null);
+                }
+                ).Build()
+            .Startup<IStartupClass>();
 
             Assert.AreEqual(2, Startup1.Result);
             Assert.AreEqual("Tetst1", Startup1.EnvironmentName);

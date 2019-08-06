@@ -44,11 +44,11 @@ namespace qshine
         /// </summary>
         public bool ThrowException { get; set; }
 
-        /// <summary>
-        /// Specifies a new application root configure file.
-        /// A blank value indicates the default application config file,
-        /// </summary>
-        public string RootConfigFile { get; set; }
+        ///// <summary>
+        ///// Specifies a new application root configure file.
+        ///// A blank value indicates the default application config file,
+        ///// </summary>
+        //public string RootConfigFile { get; set; }
 
         /// <summary>
         /// Specifies a new Logger.

@@ -193,5 +193,13 @@ namespace qshine.Configuration
                 return _connectionStrings.Count;
             }
         }
+
+        /// <summary>
+        /// Clear all connections
+        /// </summary>
+        public void Clear()
+        {
+            _connectionStrings.Clear();
+        }
     }
 }

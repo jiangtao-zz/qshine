@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using qshine.Globalization;
+using qshine.Configuration;
 
 namespace qshine
 {
@@ -41,6 +43,7 @@ namespace qshine
                 else
                 {
                     interceptor = new Interceptor(type);
+                    //_typeRegistry.Add(type, interceptor);
                 }
                 return interceptor;
             }
@@ -54,6 +57,18 @@ namespace qshine
         public static Interceptor Get<T>()
         {
             return Get(typeof(T));
+        }
+
+        /// <summary>
+        /// Load all interceptors from default app domain and pluggable assemblies
+        /// </summary>
+        public static void LoadInterceptors()
+        {
+            var types = ApplicationEnvironmentContext.Default.PlugableAssemblies.SafeGetInterfacedTypes(typeof(IInterceptorHandler));
+            foreach (var type in types)
+            {
+                RegisterHandlerType(type);
+            }
         }
 
         #endregion

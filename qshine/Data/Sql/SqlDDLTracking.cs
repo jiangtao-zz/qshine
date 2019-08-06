@@ -1,7 +1,9 @@
+using qshine.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace qshine.database
 {
@@ -352,16 +354,21 @@ from {0}", TrackingNameTableName);
 			}
 			else
 			{
-				throw new Exception(string.Format("Unexpected error: couldn't find tracking table Id for table {0}", table.TableName));
+				throw new Exception("Couldn't find tracking table Id for table {0}"._G(table.TableName));
 			}
 		}
 
-		/// <summary>
-		/// Updates the tracking table columns if any column structure changed.
-		/// </summary>
-		/// <param name="trackingTable">Tracking table.</param>
-		/// <param name="table">the table to be updated.</param>
-		public void UpdateTrackingTableColumns(TrackingTable trackingTable, SqlDDLTable table)
+        private StreamingContext _G(string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Updates the tracking table columns if any column structure changed.
+        /// </summary>
+        /// <param name="trackingTable">Tracking table.</param>
+        /// <param name="table">the table to be updated.</param>
+        public void UpdateTrackingTableColumns(TrackingTable trackingTable, SqlDDLTable table)
 		{
 			string sql;
 

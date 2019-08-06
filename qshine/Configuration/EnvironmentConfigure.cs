@@ -14,8 +14,8 @@ namespace qshine.Configuration
         /// </summary>
         public EnvironmentConfigure()
         {
-            Components = new Dictionary<string, PlugableComponent>();
-            Modules = new Dictionary<string, PlugableComponent>();
+            Components = new PluggableComponentCollection();
+            Modules = new PluggableComponentCollection();
             ConnectionStrings = new ConnectionStrings();
             AppSettings = new Dictionary<string, string>();
             ConfigureFolders = new List<string>();
@@ -25,9 +25,24 @@ namespace qshine.Configuration
         }
 
         /// <summary>
+        /// Clear all configure setting
+        /// </summary>
+        public void Clear()
+        {
+            Components.Clear();
+            Modules.Clear();
+            ConnectionStrings.Clear();
+            AppSettings.Clear();
+            ConfigureFolders.Clear();
+            AssemblyFolders.Clear();
+            Environments.Clear();
+            Maps.Clear();
+        }
+
+        /// <summary>
         /// Get/Set Application setting key/value pair
         /// </summary>
-		public IDictionary<string, string> AppSettings
+        public IDictionary<string, string> AppSettings
         {
             get;
             private set;
@@ -74,7 +89,7 @@ namespace qshine.Configuration
         /// <summary>
         /// Get/Set named components configure
         /// </summary>
-		public IDictionary<string, PlugableComponent> Components
+		public PluggableComponentCollection Components
 		{
             get;
             private set;
@@ -83,7 +98,7 @@ namespace qshine.Configuration
         /// <summary>
         /// Get/Set named modules configure
         /// </summary>
-		public IDictionary<string, PlugableComponent> Modules
+		public PluggableComponentCollection Modules
 		{
             get;
             private set;
@@ -106,6 +121,16 @@ namespace qshine.Configuration
             get;
             private set;
         }
+
+        /// <summary>
+        /// Get/Set ApplicationEnvironment build error and warning handler.
+        /// As default, all build error will be ignored and error will be logged through default Logger.
+        /// 
+        /// The Builder error and warning handler take two arguments:
+        ///     arg1 - error or warning code
+        ///     arg2 - error message.
+        /// </summary>
+        public Action<string, string> BuildErrorHandler { get; set; }
 
         #region internal methods
 
@@ -139,10 +164,10 @@ namespace qshine.Configuration
         /// <returns>The component.</returns>
         /// <param name="component">Component.</param>
         /// <param name="overWrite">If set to <c>true</c> overwrite exists component.</param>
-        internal PlugableComponent AddComponent(ComponentElement component, bool overWrite)
+        internal PluggableComponent AddComponent(ComponentElement component, bool overWrite)
 		{
 			if (component == null) return null;
-			var c = new PlugableComponent
+			var c = new PluggableComponent
 			{
                 ConfigureFilePath = component.CurrentConfiguration.FilePath,
                 Name = component.Name,
@@ -168,7 +193,7 @@ namespace qshine.Configuration
 			//c.ClassType = Type.GetType(c.ClassTypeName);
 
 
-			if (!Components.ContainsKey(component.Name))
+			if (!Components.Contains(component.Name))
 			{
                 Components.Add(component.Name, c);
 			}
@@ -188,11 +213,11 @@ namespace qshine.Configuration
         /// <returns>The module.</returns>
         /// <param name="module">Module.</param>
         /// <param name="overWrite">If set to <c>true</c> overwrite existing module.</param>
-        internal PlugableComponent AddModule(PlugableComponent module, bool overWrite)
+        internal PluggableComponent AddModule(PluggableComponent module, bool overWrite)
 		{
 			if (module == null) return null;
 
-			if (!Modules.ContainsKey(module.Name))
+			if (!Modules.Contains(module.Name))
 			{
                 Modules.Add(module.Name, module);
 			}

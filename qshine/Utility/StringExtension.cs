@@ -40,6 +40,17 @@ namespace qshine.Utility
                 }
             }
             if (pattern == "*") return true;
+
+            if(!pattern.StartsWith("^"))
+            {
+                pattern = "^" + pattern;
+            }
+
+            if (!pattern.EndsWith("$"))
+            {
+                pattern = pattern+"$";
+            }
+
             var match = Regex.Match(source,pattern, RegexOptions.IgnoreCase);
             return match.Success;
         }

@@ -75,7 +75,7 @@ namespace qshine
 					lock(_providerLockObject){
 						if(_provider==null){
                             //|| _provider == _internalIoCProvider
-                            var provider = ApplicationEnvironment.GetProvider<IIocProvider>();
+                            var provider = ApplicationEnvironment.Default.Services.GetProvider<IIocProvider>();
                             if (provider != null)
                             {
                                 _provider = provider;

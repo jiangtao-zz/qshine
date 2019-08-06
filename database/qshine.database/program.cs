@@ -1,6 +1,7 @@
 ﻿using System;
 using qshine.Configuration;
 using qshine.database.tables.common.language;
+using qshine.Specification;
 //using qshine.LogInterceptor;
 
 namespace qshine.database
@@ -15,8 +16,9 @@ namespace qshine.database
 
             using (var dbBuilder = new SqlDDLBuilder(database, null))
             {
-                var error = BatchException.SkipException;
-                var result = dbBuilder.Build(error, true);
+                var validator = new Validator();
+
+                var result = dbBuilder.Build(validator, true);
                 if (result == true)
                 {
                     Console.WriteLine("The database has been updated sucessfully.");
@@ -25,12 +27,12 @@ namespace qshine.database
                 {
                     Console.WriteLine("Failed to build database {0}:", dbBuilder.ConnectionStringName);
                     int i = 0;
-                    foreach (var e in error.Exceptions)
+                    foreach (var e in validator.ValidationResults)
                     {
-                        Console.WriteLine("Error {0}:{1}", ++i, e.Message);
-                        if (e.Data["sql"] != null)
+                        Console.WriteLine("Error {0}:{1}", ++i, e.Error.Message);
+                        if (e.Error.Data["sql"] != null)
                         {
-                            Console.WriteLine("Sql:{0}", e.Data["sql"]);
+                            Console.WriteLine("Sql:{0}", e.Error.Data["sql"]);
                         }
                     }
                 }

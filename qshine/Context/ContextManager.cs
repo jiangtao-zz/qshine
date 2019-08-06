@@ -68,7 +68,7 @@ namespace qshine
 						if (_currentContextStore == null)
 						{
 							//Load from configure
-							_currentContextStore = ApplicationEnvironment.GetProvider<IContextStore>();
+							_currentContextStore = ApplicationEnvironment.Default.Services.GetProvider<IContextStore>();
 							if (_currentContextStore == null)
 							{
 								//load default

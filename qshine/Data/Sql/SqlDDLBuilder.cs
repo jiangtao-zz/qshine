@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using qshine.Configuration;
+using qshine.Globalization;
+using qshine.Specification;
 
 namespace qshine.database
 {
@@ -15,7 +17,7 @@ namespace qshine.database
         readonly ISqlDialect _sqlDialect;
         SqlDDLTracking _trackingTable;
 
-        BatchException _batchException;
+        Validator _validator;
 
         #region Ctor
         /// <summary>
@@ -28,7 +30,7 @@ namespace qshine.database
             _sqlDialectProvider = sqlDialectProvider;
             if (_sqlDialectProvider == null)
             {
-                _sqlDialectProvider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+                _sqlDialectProvider = ApplicationEnvironment.Default.Services.GetProvider<ISqlDialectProvider>();
                 Check.HaveValue(_sqlDialectProvider);
             }
             Database = database;
@@ -110,20 +112,20 @@ namespace qshine.database
             }
         }
 
-		#endregion
+        #endregion
 
-		/// <summary>
-		/// Build database instance from registered tables.
-		/// The builder will analyze the table structure to generate and perform table structure DDL statements.
-		/// </summary>
-		/// <returns>It returns true if database build sucessfully. Otherwise, it returns false with LastErrorMessage.
-		/// A full action log will be generated in Log information level through Log configuration.
-		/// </returns>
-        /// <param name="batchException">BatchException to hold error messages</param>
-		/// <param name="createNewDatabase">Indicates whether a new database should be created. If the flag is true it will only create new database if the given database is not existing.</param>
-		public bool Build(BatchException batchException, bool createNewDatabase = false)
+        /// <summary>
+        /// Build database instance from registered tables.
+        /// The builder will analyze the table structure to generate and perform table structure DDL statements.
+        /// </summary>
+        /// <returns>It returns true if database build sucessfully. Otherwise, it returns false with LastErrorMessage.
+        /// A full action log will be generated in Log information level through Log configuration.
+        /// </returns>
+        /// <param name="validator">Validator to hold error messages</param>
+        /// <param name="createNewDatabase">Indicates whether a new database should be created. If the flag is true it will only create new database if the given database is not existing.</param>
+        public bool Build(Validator validator, bool createNewDatabase = false)
 		{
-            _batchException = batchException;
+            _validator = validator;
 
 			//Create a new database instance if the database is not existing.
 			bool isDatabaseExists = _sqlDialect.DatabaseExists();
@@ -136,12 +138,7 @@ namespace qshine.database
 					isDatabaseExists = _sqlDialect.CreateDatabase();
 					if (!isDatabaseExists)
 					{
-                        var errorMessage = string.Format("Failed to create a database {0} instance. You need create database instance manually.", ConnectionStringName);
-                        if (batchException != null)
-                        {
-                            batchException.Exceptions.Add(new Exception(errorMessage));
-                            batchException.TryThrow();
-                        }
+                        _validator.AddValidationError("Failed to create a database {0} instance. You need create database instance manually."._G(ConnectionStringName));
                         return false;
                     }
                 }
@@ -150,12 +147,7 @@ namespace qshine.database
 			//Database should exist to build/update database structure;
 			if (!isDatabaseExists)
 			{
-				var errorMessage = string.Format("Database {0} is not found.", ConnectionStringName);
-                if (batchException != null)
-                {
-                    batchException.Exceptions.Add(new Exception(errorMessage));
-                    batchException.TryThrow();
-                }
+                _validator.AddValidationError("Database {0} is not found."._G(ConnectionStringName));
                 return false;
             }
 
@@ -230,13 +222,9 @@ namespace qshine.database
 					TryUpdateTable(table);
 				}
 			}
-            if (batchException != null)
+            if(!_validator.ValidationResults.IsValid)
             {
-                batchException.TryThrow();
-                if (batchException.Exceptions.Count > 0)
-                {
-                    return false;
-                }
+                return false;
             }
             return true;
 		}
@@ -251,12 +239,12 @@ namespace qshine.database
 
         void BatchSql(List<string> sqls)
         {
-            DBClient.Sql(sqls, _batchException);
+            DBClient.Sql(sqls, _validator);
         }
 
         void BatchSql(List<ConditionalSql> sqls)
         {
-            DBClient.Sql(sqls, _batchException);
+            DBClient.Sql(sqls, _validator);
         }
 
 
@@ -334,11 +322,10 @@ namespace qshine.database
             }
             catch (Exception ex)
             {
-                var errorMessage = string.Format("Error to rename table {0} to {1}. Ex:{2}", oldTableName, newTableName, ex.Message);
-                if (_batchException != null)
+                var errorMessage = "Error to rename table {0} to {1}. Ex:{2}"._G(oldTableName, newTableName, ex.Message);
+                if (_validator != null)
                 {
-                    _batchException.Exceptions.Add(new Exception(errorMessage));
-                    _batchException.TryThrow();
+                    _validator.ValidationResults.Add(new ValidationResult(errorMessage));
                 }
                 return false;
             }

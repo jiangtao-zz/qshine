@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System;
 using qshine.Utility;
+using qshine.Globalization;
 
 namespace qshine.database
 {
@@ -27,7 +28,7 @@ namespace qshine.database
 		public SqlDDLTable(string tableName, string category, string comments, string tableSpace="",string indexTableSpace="", int version=1, string schemaName="")
 		{
             Check.Assert<ArgumentException>(!string.IsNullOrEmpty(tableName) && tableName.Length <= MaxNameLength,
-                "tableName is mandatory and length must be less than {0}", MaxNameLength);
+                "tableName is mandatory and length must be less than {0}"._G(MaxNameLength));
 
 			TableName = tableName;
             SchemaName = schemaName;
@@ -145,21 +146,15 @@ namespace qshine.database
             }
 
             var c = Columns.SingleOrDefault(x => x.InternalId == internalId);
-            if (c != null)
-            {
-                throw new InvalidExpressionException(string.Format(
-                    "Defined internal id conflicts with the id of an existing column [{0}].", c.Name));
-            }
 
-            if ((isPK||isUnique) && size > 4000)
-            {
-                throw new InvalidConstraintException("Cannot define a big size column as a unique or primary key column.");
-            }
+            Check.Assert<InvalidExpressionException>(c == null,
+                "Defined internal id conflicts with the id of an existing column [{0}]."._G(c!=null?c.Name:""));
 
-            if (isPK && Columns.Any(x => x.IsPK))
-            {
-                throw new InvalidExpressionException("Only one PRIMARY key column is allow in the table.");
-            }
+            Check.Assert< InvalidConstraintException>(!((isPK || isUnique) && size > 4000),
+                "Cannot define a big size column as a unique or primary key column."._G());
+
+            Check.Assert<InvalidExpressionException>(!(isPK && Columns.Any(x => x.IsPK)),
+                "Only one PRIMARY key column is allow in the table."._G());
 
             var column = new SqlDDLColumn(TableName)
             {
@@ -258,17 +253,20 @@ namespace qshine.database
         /// <param name="version">version of old table name.</param>
         public SqlDDLTable RenameTable(long tableId, string oldTableName, int version)
 		{
-            Check.Assert<ArgumentException>(tableId==0 || Id == 0 || Id == tableId,
-                "The argument tableId [{0}] must match to table tracking id [{1}].", tableId, Id);
+            if (tableId != 0 && Id != 0 && Id != tableId)
+            {
+                throw new ArgumentException(
+                    "The argument tableId [{0}] must match to table tracking id [{1}]."._G(tableId, Id));
+            }
 
             Check.Assert<ArgumentException>(version<Version,
-                "The argument version [{0}] must be a history version number (<{1}).", version, Version);
+                "The argument version [{0}] must be a history version number (<{1})."._G(version, Version));
 
             Check.Assert<ArgumentException>(!HistoryTableNames.ContainsKey(version),
-                "The argument version [{0}] cannot be same as previous renamed name version.", version);
+                "The argument version [{0}] cannot be same as previous renamed name version."._G(version));
 
             Check.Assert<ArgumentException>(oldTableName != TableName,
-                "The argument oldTableName [{0}] cannot be same as current table name {1}.", oldTableName, TableName);
+                "The argument oldTableName [{0}] cannot be same as current table name {1}."._G(oldTableName, TableName));
 
             Id = tableId;
             HistoryTableNames.Add(version, oldTableName);

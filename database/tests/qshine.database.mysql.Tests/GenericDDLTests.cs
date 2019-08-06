@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using qshine.Configuration;
 using qshine.Logger;
-
+using qshine.Specification;
 
 namespace qshine.database.Tests
 {
@@ -63,7 +63,8 @@ namespace qshine.database.Tests
                     .AddTable(new SampleTable1())
                     .AddTable(new SampleTable2());
 
-                dbBuilder.Build(BatchException.LastException, true);
+                var validator = new Validator(new ValidationPolicy { ErrorPolicy = ValidationErrorPolicy.ThrowExceptionOnLastFailure });
+                dbBuilder.Build(validator, true);
             }
             //Update table
             using (var dbBuilder = new SqlDDLBuilder(_testDb))
@@ -73,7 +74,8 @@ namespace qshine.database.Tests
                     .AddTable(new SampleTable1())
                     .AddTable(new SampleTable2_1());
 
-                dbBuilder.Build(BatchException.LastException, true);
+                var validator = new Validator(new ValidationPolicy { ErrorPolicy = ValidationErrorPolicy.ThrowExceptionOnLastFailure });
+                dbBuilder.Build(validator, true);
 
             }
             //Update rename
@@ -84,7 +86,8 @@ namespace qshine.database.Tests
                     .AddTable(new SampleTable1_rename())
                     .AddTable(new SampleTable2_2());
 
-                dbBuilder.Build(BatchException.LastException, true);
+                var validator = new Validator(new ValidationPolicy { ErrorPolicy = ValidationErrorPolicy.ThrowExceptionOnLastFailure });
+                dbBuilder.Build(validator, true);
 
             }
             //Update rename2
@@ -95,7 +98,8 @@ namespace qshine.database.Tests
                     .AddTable(new SampleTable1_rename2())
                     .AddTable(new SampleTable2_3());
 
-                dbBuilder.Build(BatchException.LastException, true);
+                var validator = new Validator(new ValidationPolicy { ErrorPolicy = ValidationErrorPolicy.ThrowExceptionOnLastFailure });
+                dbBuilder.Build(validator, true);
 
             }
         }
@@ -131,11 +135,12 @@ namespace qshine.database.Tests
                 dbBuilder.Database
                     .AddTable(table);
 
-                dbBuilder.Build(BatchException.LastException, true);
+                var validator = new Validator(new ValidationPolicy { ErrorPolicy = ValidationErrorPolicy.ThrowExceptionOnLastFailure });
+                dbBuilder.Build(validator, true);
             }
 
             //Start UoW
-            using(var unitwork = new UnitOfWork())
+            using (var unitwork = new UnitOfWork())
             {
                 //database operation
                 using(var db = new DbClient(_testDb))
@@ -192,7 +197,8 @@ namespace qshine.database.Tests
                     .AddTable(table2)
                     .AddTable(table3);
 
-                dbBuilder.Build(BatchException.LastException, true);
+                var validator = new Validator(new ValidationPolicy { ErrorPolicy = ValidationErrorPolicy.ThrowExceptionOnLastFailure });
+                dbBuilder.Build(validator, true);
             }
 
             //top-most UoW
@@ -258,7 +264,8 @@ namespace qshine.database.Tests
                     .AddTable(table2)
                     .AddTable(table3);
 
-                dbBuilder.Build(BatchException.LastException, true);
+                var validator = new Validator(new ValidationPolicy { ErrorPolicy = ValidationErrorPolicy.ThrowExceptionOnLastFailure });
+                dbBuilder.Build(validator, true);
             }
             //child roleback
             using (var unitwork = new UnitOfWork())
@@ -425,7 +432,9 @@ namespace qshine.database.Tests
                     .AddTable(table2)
                     .AddTable(table3);
 
-                dbBuilder.Build(BatchException.LastException, true);
+                var validator = new Validator(new ValidationPolicy { ErrorPolicy = ValidationErrorPolicy.ThrowExceptionOnLastFailure });
+                dbBuilder.Build(validator, true);
+
                 isSqlite = dbBuilder.Database.Database.ProviderName.Contains("SQLite");
             }
 
@@ -496,7 +505,9 @@ namespace qshine.database.Tests
                     .AddTable(table2)
                     .AddTable(table3);
 
-                dbBuilder.Build(BatchException.LastException, true);
+                var validator = new Validator(new ValidationPolicy { ErrorPolicy = ValidationErrorPolicy.ThrowExceptionOnLastFailure });
+                dbBuilder.Build(validator, true);
+
                 isSqlite = dbBuilder.Database.Database.ProviderName.Contains("SQLite");
             }
             
@@ -650,7 +661,8 @@ namespace qshine.database.Tests
                     .AddTable(table2)
                     .AddTable(table3);
 
-                dbBuilder.Build(BatchException.LastException, true);
+                var validator = new Validator(new ValidationPolicy { ErrorPolicy = ValidationErrorPolicy.ThrowExceptionOnLastFailure });
+                dbBuilder.Build(validator, true);
             }
 
             var task1 = AddDataAsyncUoW(table1.TableName, 11, "B1", true);
@@ -832,7 +844,7 @@ namespace qshine.database.Tests
             : base("sample_t2", "UnitTest", "Unit test sample table 2.", "utData", "utIndex")
         {
             //Sql Server do not support modifying AUTO increase column
-            var provider = ApplicationEnvironment.GetProvider<ISqlDialectProvider>();
+            var provider = ApplicationEnvironment.Default.Services.GetProvider<ISqlDialectProvider>();
             bool isSqlServer = (provider != null && provider.GetType().FullName.Contains(".sqlserver"));
             SqlDDLTable table;
             if (isSqlServer)

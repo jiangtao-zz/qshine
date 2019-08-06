@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using qshine.Globalization;
 
 namespace qshine.database
 {
@@ -39,7 +40,7 @@ namespace qshine.database
         public SqlDDLDatabase AddTable(SqlDDLTable table)
         {
             Check.Assert<ArgumentException>(!Tables.Any(x => x.TableName.AreEqual(table.TableName)),
-                "Table {0} already added in database", table.TableName);
+                "Table {0} already added in database"._G(table.TableName));
 
             table.Database = this;
             Tables.Add(table);

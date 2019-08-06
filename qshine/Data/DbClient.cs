@@ -1,3 +1,4 @@
+using qshine.Specification;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -214,15 +215,15 @@ namespace qshine
         /// Execute a SQL statements with parameters
         /// </summary>
         /// <param name="batchStatements">sql statement</param>
-        /// <param name="batchException">Batch exception option.
+        /// <param name="results">Receives validation results
         /// It also receives batch exception if some sqls failed.</param>
         /// <returns></returns>
-        public bool Sql(List<string> batchStatements, BatchException batchException)
+        public bool Sql(List<string> batchStatements, Validator results)
         {
             if (batchStatements == null || batchStatements.Count == 0) return false;
 
             return Sql(batchStatements.Select(item => new DbSqlStatement(item)).ToList(),
-                batchException);
+                results);
         }
 
 
@@ -245,24 +246,19 @@ namespace qshine
         /// Execute a batch Sql statements
         /// </summary>
         /// <param name="batchStatements">sql statements</param>
-        /// <param name="batchException">batch exception policy</param>
+        /// <param name="results">Receive validation results</param>
         /// <returns>True to indicate success.</returns>
-        public bool Sql(List<DbSqlStatement> batchStatements, BatchException batchException)
+        public bool Sql(List<DbSqlStatement> batchStatements, Validator results)
         {
             if (batchStatements == null || batchStatements.Count == 0) return false;
 
-            bool result = true;
-
-            if (batchException != null)
-            {
-                batchException.ChainBatchException();
-            }
+            bool isSuccess = true;
 
             foreach (var c in batchStatements)
             {
                 if (c == null || string.IsNullOrWhiteSpace(c.Sql)) continue;
 
-                if (batchException != null)
+                if (results != null)
                 {
                     try
                     {
@@ -270,10 +266,9 @@ namespace qshine
                     }
                     catch (Exception ex)
                     {
-                        result = false;
+                        isSuccess = false;
                         ex.Data.Add("sql", c);
-                        //Try throw batch exception based on batch exception policy
-                        batchException.TryThrow(ex);
+                        results.AddValidationError(ex);
                     }
                 }
                 else
@@ -282,22 +277,16 @@ namespace qshine
                 }
             }
 
-            //Try throw batch exception based on batch exception policy
-            if (batchException != null)
-            {
-                batchException.TryThrow();
-            }
-
-            return result;
+            return isSuccess;
         }
 
         /// <summary>
         /// Execute sql when condition satisfied
         /// </summary>
         /// <param name="sql">conditional sql instance.</param>
-        /// <param name="batchException">batch exception policy</param>
+        /// <param name="results">Receive validation results</param>
         /// <returns></returns>
-        public bool Sql(ConditionalSql sql, BatchException batchException)
+        public bool Sql(ConditionalSql sql, Validator results)
         {
             Check.HaveValue(sql, "sql");
 
@@ -309,7 +298,7 @@ namespace qshine
             }
             if (result)
             {
-                return Sql(sql.Sqls, batchException);
+                return Sql(sql.Sqls, results);
             }
             return false;
         }
@@ -321,37 +310,25 @@ namespace qshine
         /// <returns></returns>
         public bool Sql(List<ConditionalSql> batchSqls)
         {
-            return Sql(batchSqls, new BatchException());
+            return Sql(batchSqls, new Validator());
         }
 
         /// <summary>
         /// Execute conditional sqls.
         /// </summary>
         /// <param name="batchSqls">conditional sqls</param>
-        /// <param name="batchException">batch sql exception policy</param>
+        /// <param name="results">Receive validation results</param>
         /// <returns>true if no any exception.</returns>
-        public bool Sql(List<ConditionalSql> batchSqls, BatchException batchException)
+        public bool Sql(List<ConditionalSql> batchSqls, Validator results)
         {
             if (batchSqls == null || batchSqls.Count == 0) return false;
 
-            bool result = true;
-            if (batchException != null)
-            {
-                batchException.ChainBatchException();
-            }
-
             foreach (var c in batchSqls)
             {
-                Sql(c, batchException);
+                Sql(c, results);
             }
 
-            //Try throw batch exception based on batch exception policy
-            if (batchException != null)
-            {
-                batchException.TryThrow();
-            }
-
-            return result;
+            return results.ValidationResults.IsValid;
         }
 
         /// <summary>

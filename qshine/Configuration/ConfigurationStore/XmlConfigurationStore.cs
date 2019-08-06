@@ -5,27 +5,72 @@ using System.Configuration;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using qshine.Globalization;
 
 namespace qshine.Configuration.ConfigurationStore
 {
     /// <summary>
+    /// EnvironmentConfigure extension to Load XML formatted configure files
+    /// </summary>
+    public static class XmlConfigurationLoader
+    {
+        /// <summary>
+        /// Load XML formatted application configure files
+        /// </summary>
+        /// <param name="config">environment configure instance</param>
+        /// <param name="rootConfigFile">root configure file path. such as app.config</param>
+        /// <param name="options">configuration setting options</param>
+        public static void LoadConfigFile(this EnvironmentConfigure config, string rootConfigFile, EnvironmentInitializationOption options)
+        {
+            var store = new XmlConfigurationStore(config);
+            store.LoadConfig(rootConfigFile, options);
+        }
+
+    }
+
+    /// <summary>
     /// Implement .NET framework formatted application environment configure files 
     /// </summary>
-    public class XmlConfigurationStore : IConfigurationStore
+    public class XmlConfigurationStore
     {
-        EnvironmentConfigure _environmentConfigure = new EnvironmentConfigure();
+        EnvironmentConfigure _environmentConfigure;
         bool _isRootConfig = true;
         EnvironmentInitializationOption _options;
+
+        MessageCode messageCode = new MessageCode("AEB.XMLCFG");
+        /// <summary>
+        /// Create XmlConfigurationStore instance
+        /// </summary>
+        /// <param name="environmentConfigure"></param>
+        public XmlConfigurationStore(EnvironmentConfigure environmentConfigure)
+        {
+            if (environmentConfigure == null)
+            {
+                _environmentConfigure = new EnvironmentConfigure();
+            }
+            else
+            {
+                _environmentConfigure = environmentConfigure;
+            }
+        }
 
         /// <summary>
         /// Load specific config file with options
         /// </summary>
+        /// <param name="rootConfigFile"> root configure file path</param>
         /// <param name="option">EnvironmentInitializationOption object to indicate how to load the the config files.</param>
         /// <returns></returns>
-        public EnvironmentConfigure LoadConfig(EnvironmentInitializationOption option)
+        public EnvironmentConfigure LoadConfig(string rootConfigFile, EnvironmentInitializationOption option)
         {
             _options = option;
-            return LoadConfig(_options.RootConfigFile);
+            if (_options == null)
+            {
+                _options = new EnvironmentInitializationOption
+                {
+                    OverwriteConnectionString = true
+                };
+            }
+            return LoadConfig(rootConfigFile);
         }
 
         /// <summary>
@@ -67,10 +112,13 @@ namespace qshine.Configuration.ConfigurationStore
             {
                 if (_isRootConfig)
                 {
-                    //always throw exception in root configure file
-                    throw;
+                    //Failed to load root configure file
+                    InnerError("2000", "Failed to load root config file {0}. ({1})"._G(configFile ?? "default", ex.Message));
                 }
-                LogWarning("AE:: Failed to load config file {0}. ({1})"._G(configFile ?? "default", ex.Message));
+                else
+                {
+                    InnerWarning("1000", "Failed to load config file {0}. ({1})"._G(configFile ?? "default", ex.Message));
+                }
                 return _environmentConfigure;
             }
 
@@ -140,7 +188,7 @@ namespace qshine.Configuration.ConfigurationStore
 
                 foreach (ConnectionStringSettings c in section.ConnectionStrings)
                 {
-                    LogInfo("AE.LoadDbConnectionStrings:: {0}, {1}. Overwrite={2}", c.Name, c.ConnectionString, _options.OverwriteConnectionString);
+                    LogInfo("LoadDbConnectionStrings", "Name:{0}, Connection:{1}. OverwriteFlag:{2}"._G(c.Name, c.ConnectionString, _options.OverwriteConnectionString));
 
                     _environmentConfigure.AddConnectionString(new ConnectionStringElement(c.Name, c.ConnectionString, c.ProviderName),
                         _options.OverwriteConnectionString);
@@ -163,7 +211,7 @@ namespace qshine.Configuration.ConfigurationStore
                 #region Load Components
                 foreach (var component in section.Components)
                 {
-                    LogInfo("AE.LoadEnvironmentSection:: Add '{0}' <components> section , Overwrite={1}"._G(component.Name, _options.OverwriteComponent));
+                    LogInfo("LoadEnvironmentSection", "Add '{0}' <components> section , Overwrite={1}"._G(component.Name, _options.OverwriteComponent));
                     _environmentConfigure.AddComponent(component, _options.OverwriteComponent);
                 }
                 #endregion
@@ -171,8 +219,8 @@ namespace qshine.Configuration.ConfigurationStore
                 #region Load Modules
                 foreach (var module in section.Modules)
                 {
-                    LogInfo("AE.LoadEnvironmentSection:: Add '{0}' <modules> section, Overwrite={1}"._G(module.Name, _options.OverwriteModule));
-                    _environmentConfigure.AddModule(new PlugableComponent
+                    LogInfo("LoadEnvironmentSection", "Add '{0}' <modules> section, Overwrite={1}"._G(module.Name, _options.OverwriteModule));
+                    _environmentConfigure.AddModule(new PluggableComponent
                     {
                         Name = module.Name,
                         ClassTypeName = module.Type,
@@ -184,7 +232,7 @@ namespace qshine.Configuration.ConfigurationStore
                 #region Load Application Settings
                 foreach (var setting in section.AppSettings)
                 {
-                    LogInfo("AE.LoadEnvironmentSection:: Add AppSettings {0} = {1}, Overwrite={2}"._G(setting.Key, setting.Value, _options.OverwriteAppSetting));
+                    LogInfo("LoadEnvironmentSection", "Add AppSettings {0} = {1}, Overwrite={2}"._G(setting.Key, setting.Value, _options.OverwriteAppSetting));
 
                     //Add or Update
                     if (!_environmentConfigure.AppSettings.ContainsKey(setting.Key))
@@ -208,7 +256,7 @@ namespace qshine.Configuration.ConfigurationStore
                 #region Load other level configures
                 foreach (var environment in section.Environments)
                 {
-                    LogInfo("AE.LoadEnvironmentSection:: Add '{0}' <environments> section."._G(environment.Name));
+                    LogInfo("LoadEnvironmentSection", "Add '{0}' <environments> section."._G(environment.Name));
                     _environmentConfigure.AddEnvironment(environment);
                     //Only load environment related setting
                     if (MatchHost(environment.Host))
@@ -218,7 +266,7 @@ namespace qshine.Configuration.ConfigurationStore
                         var path = UnifiedFullPath(folder, environment.Path);
                         if (!Directory.Exists(path))
                         {
-                            LogWarning("AE:: Config path {0} does not exist."._G(path));
+                            InnerWarning("1001", "Config path {0} does not exist."._G(path));
                         }
                         else if (!_environmentConfigure.ConfigureFolders.Contains(path))
                         {
@@ -296,7 +344,7 @@ namespace qshine.Configuration.ConfigurationStore
             _deeps++;
             if (Directory.Exists(binFolder) && !_environmentConfigure.AssemblyFolders.Any(x => x.ObjectData == binFolder))
             {
-                LogInfo("AE.ResolveBinaryFolders:: Add binary folder {0}"._G(binFolder));
+                LogInfo("ResolveBinaryFolders", "Add binary folder {0}"._G(binFolder));
 
                 //add specified binary folder
                 _environmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, binFolder));
@@ -308,7 +356,7 @@ namespace qshine.Configuration.ConfigurationStore
                     if (Directory.Exists(versionPath) && !_environmentConfigure.AssemblyFolders.Any(x => x.ObjectData == versionPath))
                     {
                         //EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, versionPath));
-                        LogInfo("AE.ResolveBinaryFolders:: Found version path {0}"._G(versionPath));
+                        LogInfo("ResolveBinaryFolders", "Found version path {0}"._G(versionPath));
                         //Search for sub folder
                         ResolveBinaryFolders(versionPath);
                         break;
@@ -320,7 +368,7 @@ namespace qshine.Configuration.ConfigurationStore
                 if (Directory.Exists(cpuArchitecturePath) && !_environmentConfigure.AssemblyFolders.Any(x => x.ObjectData == cpuArchitecturePath))
                 {
                     //EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, cpuArchitecturePath));
-                    LogInfo("AE.ResolveBinaryFolders:: Found CPU Architecture path {0}"._G(cpuArchitecturePath));
+                    LogInfo("ResolveBinaryFolders", "Found CPU Architecture path {0}"._G(cpuArchitecturePath));
                     //Search for sub folder
                     ResolveBinaryFolders(cpuArchitecturePath);
                 }
@@ -333,7 +381,7 @@ namespace qshine.Configuration.ConfigurationStore
                     if (Directory.Exists(targetDotNetFrameworkPath) && !_environmentConfigure.AssemblyFolders.Any(x => x.ObjectData == targetDotNetFrameworkPath))
                     {
                         //EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, targetDotNetFrameworkPath));
-                        LogInfo("AE.ResolveBinaryFolders:: Found DotNet target framework path {0}"._G(targetDotNetFrameworkPath));
+                        LogInfo("ResolveBinaryFolders", "Found DotNet target framework path {0}"._G(targetDotNetFrameworkPath));
                         //Search for sub folder
                         ResolveBinaryFolders(targetDotNetFrameworkPath);
                     }
@@ -347,7 +395,7 @@ namespace qshine.Configuration.ConfigurationStore
                     if (Directory.Exists(osPath) && !_environmentConfigure.AssemblyFolders.Any(x => x.ObjectData == osPath))
                     {
                         //EnvironmentConfigure.AssemblyFolders.Add(new StateObject<bool, string>(false, targetDotNetFrameworkPath));
-                        LogInfo("AE.ResolveBinaryFolders:: Found OS path {0}"._G(osPath));
+                        LogInfo("ResolveBinaryFolders" ,"Found OS path {0}"._G(osPath));
                         //Search for sub folder
                         ResolveBinaryFolders(osPath);
                     }
@@ -468,15 +516,21 @@ namespace qshine.Configuration.ConfigurationStore
             return _versionPaths;
         }
 
-        void LogInfo(string format, params object[] args)
+        void InnerError(string code, string message)
+        {
+            _environmentConfigure.BuildErrorHandler?.Invoke(messageCode.ToString(code), message);
+        }
+
+        void InnerWarning(string code, string message)
+        {
+            _environmentConfigure.BuildErrorHandler?.Invoke(messageCode.ToString(code), message);
+        }
+
+        void LogInfo(string code, string message)
         {
 
         }
 
-        void LogWarning(string format, params object[] args)
-        {
-
-        }
 
     }
 }

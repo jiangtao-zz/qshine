@@ -6,7 +6,7 @@ namespace qshine.Caching
     /// <summary>
     /// Cache interface
     /// </summary>
-	public interface ICache:IDisposable
+	public interface ICache:IDisposable,IProvider
 	{
 		/// <summary>
 		/// Get cached item by given key.
@@ -23,15 +23,15 @@ namespace qshine.Caching
 		/// <param name="absoluteExpiration">The time at which the inserted object expires and is removed from the cache. 
 		/// To avoid possible issues with local time such as changes from standard time to daylight saving time, 
 		/// use UtcNow instead of Now for this parameter value. If you are using absolute expiration, the slidingExpiration
-		/// parameter must be set to TimeSpan.Zero.</param>
+		/// parameter must be set to null.</param>
 		/// <param name="slidingExpiration">The interval between the time that the cached object was last accessed and the time
 		/// at which that object expires. If this value is the equivalent of 20 minutes, the object will expire and be removed 
 		/// from the cache 20 minutes after it was last accessed. If you are using sliding expiration, the absoluteExpiration 
-		/// parameter must be set to DateTime.MaxValue.</param>
+		/// parameter must be set to null.</param>
 		/// <param name="priority">The cost of the object relative to other items stored in the cache, as expressed by the
 		/// CacheItemPriority enumeration. This value is used by the cache when it evicts objects; objects with a lower cost 
 		/// are removed from the cache before objects with a higher cost.</param>
-		void Set(string key, object value, DateTime absoluteExpiration, TimeSpan slidingExpiration,  CacheItemPriority priority);
+		void Set(string key, object value, Nullable<DateTimeOffset> absoluteExpiration, Nullable<TimeSpan> slidingExpiration,  CacheItemPriority priority);
 
 		/// <summary>
 		/// Removes all items from the cache.

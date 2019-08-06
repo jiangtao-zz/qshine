@@ -368,8 +368,9 @@ namespace qshine
 			}
 			catch (Exception ex)
 			{
-				throw new IoCException(Resources.IoCExceptionRegisterModuleMessage, ex);
-			}
+				throw new IoCException("IoC error occurred while trying to register a module."._G(), ex);
+
+            }
 			return this;
 		}
 

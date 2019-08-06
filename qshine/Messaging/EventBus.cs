@@ -157,7 +157,7 @@ namespace qshine.Messaging
             {
                 if (!_factories.ContainsKey(name))
                 {
-                    var _busFactory = ApplicationEnvironment.GetProvider<IEventBusFactory>(name);
+                    var _busFactory = ApplicationEnvironment.Default.Services.GetProvider<IEventBusFactory>(name);
                     if (_busFactory != null)
                     {
                         lock (lockobj)

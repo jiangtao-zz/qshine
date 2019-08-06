@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using qshine.Configuration;
+using qshine.Globalization;
 
 namespace qshine
 {
@@ -45,8 +46,8 @@ namespace qshine
 			var factory = GetFactory(busName);
 			if (factory == null)
 			{
-				throw new InvalidProviderException(
-					string.Format(Globalization.Resources.InvalidCommandBusFactory, busName));
+                throw new InvalidProviderException(
+                    "Couldn't find a named [{0}] configuration command bus factory."._G(busName));
 			}
 			_bus = factory.Create();
 		}
@@ -72,7 +73,7 @@ namespace qshine
 
 			if (!_factories.ContainsKey(name))
 			{
-				var factory = ApplicationEnvironment.GetProvider<ICommandBusFactory>(name);
+				var factory = ApplicationEnvironment.Default.Services.GetProvider<ICommandBusFactory>(name);
 				if (factory == null)
 				{
 					return null;
@@ -135,7 +136,7 @@ namespace qshine
 				lock (_commandHandlerLock)
 				{
 					//Try to register all ICommandHandlers
-					var types = PluggableAssembly.SafeGetInterfacedTypes(typeof(ICommandHandler));
+					var types = ApplicationEnvironment.Default.PlugableAssemblies.SafeGetInterfacedTypes(typeof(ICommandHandler));
 					foreach (var type in types)
 					{
 						var typeArguments = type.GetOpenGenericTypes(typeof(ICommandHandler<>));

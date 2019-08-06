@@ -22,7 +22,7 @@ namespace qshine.Globalization {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace qshine.Globalization {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("qshine.Globalization.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace qshine.Globalization {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace qshine.Globalization {
         /// <summary>
         ///   Looks up a localized string similar to Couldn&apos;t find a configured named command bus factory ({0}:{1})..
         /// </summary>
-        internal static string InvalidCommandBusFactory {
+        public static string InvalidCommandBusFactory {
             get {
                 return ResourceManager.GetString("InvalidCommandBusFactory", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace qshine.Globalization {
         /// <summary>
         ///   Looks up a localized string similar to The IoC provider {0} is not found..
         /// </summary>
-        internal static string IoCExceptionProviderNotFound {
+        public static string IoCExceptionProviderNotFound {
             get {
                 return ResourceManager.GetString("IoCExceptionProviderNotFound", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace qshine.Globalization {
         /// <summary>
         ///   Looks up a localized string similar to IoC error occured while trying register a type {0}..
         /// </summary>
-        internal static string IoCExceptionRegisterMessage {
+        public static string IoCExceptionRegisterMessage {
             get {
                 return ResourceManager.GetString("IoCExceptionRegisterMessage", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace qshine.Globalization {
         /// <summary>
         ///   Looks up a localized string similar to IoC error occurred while trying to register a module..
         /// </summary>
-        internal static string IoCExceptionRegisterModuleMessage {
+        public static string IoCExceptionRegisterModuleMessage {
             get {
                 return ResourceManager.GetString("IoCExceptionRegisterModuleMessage", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace qshine.Globalization {
         /// <summary>
         ///   Looks up a localized string similar to IoC error occured while trying register a type {0} with a name {1}..
         /// </summary>
-        internal static string IoCExceptionRegisterNameMessage {
+        public static string IoCExceptionRegisterNameMessage {
             get {
                 return ResourceManager.GetString("IoCExceptionRegisterNameMessage", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace qshine.Globalization {
         /// <summary>
         ///   Looks up a localized string similar to Castle Windsor configuration registration should be done earlier than  any other type registration..
         /// </summary>
-        internal static string IoCExceptionRegisterSectionFirstMessage {
+        public static string IoCExceptionRegisterSectionFirstMessage {
             get {
                 return ResourceManager.GetString("IoCExceptionRegisterSectionFirstMessage", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace qshine.Globalization {
         /// <summary>
         ///   Looks up a localized string similar to IoC error occured while trying to register types through a XML configuration section {0}. .
         /// </summary>
-        internal static string IoCExceptionRegisterSectionMessage {
+        public static string IoCExceptionRegisterSectionMessage {
             get {
                 return ResourceManager.GetString("IoCExceptionRegisterSectionMessage", resourceCulture);
             }
@@ -126,7 +126,7 @@ namespace qshine.Globalization {
         /// <summary>
         ///   Looks up a localized string similar to IoC error occured while trying to resolve all registered type {0}..
         /// </summary>
-        internal static string IoCExceptionResolveAllMessage {
+        public static string IoCExceptionResolveAllMessage {
             get {
                 return ResourceManager.GetString("IoCExceptionResolveAllMessage", resourceCulture);
             }
@@ -135,7 +135,7 @@ namespace qshine.Globalization {
         /// <summary>
         ///   Looks up a localized string similar to IoC error occured while trying to resolve type {0}..
         /// </summary>
-        internal static string IoCExceptionResolveMessage {
+        public static string IoCExceptionResolveMessage {
             get {
                 return ResourceManager.GetString("IoCExceptionResolveMessage", resourceCulture);
             }
@@ -144,16 +144,25 @@ namespace qshine.Globalization {
         /// <summary>
         ///   Looks up a localized string similar to IoC error occured while trying to resolve type {0} with a specific name {1}..
         /// </summary>
-        internal static string IoCExceptionResolveNamedMessage {
+        public static string IoCExceptionResolveNamedMessage {
             get {
                 return ResourceManager.GetString("IoCExceptionResolveNamedMessage", resourceCulture);
             }
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to My Test {0}.
+        /// </summary>
+        public static string My_Test__0_ {
+            get {
+                return ResourceManager.GetString("My Test {0}", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The section {0} is not found. Check the section name and section handler type..
         /// </summary>
-        internal static string SectionNotFound {
+        public static string SectionNotFound {
             get {
                 return ResourceManager.GetString("SectionNotFound", resourceCulture);
             }
@@ -162,7 +171,7 @@ namespace qshine.Globalization {
         /// <summary>
         ///   Looks up a localized string similar to The type {0} is not found..
         /// </summary>
-        internal static string TypeNotFound {
+        public static string TypeNotFound {
             get {
                 return ResourceManager.GetString("TypeNotFound", resourceCulture);
             }
