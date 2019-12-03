@@ -1,4 +1,5 @@
-﻿using System;
+﻿using qshine.Domain;
+using System;
 
 namespace qshine.Audit
 {
@@ -7,6 +8,11 @@ namespace qshine.Audit
     /// </summary>
     public interface IAuditable
     {
+        /// <summary>
+        /// Get entity Id
+        /// </summary>
+        EntityIdType Id { get;}
+
         /// <summary>
         /// When the entity created. Always use utc date.
         /// </summary>

@@ -12,8 +12,8 @@ namespace qshine.Audit
     /// Usuage:
     /// 
     ///  var people = peopleRepository.Load("john");
-    ///  var auditAddtion = ContextManager.Current.GetData("auditParameters");
-    ///  var auditTrail = new EntityAudit(people, auditAddtion);
+    ///  var auditAddition = ContextManager.Current.GetData("auditParameters");
+    ///  var auditTrail = new EntityAudit(people, auditAddition);
     ///  
     ///  people.Some = "changed";
     ///  peopleRepository.Save(people);
@@ -22,7 +22,7 @@ namespace qshine.Audit
     ///  
     /// </summary>
     public class EntityAudit<T>
-        where T: AuditableEntity
+        where T: IAuditable
     {
         static string MaperName = CommonMapperName.AuditEntityNameMapper.ToString();
         static EntityAudit()
@@ -52,8 +52,9 @@ namespace qshine.Audit
         public EntityAudit(string entityName, T entity, object additionalInfo = null)
         {
             _entityName = entityName;
-            _originalEntity = entity;
+            _originalEntity = entity.Serialize();
             _additionalInfo = additionalInfo;
+            _id = entity.Id;
         }
         /// <summary>
         /// Create entity audit service for particular entity object.
@@ -129,13 +130,13 @@ namespace qshine.Audit
         /// <remarks>
         /// The application can pass the addition audit information associate to the entity.
         /// </remarks>
-        protected void LogAuditTrail(AuditActionType action, T oldEntity, T newEntity)
+        protected void LogAuditTrail(AuditActionType action, string oldEntity, T newEntity)
         {
             //get difference of two entities
-            var differ = new JsonDiffer(oldEntity, newEntity);
+            var differ = new JsonDiffer(oldEntity, newEntity.Serialize());
             var dataDiff = differ.GetDiff();
 
-            string entityId = action == AuditActionType.Delete ? oldEntity.Id.ToString() : newEntity.Id.ToString();
+            string entityId = _id.ToString();
 
             //Create audit trail object
             var auditTrail = new AuditTrail
@@ -165,8 +166,9 @@ namespace qshine.Audit
 
         #region private
         readonly string _entityName;
-        readonly T _originalEntity;
+        readonly string _originalEntity;
         readonly object _additionalInfo;
+        readonly EntityIdType _id;
         EventBus _eventBus;
 
         /// <summary>

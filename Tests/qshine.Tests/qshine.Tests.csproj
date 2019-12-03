@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="AuditTrailTests.cs" />
     <Compile Include="CacheTests.cs" />
     <Compile Include="CommandBusTests.cs" />
     <Compile Include="CompilerTests.cs" />
@@ -36,7 +37,9 @@
     <Compile Include="LocalStringTests.cs" />
     <Compile Include="logTests.cs" />
     <Compile Include="ObjectExtenstionTests.cs" />
+    <Compile Include="TestEntity.cs" />
     <Compile Include="TestObject1.cs" />
+    <Compile Include="UriExtensionTests.cs" />
     <Compile Include="UtilityTests.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -46,6 +46,9 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Transactions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Web" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   
@@ -72,6 +75,7 @@
     <Compile Include="Configuration\ApplicationEnvironmentBuilder.cs" />
     <Compile Include="Configuration\ApplicationEnvironmentContext.cs" />
     <Compile Include="Configuration\ConfigurationException.cs" />
+    <Compile Include="Configuration\ConfigurationStore\CommandlineConfigurationSetting.cs" />
     <Compile Include="Configuration\ConfigurationStore\XmlConfigurationStore.cs" />
     <Compile Include="Configuration\ConnectionString.cs" />
     <Compile Include="Configuration\EnvironmentInitializationOption.cs" />
@@ -136,6 +140,17 @@
     <Compile Include="Specification\BusinessValidationRule.cs" />
     <Compile Include="Specification\Validator.cs" />
     <Compile Include="Utility\AssemblyExtension.cs" />
+    <Compile Include="Utility\AsyncHelper.cs" />
+    <Compile Include="Utility\DictionaryExtension.cs" />
+    <Compile Include="Utility\Http\CommonContentType.cs" />
+    <Compile Include="Utility\Http\HttpHeaderNames.cs" />
+    <Compile Include="Utility\Http\HttpHelper.cs" />
+    <Compile Include="Utility\Http\MimeTypeMap.cs" />
+    <Compile Include="Utility\Http\RequestMethod.cs" />
+    <Compile Include="Utility\Http\WebApiHelper.cs" />
+    <Compile Include="Utility\Http\WebApiRequest.cs" />
+    <Compile Include="Utility\Http\WebApiResponse.cs" />
+    <Compile Include="Utility\Http\WebApiResult.cs" />
     <Compile Include="Utility\NamedMapper.cs" />
     <Compile Include="Messaging\EventBus.cs" />
     <Compile Include="Messaging\EventBusNames.cs" />
@@ -286,6 +301,8 @@
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="applicationDesigner\Security\" />
+    <Folder Include="Security\" />
     <Folder Include="Specification\CommonRule\" />
   </ItemGroup>
 

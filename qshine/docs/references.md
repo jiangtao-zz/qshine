@@ -6,7 +6,13 @@
 
 [Design and Pattern](https://sourcemaking.com/antipatterns)
 
+[Light](https://www.networknt.com/architecture/gateway/)
+
 ## CQRS
 
 [Martin Fowler. CQRS](https://martinfowler.com/bliki/CQRS.html) 
+
+## Pattern
+
+[MS Pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/)
 

@@ -38,7 +38,21 @@ namespace qshine.Tests
                 (context, configure) =>
                 {
                     configure.LoadConfigFile("app.config",null);
+                    configure.AddCommandline(new string[] {"/k1","v1", "-k2", "v2", "--k3","v3",
+                        "k4=v4", "/k5=v5", "-k6=v6" });
                 }).Build();
+        }
+
+        [TestMethod()]
+        public void LoadConfig_AddCommandline()
+        {
+            var configure = app.EnvironmentConfigure;
+            Assert.AreEqual("v1", configure.AppSettings["k1"]);
+            Assert.AreEqual("v2", configure.AppSettings["k2"]);
+            Assert.AreEqual("v3", configure.AppSettings["k3"]);
+            Assert.AreEqual("v4", configure.AppSettings["k4"]);
+            Assert.AreEqual("v5", configure.AppSettings["k5"]);
+            Assert.AreEqual("v6", configure.AppSettings["k6"]);
         }
 
 

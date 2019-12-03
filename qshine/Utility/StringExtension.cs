@@ -55,5 +55,34 @@ namespace qshine.Utility
             return match.Success;
         }
 
+        /// <summary>
+        /// Convert to Base64 string
+        /// </summary>
+        /// <param name="source">Source string</param>
+        /// <param name="encoding">Encoding method. The default is ASCII encoding</param>
+        /// <returns>Return encoded bas64 string</returns>
+        public static string ToBase64(this string source, Encoding encoding = null)
+        {
+            Encoding textEncoding = encoding ?? System.Text.ASCIIEncoding.ASCII;
+            byte[] data = textEncoding.GetBytes(source);
+            return Convert.ToBase64String(data);
+        }
+
+        /// <summary>
+        /// Convert to base64 string url 
+        /// </summary>
+        /// <param name="source">source string</param>
+        /// <param name="encoding">Encoding method. The default is UTF8 encoding</param>
+        /// <returns></returns>
+        public static string ToBase64Url(this string source, Encoding encoding = null)
+        {
+            Encoding textEncoding = encoding ?? System.Text.ASCIIEncoding.UTF8;
+            byte[] data = textEncoding.GetBytes(source);
+
+            return Convert.ToBase64String(data)
+                      .Replace('+', '-')
+                      .Replace('/', '_')
+                      .Replace("=", "");
+        }
     }
 }

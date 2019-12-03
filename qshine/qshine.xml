@@ -112,8 +112,8 @@
             Usuage:
             
              var people = peopleRepository.Load("john");
-             var auditAddtion = ContextManager.Current.GetData("auditParameters");
-             var auditTrail = new EntityAudit(people, auditAddtion);
+             var auditAddition = ContextManager.Current.GetData("auditParameters");
+             var auditTrail = new EntityAudit(people, auditAddition);
              
              people.Some = "changed";
              peopleRepository.Save(people);
@@ -170,7 +170,7 @@
             The default event bus name is ebus.AuditTrail.
             </summary>
         </member>
-        <member name="M:qshine.Audit.EntityAudit`1.LogAuditTrail(qshine.Audit.AuditActionType,`0,`0)">
+        <member name="M:qshine.Audit.EntityAudit`1.LogAuditTrail(qshine.Audit.AuditActionType,System.String,`0)">
             <summary>
             Log audit entity audit trail.
             It will get the difference of original and updated entity values 
@@ -195,6 +195,11 @@
         <member name="T:qshine.Audit.IAuditable">
             <summary>
             Auditable entity interface
+            </summary>
+        </member>
+        <member name="P:qshine.Audit.IAuditable.Id">
+            <summary>
+            Get entity Id
             </summary>
         </member>
         <member name="P:qshine.Audit.IAuditable.CreatedOn">
@@ -541,6 +546,8 @@
                 ApplicationEnvironment.Default.MapProvider<ICache>("unitTestCache*", cache);
                 
                 var testObject1 = Cache.GetOrSet("unitTestCache.key1", ()=>{return MyUnitTetstLoadData();}, TimeSpan.FromMinutes(5));
+                
+            
                 
             ]]>
             </summary>
@@ -1050,6 +1057,36 @@
             <summary>
             Gete a list of Exception
             </summary>
+        </member>
+        <member name="T:qshine.Configuration.ConfigurationStore.CommandlineConfigurationLoader">
+            <summary>
+            EnvironmentConfigure extension to Load XML formatted configure files
+            </summary>
+        </member>
+        <member name="M:qshine.Configuration.ConfigurationStore.CommandlineConfigurationLoader.AddCommandline(qshine.Configuration.EnvironmentConfigure,System.String[])">
+            <summary>
+            Load XML formatted application configure files
+            </summary>
+            <param name="config">environment configure instance</param>
+            <param name="args">commandline args</param>
+        </member>
+        <member name="T:qshine.Configuration.ConfigurationStore.CommandlineConfigurationSetting">
+            <summary>
+            Commandline arguments setting
+            </summary>
+        </member>
+        <member name="M:qshine.Configuration.ConfigurationStore.CommandlineConfigurationSetting.#ctor(qshine.Configuration.EnvironmentConfigure)">
+            <summary>
+            Ctor.
+            </summary>
+            <param name="configure"></param>
+        </member>
+        <member name="M:qshine.Configuration.ConfigurationStore.CommandlineConfigurationSetting.Load(System.String[])">
+            <summary>
+            Load environment variables
+            key1=value1 -key2=value2 /key3=value3 -key4 value4 /key5 value5 --key6=value6 --key7 value7
+            </summary>
+            <param name="args"></param>
         </member>
         <member name="T:qshine.Configuration.ConfigurationStore.XmlConfigurationLoader">
             <summary>
@@ -6771,6 +6808,746 @@
             <param name="interfacedType">Specifies an interface to be lookup.</param>
             <returns>A list of class types which implemented a given interface or base class.</returns>
         </member>
+        <member name="T:qshine.Utility.AsyncHelper">
+            <summary>
+            Help to run async method as Sync
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.AsyncHelper.RunSync``1(System.Func{System.Threading.Tasks.Task{``0}})">
+            <summary>
+            Wrap an async method in sync call
+            </summary>
+            <typeparam name="TResult">Type of the result from async task</typeparam>
+            <param name="func">async method call</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.AsyncHelper.RunSync(System.Func{System.Threading.Tasks.Task})">
+            <summary>
+            Wrap an async function in sync call
+            </summary>
+            <param name="func">async function call</param>
+        </member>
+        <member name="T:qshine.Utility.DictionaryExtension">
+            <summary>
+            IDictionary extension
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.DictionaryExtension.AddOrUpdate``2(System.Collections.Generic.IDictionary{``0,``1},``0,``1)">
+            <summary>
+            Add a new dictionary item or update existing item by the key.
+            </summary>
+            <typeparam name="TKey">Type of key</typeparam>
+            <typeparam name="TValue">Type of value</typeparam>
+            <param name="dictionary">dictionary instance</param>
+            <param name="key">item key</param>
+            <param name="value">item value</param>
+        </member>
+        <member name="M:qshine.Utility.DictionaryExtension.GetString``2(System.Collections.Generic.IDictionary{``0,``1},``0,System.String)">
+            <summary>
+            Get a string value from dictionary regardless key exists or not.
+            </summary>
+            <typeparam name="TKey">Key type</typeparam>
+            <typeparam name="TValue">value type</typeparam>
+            <param name="dictionary">Dictionary</param>
+            <param name="key">dictionary key.</param>
+            <param name="defaultValue">returns default value if key doesn't exist.</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.DictionaryExtension.GetCastValue``3(System.Collections.Generic.IDictionary{``0,``1},``0,``2)">
+            <summary>
+            Cast a dictionary value to given type value regardless key exists or not.
+            </summary>
+            <typeparam name="TKey">Dictionary key type</typeparam>
+            <typeparam name="TValue">Dictionary value type</typeparam>
+            <typeparam name="T">Cast result type</typeparam>
+            <param name="dictionary">Dictionary</param>
+            <param name="key">dictionary key.</param>
+            <param name="defaultValue">returns default value if key doesn't exist.</param>
+            <returns></returns>
+        </member>
+        <member name="T:qshine.Utility.Http.CommonContentType">
+            <summary>
+            Define common html content type.
+            The completed list of context type could be found in 
+            <a href="https://www.iana.org/assignments/media-types/media-types.xhtml">IANA</a>
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.UnDefined">
+            <summary>
+            Undefined
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.Unknown">
+            <summary>
+            Default - undefined type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.PlainText">
+            <summary>
+            Json content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.Json">
+            <summary>
+            Json content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.Xml">
+            <summary>
+            XML content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.XmlUtf8">
+            <summary>
+            XML Utf-8 encoded content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.Xhtml">
+            <summary>
+            XHTML content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.Binary">
+            <summary>
+            Binary content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.Jpeg">
+            <summary>
+            Jpeg image content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.Png">
+            <summary>
+            Png image content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.Pdf">
+            <summary>
+            PDF content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.MsExcel">
+            <summary>
+            MS Excel (xls) content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.MsWord">
+            <summary>
+            MS Word (doc) content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.MsPpt">
+            <summary>
+            MS Powerpoint (ppt) content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.OpenExcel">
+            <summary>
+            MS/Open Excel (xlsx) content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.OpenWord">
+            <summary>
+            MS/Open Word (docx) content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.OpenPpt">
+            <summary>
+            MS/Open Powerpoint (pptx) content type
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.MultipartFormData">
+            <summary>
+            multipart form data content type 
+            <a href="https://tools.ietf.org/html/rfc7578">[RFC7578]</a>
+            It's best to send binary data along with form data.
+            You must choose boundary string text uniquely that does not occur in any of the data.
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.FormUrlencoded">
+            <summary>
+            Default application form urlencoded context type.
+            This is the most form format for text and binary.
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.CommonContentType.MultipartMixed">
+            <summary>
+            multipart mixed data content type. One of common multipart message 
+            <a href="https://tools.ietf.org/html/rfc2045">[RFC2045]</a>
+            <a href="https://tools.ietf.org/html/rfc2046">[RFC2046]</a>
+            </summary>
+        </member>
+        <member name="T:qshine.Utility.Http.HttpHeaderNames">
+            <summary>
+            Common name of http header
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.HttpHeaderNames.ContentType">
+            <summary>
+            ContextType header name
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.HttpHeaderNames.AuthorizationBasic">
+            <summary>
+            Authorization header Basic sub-name
+            </summary>
+        </member>
+        <member name="F:qshine.Utility.Http.HttpHeaderNames.AuthorizationBearer">
+            <summary>
+            Authorization header Bear sub-name
+            </summary>
+        </member>
+        <member name="T:qshine.Utility.Http.HttpExtension">
+            <summary>
+            Uri
+            
+            1. uri.AbsoluteUri/uri.AbsolutePath - Encode a uri human readable text to http valid URI.
+            
+            2. HtmlEncode - Encode a http valid URI to HTML qualified URI which can be added in HTML href tag.
+            (Note: In web environment Html encoded string will be converted to a valid Uri by HTML render or browser. No code required to decode Html encoded Uri)
+            3. UrlDecode - Decode a valid URI to human readable Uri
+            3. ParseQueryString  - Parse a decoded uri query string to a list of name/value pairs
+            
+            
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.Http.HttpExtension.AppendPath(System.Uri,System.String)">
+            <summary>
+            Create a new Uri with a relative path
+            </summary>
+            <param name="uri">base Uri</param>
+            <param name="path">relative path</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.HttpExtension.AddQuery(System.Uri,System.String,System.String)">
+            <summary>
+            Add query
+            </summary>
+            <param name="uri">Uri</param>
+            <param name="name">query argument name</param>
+            <param name="value">query argument value</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.HttpExtension.GetQualifiedUri(System.Uri,System.String)">
+            <summary>
+            Convert a human readable URL to a valid URL string
+            </summary>
+            <param name="uri">Uri object</param>
+            <param name="originalUrl">original Url string.
+            If the original Url is null or empty, it will encode full Uri
+            </param>
+            <example>
+            <![CDATA[
+            Example:
+            http://my.domain.com/path1/path2/file1 name.html?p1=v1 v11&p2=v2 v22 &p3=v3+v33#abc=xyz
+            ]]>
+            </example>
+            <returns>returns a valid URI string</returns>
+        </member>
+        <member name="M:qshine.Utility.Http.HttpExtension.ParseQueryString(System.Uri)">
+            <summary>
+            Parse Uri query string to a list of arguments
+            </summary>
+            <param name="uri">Uri</param>
+            <returns>Return a key/value pair collection.</returns>
+        </member>
+        <member name="T:qshine.Utility.Http.MimeTypeMap">
+            <summary>
+            Mime type and file exte
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.Http.MimeTypeMap.GetMimeMapping(System.String)">
+            <summary>
+            Get mapped mime type from a file path
+            </summary>
+            <param name="fileName">file path</param>
+            <returns></returns>
+        </member>
+        <member name="F:qshine.Utility.Http.MimeTypeMap.MimeMappingDictionaryBase">
+            <summary>
+            A list from https://github.com/samuelneff/MimeTypeMap
+            </summary>
+        </member>
+        <member name="T:qshine.Utility.Http.RequestMethod">
+            <summary>
+            Http Request Method
+            </summary>
+        </member>
+        <member name="T:qshine.Utility.Http.WebApiHelper">
+            <summary>
+            Help to make RESTful web api call from the desktop/web application.
+            
+            var apiHelper = new WebApiHelper("https://streetviewpublish.googleapis.com/v1");
+            
+            apiHelper.NewGetRequest("photo/{photoId}")
+                .
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.#ctor">
+            <summary>
+            Defaul Ctro.
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.#ctor(System.String)">
+            <summary>
+            Create an instance with base uri for api call.
+            </summary>
+            <param name="baseUri">base uri</param>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.#ctor(System.Uri)">
+            <summary>
+            Create an instance with base uri for api call.
+            </summary>
+            <param name="baseUri">base uri</param>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.#ctor(System.Uri,System.Net.Http.HttpClient)">
+            <summary>
+            Create an instance wth base uri and HttpClient instance pass from outside
+            </summary>
+            <param name="baseUri"></param>
+            <param name="httpClient"></param>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.RequestUri(System.String)">
+            <summary>
+            Convert to a request Uri.
+            </summary>
+            <param name="uri">It could be a relative uri or absolute uri</param>
+            <returns>returns an absolute Uri </returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.NewGetRequest(System.String)">
+            <summary>
+            Create a GET request
+            </summary>
+            <param name="uri">request uri. It could be a relative uri or absolute uri</param>
+            <returns>Return a new GET api request.</returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.NewPostRequest(System.String)">
+            <summary>
+            Create a POST request
+            </summary>
+            <param name="uri">request uri. It could be a relative uri or absolute uri</param>
+            <returns>Return a new POST api request.</returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.NewPutRequest(System.String)">
+            <summary>
+            Create a PUT request
+            </summary>
+            <param name="uri">request uri. It could be a relative uri or absolute uri</param>
+            <returns>Return a new POST api request.</returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.NewPatchRequest(System.String)">
+            <summary>
+            Create a PATCH request
+            </summary>
+            <param name="uri">request uri. It could be a relative uri or absolute uri</param>
+            <returns>Return a new PATCH api request.</returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.NewDeleteRequest(System.String)">
+            <summary>
+            Create a DELETE request
+            </summary>
+            <param name="uri">request uri. It could be a relative uri or absolute uri</param>
+            <returns>Return a new DELETE api request.</returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.NewHeadRequest(System.String)">
+            <summary>
+            Create a HEAD request
+            </summary>
+            <param name="uri">request uri. It could be a relative uri or absolute uri</param>
+            <returns>Return a new HEAD api request.
+            Teh HEAD request similar as GET request but without the response body
+            </returns>
+        </member>
+        <member name="P:qshine.Utility.Http.WebApiHelper.HttpClient">
+            <summary>
+            Get HttpClient instance
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.Dispose(System.Boolean)">
+            <summary>
+            
+            </summary>
+            <param name="disposing"></param>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiHelper.Dispose">
+            <summary>
+             This code added to correctly implement the disposable pattern.
+            </summary>
+        </member>
+        <member name="T:qshine.Utility.Http.WebApiRequest">
+            <summary>
+            Web Api request message
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.#ctor(qshine.Utility.Http.WebApiHelper,System.Net.Http.HttpMethod,System.Uri)">
+            <summary>
+            Create a web api request
+            </summary>
+            <param name="apiHelper">Api helper</param>
+            <param name="method">http request method/action</param>
+            <param name="uri">http request Uri</param>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.AppendPath(System.String)">
+            <summary>
+            Append a relative path in request url
+            </summary>
+            <param name="path">Uri relative path</param>
+            <example>
+                request.AppendPath("/student/{studient_id}");
+            </example>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.AddPathParam(System.String,System.String)">
+            <summary>
+            Add a path parameter.
+            The path parameter is a placeholder enclosed in braces ({}).
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value.</param>
+            <example>
+            URI: http://localhost/api/student/{stduient_id}/
+                request.AddPathParam("studient_id", 12345);
+                
+            The request URI will be: http://localhost/api/student/12345/
+            </example>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.AddQueryParam(System.String,System.String)">
+            <summary>
+            Add a query parameter.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value.</param>
+            <remarks>
+            The request can have more than one parameters with the same same. In this case, the named parameter actually is an array.
+            Example,
+            .AddQueryParam("names","Apple")
+            .AddQueryParam("names","Orange")
+            </remarks>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.AddQueryParamIf(System.String,System.String)">
+            <summary>
+            Add a query parameter if value is not blank.
+            </summary>
+            <param name="name">The parameter name.</param>
+            <param name="value">The parameter value.</param>
+            <remarks>
+            The request can have more than one parameters with the same same. In this case, the named parameter actually is an array.
+            Example,
+            .AddQueryParam("names","Apple")
+            .AddQueryParam("names","Orange")
+            </remarks>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.BasicAuthorization(System.String,System.String)">
+            <summary>
+            Set Basic Authorization header
+            </summary>
+            <param name="username">User name</param>
+            <param name="password">Password</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.BearerAuthorization(System.String)">
+            <summary>
+            Set Bearer Token Authorization header.
+            </summary>
+            <param name="token">Authorization token. OAuth2 uses this Bearer token for authorization.</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.AddHeader(System.String,System.String)">
+            <summary>
+            Add a request header
+            </summary>
+            <param name="key">Http header key</param>
+            <param name="value">Http header value</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.ContentType(System.String)">
+            <summary>
+            Set http content type header. 
+            The completed list of context type could be found in <a href="https://www.iana.org/assignments/media-types/media-types.xhtml">IANA</a>
+            </summary>
+            <param name="mimeType">MIME type of http context type.</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.AddCookie(System.String,System.String)">
+            <summary>
+            Add/update a cookie key value
+            </summary>
+            <param name="key">Cookie parameter key name</param>
+            <param name="value">Cookie parameter value associated to a key.</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.ContentType(qshine.Utility.Http.CommonContentType)">
+            <summary>
+            Explicitly set request body data content type.
+            If BodyDataType is not set explictly, the system will set data conent type based on the data type.
+            </summary>
+            <param name="type">data content type.</param>
+            <remarks>
+            The body data could be parameterized added by AddBodyProperty() or directly set by BodyRaw().
+            If choose BodyRaw, you can set any type of content type, but make sure the raw data format match to content type.
+            If the raw data type is object, it will be serialized to json or xml if content type if json or xml.
+            If choose AddBodyProeprty(), it only support below common content type:
+                1. Json
+                2. Xml
+                3. Xml8utf
+                4. FormUrlencoded
+                5. MultipartFormData or MultipartMixed
+                Other type may ignore and a system selected type will be applied.
+            </remarks>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.AcceptContentType(qshine.Utility.Http.CommonContentType)">
+            <summary>
+            Accept a specific response content type.
+            </summary>
+            <param name="acceptType">Http request accept type.
+            https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept
+            </param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.AcceptContentType(System.String)">
+            <summary>
+            Accept a specific response content type
+            </summary>
+            <param name="acceptType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.Boundary(System.String)">
+            <summary>
+            Overwrite multipart boundary string.
+            A default boundary is generated automatically from a guid.
+            </summary>
+            <param name="boundary">boundary text</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.AddBodyProperty(System.String,System.Object)">
+            <summary>
+            Add a property name and value into the body.
+            The body could contains property and value list in ApplicationFormUrlencoded, MultipartFormData or JSON style.
+            </summary>
+            <param name="name">The property name.</param>
+            <param name="value">The property value.
+            The property could be different type: int, string, float/double, ...
+            </param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.AddBodyProperty(System.String,System.Object,qshine.Utility.Http.CommonContentType)">
+            <summary>
+            Add a property name and value into the body with a given data type.
+            This only for multipart mixed body data type.
+            Each proeprty is a separated part.
+            </summary>
+            <param name="name">The property name.</param>
+            <param name="value">The property value.</param>
+            <param name="type">Type of object data
+            The property could be different types: int, string, float/double, binary...
+            </param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.AddBodyPropertyIf(System.String,System.Object)">
+            <summary>
+            Add a property name and value into the body if the value is not blank.
+            The body could contains property and value list in ApplicationFormUrlencoded, MultipartFormData or JSON style.
+            </summary>
+            <param name="name">The property name.</param>
+            <param name="value">The property value.
+            The property could be different type: int, string, float/double, ...
+            </param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.AddFile(System.String)">
+            <summary>
+            Upload file
+            </summary>
+            <param name="filePath">file full path</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.BodyRaw(System.Object)">
+            <summary>
+            Add raw data in body.
+            </summary>
+            <param name="bodyData">Raw data.
+            The type of body Data could be:
+            String, for text, json or xml
+            Stream, for stream
+            FileStream, for file
+            byte[], for array bytes
+            any typed objectfor json/xml
+            </param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.JsonBody``1(``0,qshine.JsonFormat,qshine.JsonFormatSetting)">
+            <summary>
+            Add Json data in http body
+            </summary>
+            <typeparam name="T">Type of the object</typeparam>
+            <param name="bodyData">The object to be json format</param>
+            <param name="jsonFormat">Json specific format</param>
+            <param name="setting">Json formatting setting for object serialization</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.XmlBody``1(``0,System.Text.Encoding)">
+            <summary>
+            Add Json data in http body
+            </summary>
+            <typeparam name="T">Type of the object</typeparam>
+            <param name="bodyData">The object to be json format</param>
+            <param name="encoding">XML encodeing. The default is UTF8</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.GetRequestUri">
+            <summary>
+            Get request path
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:qshine.Utility.Http.WebApiRequest.RequestMessage">
+            <summary>
+            Form a HttpRequestMessage instance from given arguments
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.SendAsync(System.Threading.CancellationToken)">
+            <summary>
+            Send a web api request as an asyn
+            </summary>
+            <param name="cancellationToken"></param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.Send">
+            <summary>
+            Send a web api request and wait it responses
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.SetUrlFormDataRequestMessage">
+            <summary>
+            Simple form url encoded content
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiRequest.SetMultipartDataRequestMessage">
+            <summary>
+            set multi-part
+            </summary>
+        </member>
+        <member name="T:qshine.Utility.Http.WebApiResponse">
+            <summary>
+            Web api response
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiResponse.#ctor(System.Net.Http.HttpResponseMessage)">
+            <summary>
+            
+            </summary>
+            <param name="response"></param>
+        </member>
+        <member name="P:qshine.Utility.Http.WebApiResponse.ResponseMessage">
+            <summary>
+            Get original Http response message instance
+            </summary>
+        </member>
+        <member name="P:qshine.Utility.Http.WebApiResponse.IsSuccessStatusCode">
+            <summary>
+            Determine response error or success.
+            </summary>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiResponse.GetByteArray">
+            <summary>
+            Get byte array data
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiResponse.GetFileName">
+            <summary>
+            Get file name from http response header Content-Disposition.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiResponse.DownloadAsync(System.String)">
+            <summary>
+            Download a file.
+            </summary>
+            <param name="fileName">File name to be saved. 
+            Default name is from response.</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiResponse.GetText">
+            <summary>
+            Get text result
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiResponse.GetTextAsync">
+            <summary>
+            Get text result in async
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiResponse.GetJsonData``1">
+            <summary>
+            Parse json formatted response content to typed object
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.Http.WebApiResponse.GetJsonResult``1(System.Action{``0,System.Collections.Generic.Dictionary{System.String,System.Object}})">
+            <summary>
+            Retrieve json formatted response content to WebApiResult typed object by mapping
+            </summary>
+            <typeparam name="T">Typeof result</typeparam>
+            <param name="map">mapping json dictionary to typed object property</param>
+            <returns></returns>
+        </member>
+        <member name="P:qshine.Utility.Http.WebApiResponse.CommonContentType">
+            <summary>
+            Get common content type
+            </summary>
+        </member>
+        <member name="T:qshine.Utility.Http.WebApiResult">
+            <summary>
+            Web api result
+            </summary>
+        </member>
+        <member name="P:qshine.Utility.Http.WebApiResult.IsSuccess">
+            <summary>
+            Indicates a successful web api request
+            </summary>
+        </member>
+        <member name="P:qshine.Utility.Http.WebApiResult.HttpStatusCode">
+            <summary>
+            OAuth2 HTTP response code.
+            A successful request always return 200.
+            A failed request returns 400 status code (unless specified otherwise)
+            </summary>
+        </member>
+        <member name="P:qshine.Utility.Http.WebApiResult.ErrorType">
+            <summary>
+            Error type
+            </summary>
+        </member>
+        <member name="P:qshine.Utility.Http.WebApiResult.ErrorCode">
+            <summary>
+            Error code if the OAuth2 token is invalid
+            </summary>
+        </member>
+        <member name="P:qshine.Utility.Http.WebApiResult.ErrorDescription">
+            <summary>
+            Detail error description
+            </summary>
+        </member>
+        <member name="P:qshine.Utility.Http.WebApiResult.ErrorUrl">
+            <summary>
+            A URL for invalid OAuth2 token
+            </summary>
+        </member>
+        <member name="P:qshine.Utility.Http.WebApiResult.Data">
+            <summary>
+            Raw data from request
+            </summary>
+        </member>
         <member name="T:qshine.Utility.NamedMapper">
              <summary>
              Name mapper is a utility to help mapping a given object to particular text.
@@ -6928,6 +7705,22 @@
             </summary>
             <param name="source">Text to be matching</param>
             <param name="pattern">Regular expression</param>
+            <returns></returns>
+        </member>
+        <member name="M:qshine.Utility.StringExtension.ToBase64(System.String,System.Text.Encoding)">
+            <summary>
+            Convert to Base64 string
+            </summary>
+            <param name="source">Source string</param>
+            <param name="encoding">Encoding method. The default is ASCII encoding</param>
+            <returns>Return encoded bas64 string</returns>
+        </member>
+        <member name="M:qshine.Utility.StringExtension.ToBase64Url(System.String,System.Text.Encoding)">
+            <summary>
+            Convert to base64 string url 
+            </summary>
+            <param name="source">source string</param>
+            <param name="encoding">Encoding method. The default is UTF8 encoding</param>
             <returns></returns>
         </member>
         <member name="T:qshine.IIocContainer">

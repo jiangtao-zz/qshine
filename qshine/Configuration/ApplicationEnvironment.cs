@@ -32,9 +32,10 @@ namespace qshine.Configuration
         {
             get
             {
-                //return new ApplicationEnvironment(ApplicationEnvironmentContext.GetContext(""));
+                if(_defaultApplicationEnvironment == null)
+                    _defaultApplicationEnvironment  = new ApplicationEnvironment(ApplicationEnvironmentContext.GetContext(""));
 
-                Check.HaveValue(_defaultApplicationEnvironment, "ApplicationEnvironment.Default");
+                //Check.HaveValue(_defaultApplicationEnvironment, "ApplicationEnvironment.Default");
 
                 return _defaultApplicationEnvironment;
             }

@@ -30,6 +30,8 @@ namespace qshine.Messaging
     /// </summary>
     public class EventBus
     {
+        static Interceptor _interceptor = Interceptor.Get<EventBus>();
+
         IEventBus _bus;
         IEventBusFactory _busFactory;
 
@@ -83,10 +85,17 @@ namespace qshine.Messaging
         public void Publish<T> (T eventMessage)
             where T : IEventMessage
         {
-            var bus = Bus;
+            int method()
+            {
+                var bus = Bus;
+                if (bus != null)
+                {
+                    bus.Publish(eventMessage);
+                }
+                return 0;
+            }
 
-            if(bus!=null)
-                bus.Publish(eventMessage);
+            _interceptor.JoinPoint(method, this, "Publish", Bus, eventMessage);
         }
 
         /// <summary>

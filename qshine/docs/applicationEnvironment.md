@@ -2,24 +2,28 @@
 Application environment configuration are the system wide settings that affect application running in deployed environment. 
 
 Environment settings could contain application config files and dependency components.
-The config files and components could locate in different folder. The application will search all the configure folders by configure setting.
+The config files and components could locate in different folder. The application will search all the configure folders based on each configure setting.
 
 The environment config files could be shared by many applications running in same host. Different level config files (folders) form a hierarchy of application settings. 
 The setting hierarchy overwrite the variable from higher to lower as default. The setting overwritten options can be specified by ApplicationEnvironmentInitializationOption.
 
-The application environment library provide services for environment variable settings, dependency (pluggable) component settings, Startup and mapping service.
+The application environment component provides environment variable settings, dependency (pluggable) component settings, start up and mapping service.
 
 The ApplicationEnvironment configure file could be formatted differently. The common configure file formats are:
 
     .NET app config XML file format (default format)
     .NET Core JSON file format
+    .CommandLine
 
-## Environment config file format
-The environment config is a typical .NET application config file which contains application configuration environment section.
+## Environment configure file format
+The environment config file is a typical .NET application config file which contains application configuration environment section.
 
 ```xml	
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
 	<configSections>
-		<section name="appEnv" type="qshine.Configuration.Environment, Qshine.Framework" />
+		<!-- qshine environment config section -->
+		<section name="appEnv" type="qshine.Configuration.EnvironmentSection, qshine" />
 	</configSections>
 
 	<!--environment setting -->
@@ -37,9 +41,35 @@ The environment config is a typical .NET application config file which contains 
 			<environment name="production" path="c:/globalSetting/production/config" host="PRODUCTION_SERVER_NAME"/>
 		</environments>
 	</appEnv>
+...
 ``` 
 
 ---
+
+## Commandline arguments configure setting
+The application environment setting variables could be configured through commandline arguments.
+
+The common key argument is prefixed with one to many dash ("-") or slash("/"). The followed argument is a value.
+The key and value could be in single argument separated by equal sign ("=").
+
+```
+    myApp.exe /key1=value1 -key2 value2 /key3 "value3 and more"
+
+```
+
+Use below code to configure commandline arguments as application environment setting.
+
+```C#
+            app = builder.Configure(
+                (context, configure) =>
+                {
+                    configure.AddCommandline(args);
+                }).Build();
+
+```
+
+---
+
 ## Environment
 
 The application environment is an infrastructure workspace to host an application with a collection of deployed components and dependency resources.
@@ -236,7 +266,7 @@ Get the environment variable in code:
 
 ```c#
 
-	var key0 = ApplicationEnvironment.Current["key0"];
+	var key0 = ApplicationEnvironment.Default["key0"];
 
 ```
 
@@ -309,7 +339,7 @@ Consume default plugin object in application code.
 
 ```c#
     //publish event message by plugin event bus.
-    var busProvider = ApplicationEnvironment.GetProvider<IEventBusProvider>();
+    var busProvider = ApplicationEnvironment.Default.GetProvider<IEventBusProvider>();
     var bus = busProvider.Create(busName);
     bus.Publish(myEvent);
 
@@ -319,7 +349,7 @@ Consume named plugin object in application code.
 
 ```c#
     //publish event message by plugin event bus.
-    var busProvider = ApplicationEnvironment.GetProvider<IEventBusProvider>("nservicebus");
+    var busProvider = ApplicationEnvironment.Default.GetProvider<IEventBusProvider>("nservicebus");
     var bus = busProvider.Create(busName);
     bus.Publish(myEvent);
 
@@ -331,7 +361,7 @@ Consume mapped plugin object in application code.
     //publish event message by plugin event bus based on busname.
     //if the bus name is not in mapped list, a default bus will be selected.
     //see map section
-    var busProvider = ApplicationEnvironment.GetProvider<IEventBusProvider>(busName);
+    var busProvider = ApplicationEnvironment.Default.GetProvider<IEventBusProvider>(busName);
     var bus = busProvider.Create(busName);
     bus.Publish(myEvent);
 
@@ -396,7 +426,7 @@ Example: select rabbitMQProvider provider as event bus
 
 ```c#
     var busName = "apInvoiceBus";
-    var busProvider = ApplicationEnvironment.GetProvider<IEventBusProvider>(busName);
+    var busProvider = ApplicationEnvironment.Default.GetProvider<IEventBusProvider>(busName);
     var bus = busProvider.Create(busName);
     bus.Publish(myEvent);
 
@@ -405,7 +435,7 @@ Example: select rabbitMQProvider provider as event bus
 Example: select default dbBusProvider provider as event bus
 
 ```c#
-    var busProvider = ApplicationEnvironment.GetProvider<IEventBusProvider>();
+    var busProvider = ApplicationEnvironment.Default.GetProvider<IEventBusProvider>();
     var bus = busProvider.Create("XYZ");
     bus.Publish(myEvent);
 
@@ -418,7 +448,7 @@ If the name is blank then it will select first available provider.
 Example: without maps collection below code is used to get dbBusProvider provider
 
 ```c#
-    var busProvider = ApplicationEnvironment.GetProvider<IEventBusProvider>("dbBusProvider");
+    var busProvider = ApplicationEnvironment.Default.GetProvider<IEventBusProvider>("dbBusProvider");
     var bus = busProvider.Create("XYZ");
     bus.Publish(myEvent);
 
@@ -438,13 +468,13 @@ Example: select plug-in components by partial name.
 ```
 
 ```c#
-    var esProvider1 = ApplicationEnvironment.GetProvider<IEventStoreProvider>("AP.Invoice.C1");
+    var esProvider1 = ApplicationEnvironment.Default.GetProvider<IEventStoreProvider>("AP.Invoice.C1");
     //esProvider1 is kafkaEventstore
 
-    var esProvider2 = ApplicationEnvironment.GetProvider<IEventStoreProvider>("AP.Invoice.C5");
+    var esProvider2 = ApplicationEnvironment.Default.GetProvider<IEventStoreProvider>("AP.Invoice.C5");
     //esProvider2 is XEventstore
 
-    var esProvider3 = ApplicationEnvironment.GetProvider<IEventStoreProvider>("AnyName");
+    var esProvider3 = ApplicationEnvironment.Default.GetProvider<IEventStoreProvider>("AnyName");
     //esProvider3 is eventstore
 
 ```

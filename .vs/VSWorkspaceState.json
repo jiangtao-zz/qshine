@@ -1,11 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\qshine\\Exception",
-    "\\qshine\\Specification",
-    "\\qshine\\Specification\\CommonRule",
-    "\\qshine\\Utility"
+    "\\qshine",
+    "\\qshine\\docs"
   ],
-  "SelectedNode": "\\qshine",
+  "SelectedNode": "\\qshine\\docs\\applicationCommon.md",
   "PreviewInSolutionExplorer": false
 }

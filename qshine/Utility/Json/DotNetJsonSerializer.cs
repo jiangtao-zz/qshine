@@ -93,13 +93,21 @@ namespace qshine
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
             if (!string.IsNullOrEmpty(jsonString))
             {
-                using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(jsonString.Replace("\r", "\\r").Replace("\n", "\\n"))))
+                //pre-handler javascript related characters
+                var encodedText = Encoding.UTF8.GetBytes(jsonString.Replace("\r", " ").Replace("\n", " "));
+
+                using (var reader = JsonReaderWriterFactory.CreateJsonReader(encodedText, XmlDictionaryReaderQuotas.Max))
                 {
-                    using (var reader = JsonReaderWriterFactory.CreateJsonReader(ms, new System.Xml.XmlDictionaryReaderQuotas()))
-                    {
-                        dictionary = ReadJsonXml(dictionary, reader, null, jsonFormat,setting);
-                    }
+                    dictionary = ReadJsonXml(dictionary, reader, null, jsonFormat, setting);
                 }
+
+                //using (var ms = new MemoryStream(encodedText))
+                //{
+                //    using (var reader = JsonReaderWriterFactory.CreateJsonReader(ms, new System.Xml.XmlDictionaryReaderQuotas()))
+                //    {
+                //        dictionary = ReadJsonXml(dictionary, reader, null, jsonFormat,setting);
+                //    }
+                //}
                 return ConvertToJsonDictionary(dictionary, jsonFormat, setting);
             }
             return dictionary;

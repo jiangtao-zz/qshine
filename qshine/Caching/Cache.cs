@@ -20,6 +20,8 @@ namespace qshine.Caching
     ///     
     ///     var testObject1 = Cache.GetOrSet("unitTestCache.key1", ()=>{return MyUnitTetstLoadData();}, TimeSpan.FromMinutes(5));
     ///     
+    /// 
+    ///     
     /// ]]>
     /// </summary>
     public class Cache

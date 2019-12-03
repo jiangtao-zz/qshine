@@ -25,7 +25,8 @@ namespace qshine.EventSourcing
         {
             if (eventStore == null)
             {
-                var provider = ApplicationEnvironment.Default.Services.GetProvider(typeof(IEventStoreProvider), aggregateName) as IEventStoreProvider;
+                var provider = ApplicationEnvironment.Default.
+                    Services.GetProvider(typeof(IEventStoreProvider), aggregateName) as IEventStoreProvider;
                 if (provider != null)
                 {
                     eventStore = provider.Create(aggregateName);

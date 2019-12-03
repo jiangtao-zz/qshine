@@ -170,33 +170,4 @@ namespace qshine.Caching
 			}
 		}
 	}
-
-	///// <summary>
-	///// In memory cache provider.
-	///// </summary>
-	//public class MemoryCacheProvider : ICacheProvider
-	//{
-	//	/// <summary>
-	//	/// Wrap .NET MemoryCache instance in this provider.
-	//	/// </summary>
-	//	/// <returns>Create .NET MemoryCache wrap instance.</returns>
-	//	/// <param name="name">Name of the cache store.</param>
-	//	/// <param name="limitMegabytes">Limit megabytes.</param>
-	//	/// <param name="physicalMemoryLimitPercentage">Physical memory limit percentage.</param>
-	//	/// <param name="pollingInterval">Polling interval in minutes. The cached item will be removed after polling interval time.</param>
-	//	public ICache Create(string name, int limitMegabytes, int physicalMemoryLimitPercentage, int pollingInterval)
-	//	{
-	//		return new MemoryCacheStore(name,limitMegabytes,physicalMemoryLimitPercentage,pollingInterval);
-	//	}
-
-	//	/// <summary>
-	//	/// Create a default cache instance.
-	//	/// </summary>
-	//	/// <returns>The create.</returns>
-	//	public ICache Create()
-	//	{
-	//		return new MemoryCacheStore();
-	//	}
-	//}
-
 }
