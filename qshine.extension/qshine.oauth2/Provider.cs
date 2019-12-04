@@ -181,11 +181,11 @@ namespace qshine.oauth2
         #region OAuth2 Authorization Code Grant With PKCE
 
         /// <summary>
-        /// Send OAuth2 Authorization Code Grant request to authorization server with PKCE for Native App user login.
+        /// Get OAuth2 Authorization Code Grant request to authorization server with PKCE for Native App user login.
         /// See RFC7636:: https://tools.ietf.org/html/rfc7636
         /// This is the extension of OAuth2 Authorization Code Grant.
         /// </summary>
-        /// <param name="callbackUri">A callback uri to receive authorization code from OAuth2 server.</param>
+        /// <param name="codeVerifier">A plain verifier code.</param>
         /// <param name="state">Any value used to maintain state between this request and callback request from authorization server. 
         /// The state can be used to aganst CSRF and also be used to persist data between original request and authorization code callback process
         /// </param>
@@ -198,7 +198,7 @@ namespace qshine.oauth2
         /// <remarks>
         /// See explain in https://www.oauth.com/oauth2-servers/server-side-apps/authorization-code/.
         /// </remarks>
-        public async Task<WebApiResponse> AuthorizationCodeGrantPKCE(string codeVerifier, string state, string scope, 
+        public string AuthorizationCodeGrantPkceUrl(string codeVerifier, string state, string scope, 
             bool isPlainPKCE=false, string responseMode="")
         {
 
@@ -216,18 +216,18 @@ namespace qshine.oauth2
                 }
             }
 
-            return await
+            return 
                 _webApiHelper
                 .NewGetRequest(_authorizationUri)
-                .AddBodyProperty("response_type", "code")
-                .AddBodyPropertyIf("response_mode", responseMode)
-                .AddBodyProperty("scope", scope)
-                .AddBodyProperty("state", state)
-                .AddBodyProperty("redirect_uri", CallbackUrl)
-                .AddBodyProperty("client_id", _clientId)
-                .AddBodyProperty("code_challenge_method", isPlainPKCE?"plain": "S256")
-                .AddBodyProperty("code_challenge", codeChallenger)
-                .SendAsync();
+                .AddQueryParam("response_type", "code")
+                .AddQueryParamIf("response_mode", responseMode)
+                .AddQueryParam("scope", scope)
+                .AddQueryParam("state", state)
+                .AddQueryParam("redirect_uri", CallbackUrl)
+                .AddQueryParam("client_id", _clientId)
+                .AddQueryParam("code_challenge_method", isPlainPKCE?"plain": "S256")
+                .AddQueryParam("code_challenge", codeChallenger)
+                .GetRequestUri().AbsoluteUri;
         }
 
         /// <summary>
@@ -254,8 +254,9 @@ namespace qshine.oauth2
         /// </param>
         /// <param name="code">An authorization code received from callbackUri in previous request.</param>
         /// <param name="code_verifier">A code verifier originally sent to retrieve the code</param>
+        /// <param name="needClientSecretKey">Indicates client secret key required. In some system the client secret key is still required</param>
         /// <returns>Returns a token contains authorization token and refresh token and expires in seconds.</returns>
-        public async Task<OAuth2Token> GetTokenByAuthorizationCodePKCE(string code, string codeVerifier)
+        public async Task<OAuth2Token> GetTokenByAuthorizationCodePKCE(string code, string codeVerifier, bool needClientSecretKey)
         {
             var request = _webApiHelper
                 .NewPostRequest(_tokenUri)
@@ -263,6 +264,7 @@ namespace qshine.oauth2
                 .AddBodyProperty("code", code)
                 .AddBodyProperty("redirect_uri", CallbackUrl)
                 .AddBodyProperty("client_id", _clientId)
+                .AddBodyPropertyIf("client_secret", needClientSecretKey?_clientSecret:"")
                 .AddBodyProperty("code_verifier", codeVerifier);
 
             var response = await request.SendAsync();

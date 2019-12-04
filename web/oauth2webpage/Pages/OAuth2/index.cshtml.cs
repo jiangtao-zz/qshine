@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using qshine.Caching;
 using qshine.oauth2;
 using qshine.Utility;
 
@@ -13,36 +14,37 @@ namespace oauth2webpage
 
     public class OAuth2Model : PageModel
     {
-        static IOAuth2Provider _oauth2Provider;
+        IOAuth2Provider _oauth2Provider;
+        ICache _cache;
+
+        public OAuth2Model(IOAuth2Provider oauth2Provider, ICache cache)
+        {
+            _oauth2Provider = oauth2Provider;
+            _cache = cache;
+        }
+
+
+        //ApplicationEnvironment.Default.MapProvider<ICache>("unitTestCache*", cache);
 
         [TempData]
         public string Message { get; set; }
 
         public IActionResult OnGet()
         {
-            if (_oauth2Provider == null)
-            {
-                qshine.Configuration.ApplicationEnvironment.Build();
 
-                _oauth2Provider = qshine.Configuration.ApplicationEnvironment.
-                    Default.Services.GetProvider<IOAuth2Provider>("google");
+            var state = "1"+_oauth2Provider.GenerateUniqueId();
+            var requestUrl = _oauth2Provider.AuthorizationCodeGrantUrl(state, "email");
+            return Redirect(requestUrl);
+        }
 
-                /*new Provider(
-                "Google Login",//name:
-                "https://accounts.google.com",//baseUri: or authority
-                "https://accounts.google.com/o/oauth2/auth",//authorizationUri:
-                tokenUri: "https://oauth2.googleapis.com/token",
-                resourceUri: "https://accounts.google.com/o/oauth2/auth",
-                revocationUri: "https://accounts.google.com/o/oauth2/auth",
-                clientId: "341533428512-nunuqidp95dsp1h067ga4l9hqnl96qh0.apps.googleusercontent.com",
-                clientSecret: "M_Aa9d1Hbzao5MNS_6w1-uQg",
-                clientAuthorizationMethod: "Basic",
-                callbackUrl: "https://localhost:44399/OAuth2/Code");*/
-            }
+        public IActionResult OnGetPkce()
+        {
+            var state = "2"+_oauth2Provider.GenerateUniqueId();
+            var verifier = _oauth2Provider.GenerateUniqueId();
+            _cache.Set(state, verifier, null, new TimeSpan(1, 0, 0), CacheItemPriority.Default);
+            var requestUrl = _oauth2Provider.AuthorizationCodeGrantPkceUrl(verifier, state, "email");
 
-            var reqestUrl = _oauth2Provider.AuthorizationCodeGrantUrl("MyKey", "email");
-
-            return Redirect(reqestUrl);
+            return Redirect(requestUrl);
         }
 
         /// <summary>
@@ -51,11 +53,24 @@ namespace oauth2webpage
         /// <returns></returns>
         public async Task OnGetCodeAsync()
         {
-
-
             var code = Request.Query["code"];
 
-            var token = await _oauth2Provider.GetTokenByAuthorizationCode(code);
+            string state = Request.Query["state"];
+
+            OAuth2Token token = null;
+            if (state.StartsWith("1"))
+            {
+                token = await _oauth2Provider.GetTokenByAuthorizationCode(code);
+            }
+            else if (state.StartsWith("2"))
+            {
+                var verifier = _cache.Get(state).ToString();
+                token = await _oauth2Provider.GetTokenByAuthorizationCodePKCE(code, verifier, true);
+            }
+            else
+            {
+                throw new NotImplementedException("Unknow state");
+            }
 
             int scopesNumber = 0;
             string scopes = "";

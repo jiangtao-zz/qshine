@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using qshine.Caching;
+using qshine.oauth2;
 
 namespace oauth2webpage
 {
@@ -17,6 +19,8 @@ namespace oauth2webpage
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            //Add qshine
+            qshine.Configuration.ApplicationEnvironment.Build();
         }
 
         public IConfiguration Configuration { get; }
@@ -31,6 +35,9 @@ namespace oauth2webpage
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddSingleton<ICache, MemoryCacheProvider>();
+            services.AddSingleton<IOAuth2Provider>(qshine.Configuration.ApplicationEnvironment.
+                    Default.Services.GetProvider<IOAuth2Provider>("google"));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
@@ -54,6 +61,7 @@ namespace oauth2webpage
             app.UseCookiePolicy();
 
             app.UseMvc();
+
         }
     }
 }

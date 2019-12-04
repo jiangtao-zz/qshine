@@ -54,11 +54,11 @@ namespace qshine.oauth2
         #region OAuth2 Authorization Code Grant With PKCE
 
         /// <summary>
-        /// Send OAuth2 Authorization Code Grant request to authorization server with PKCE for Native App user login.
+        /// Get OAuth2 Authorization Code Grant request to authorization server with PKCE for Native App user login.
         /// See RFC7636:: https://tools.ietf.org/html/rfc7636
         /// This is the extension of OAuth2 Authorization Code Grant.
         /// </summary>
-        /// <param name="callbackUri">A callback uri to receive authorization code from OAuth2 server.</param>
+        /// <param name="codeVerifier">A plain verifier code.</param>
         /// <param name="state">Any value used to maintain state between this request and callback request from authorization server. 
         /// The state can be used to aganst CSRF and also be used to persist data between original request and authorization code callback process
         /// </param>
@@ -71,7 +71,7 @@ namespace qshine.oauth2
         /// <remarks>
         /// See explain in https://www.oauth.com/oauth2-servers/server-side-apps/authorization-code/.
         /// </remarks>
-        Task<WebApiResponse> AuthorizationCodeGrantPKCE(string codeVerifier, string state, string scope,
+        string AuthorizationCodeGrantPkceUrl(string codeVerifier, string state, string scope,
             bool isPlainPKCE = false, string responseMode = "");
 
         /// <summary>
@@ -88,8 +88,10 @@ namespace qshine.oauth2
         /// </param>
         /// <param name="code">An authorization code received from callbackUri in previous request.</param>
         /// <param name="code_verifier">A code verifier originally sent to retrieve the code</param>
+        /// <param name="needClientSecretKey">Indicates client secret key required</param>
         /// <returns>Returns a token contains authorization token and refresh token and expires in seconds.</returns>
-        Task<OAuth2Token> GetTokenByAuthorizationCodePKCE(string code, string codeVerifier);
+        Task<OAuth2Token> GetTokenByAuthorizationCodePKCE(string code, string codeVerifier, bool needClientSecretKey = false);
+
         #endregion
 
         #region OAuth2 Password Grant - Legacy Limited Use.
